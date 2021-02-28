@@ -22,6 +22,21 @@ class General {
   }
 
   /**
+   * maps values from Generator using callbackFn
+   * @param {Generator<any, any, U>} generator generator to map
+   * @param {(value:U) => T} callbackFn function to be called for every value from range
+   * @returns {T[]}
+   * @template T, U
+   */
+  static * mapGenerator (generator, callbackFn) {
+    while (true) {
+      const next = generator.next();
+      if (next.done) return;
+      yield callbackFn(next.value);
+    }
+  }
+
+  /**
    * @typedef {Generator<number,void,null>} Range
    */
 
