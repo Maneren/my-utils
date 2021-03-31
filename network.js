@@ -4,18 +4,6 @@ const { last } = A;
 
 class Network {
   /**
-   * makes request to specific url via proxy
-   * (uses request-promise-native)
-   * @param {string} url target url
-   * @param {object} options request options
-   * @param {string} proxy url of proxy
-   * @returns {Promise<string>} Promise with result of request
-   */
-  static async requestWithProxy (url, options, proxy) {
-    return await request(`${proxy}/${url}`, { ...options });
-  }
-
-  /**
    * splits url into prefix, domain, page and parameters
    * @param {string} url
    * @returns {{ prefix: string, domain: string, page: string, parameters: {string, string} }} parsed url

@@ -3,8 +3,5 @@
   "version": "0.1.0",
   "main": "index.js",
   "author": "Maneren",
-  "license": "ISC",
-  "dependencies": {
-    "request-promise-native": "^1.0.9"
-  }
+  "license": "ISC"
 }
