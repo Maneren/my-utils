@@ -12,5 +12,15 @@ class React {
     });
     return modules;
   }
+
+  static classListBuilder (styles) {
+    return function (classNames) {
+      const classesList = Array.isArray(classNames) ? classNames : classNames.split(' ');
+      return classesList.map(x => styles[x])
+        .filter(x => x)
+        .join(' ');
+    };
+  }
 }
+
 export default React;
