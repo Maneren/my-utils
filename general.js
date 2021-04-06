@@ -22,6 +22,18 @@ class General {
   }
 
   /**
+   * returns random float from min to max.
+   * if only min is specified, it returns float from 0 to min
+   * @param {number} min lower bound (inclusive)
+   * @param {number} [max] upper bound (exclusive)
+   * @returns {number}
+   */
+  static randfloat (min, max) {
+    if (max === undefined) return Math.random() * min; // if max is not specified treat min as max
+    else return min + (Math.random() * (max - min));
+  }
+
+  /**
    * maps values from Generator using callbackFn
    * @param {Generator<any, any, U>} generator generator to map
    * @param {(value:U) => T} callbackFn function to be called for every value from range
