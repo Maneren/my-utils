@@ -1,6 +1,6 @@
 import Range from './range';
 
-class A {
+class Array {
   /**
    * swaps elements in the array (mutates original)
    * @param {Array} array
@@ -21,7 +21,7 @@ class A {
    * @template T
    */
   static deepCopy (array) {
-    return array.map(el => (el instanceof Array) ? A.deepCopy(el) : el);
+    return array.map(el => (el instanceof Array) ? Array.deepCopy(el) : el);
   }
 
   /**
@@ -32,9 +32,9 @@ class A {
    */
   static shuffle (array) {
     for (let i = 0; i < array.length * 2; i++) {
-      const a = A.randomIndex(array);
-      const b = A.randomIndex(array);
-      A.swap(array, a, b);
+      const a = Array.randomIndex(array);
+      const b = Array.randomIndex(array);
+      Array.swap(array, a, b);
     }
     return array;
   }
@@ -55,7 +55,7 @@ class A {
    * @template T
    */
   static last (array) {
-    return array[A.lastI(array)];
+    return array[Array.lastI(array)];
   }
 
   /**
@@ -90,8 +90,8 @@ class A {
   static toFixedLengthArr (array, length, callbackFn = _ => undefined) {
     return [
       ...array,
-      ...A.generateArr(length - array.length, callbackFn)
+      ...Array.generateArr(length - array.length, callbackFn)
     ];
   }
 }
-export default A;
+export default Array;
