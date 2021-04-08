@@ -1,4 +1,4 @@
-import General from './general';
+import Range from './range';
 
 class A {
   /**
@@ -75,7 +75,7 @@ class A {
    * @template T
    */
   static generateArr (length, callbackFn = _ => undefined) {
-    const { range, mapRng } = General;
+    const { range, mapRng } = Range;
     return mapRng(range(length), callbackFn);
   }
 
