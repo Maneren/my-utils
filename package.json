@@ -5,7 +5,8 @@
   "author": "Maneren",
   "license": "ISC",
   "scripts": {
-    "test": "semistandard & jest"
+    "test": "semistandard && jest -i",
+    "test-watch": "jest --watchAll -i"
   },
   "semistandard": {
     "env": [
