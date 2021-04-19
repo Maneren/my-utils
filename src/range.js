@@ -1,38 +1,46 @@
 class Range {
   /**
-   * @typedef {Generator<number,void,null>} Range
+   * @typedef {Generator<T = number,void,null>} Range
    */
 
   /**
    * returns generator, which yields numbers from min to max with defined step
    * if only min is specified, it yields numbers from 0 to min
-   * @param {number} min lower bound (inclusive)
-   * @param {number} [max] upper bound (exclusive)
-   * @param {number} [step]
+   * @param {number} start lower bound (inclusive)
+   * @param {number} end upper bound (exclusive)
+   * @param {number} step
    * @returns {Range}
    */
-  static * range (min, max, step) {
-    if (max === undefined) for (let i = 0; i < min; i++) yield i; // if only min specified, then min is used as max
-    else if (step === undefined) for (let i = min; i < max; i++) yield i;
-    else for (let i = min; i < max; i += step) yield i;
+  static * range (start, end, step) {
+    if (end === undefined) {
+      // if only start is specified, then go from 0 to "start"
+      end = start;
+      start = 0;
+    }
+
+    if (step === undefined) step = 1;
+
+    if (step < 0) {
+      if (start < end) throw new Error('when step is lower than 0, start must be larger than end');
+
+      for (let i = start; i > end; i += step) yield i;
+    } else {
+      for (let i = start; i < end; i += step) yield i;
+    }
   }
 
   /**
-   * maps values from Range to values via callbackFn
+   * maps values from Range to array via callbackFn
    * @param {Range} range range to map
    * @param {(value:number, index:number) => T} callbackFn function to be called for every value from range
    * @returns {T[]}
    * @template T
    */
   static mapRng (range, callbackFn) {
+    const { mapGenerator } = require('./general');
     const result = [];
-    let i = 0;
-    while (true) {
-      const next = range.next();
-      if (next.done) return result;
-      result.push(callbackFn(next.value, i));
-      i++;
-    }
+    for (const value of mapGenerator(range, callbackFn)) result.push(value);
+    return result;
   }
 
   /**
@@ -52,4 +60,5 @@ class Range {
     return total;
   }
 }
-export default Range;
+
+module.exports = Range;

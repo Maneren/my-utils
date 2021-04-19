@@ -10,18 +10,6 @@ class General {
   }
 
   /**
-   * returns random integer from min to max.
-   * if only min is specified, it returns integer from 0 to min
-   * @param {number} min lower bound (inclusive)
-   * @param {number} [max] upper bound (exclusive)
-   * @returns {number}
-   */
-  static randint (min, max) {
-    if (max === undefined) return Math.round(Math.random() * min); // if max is not specified treat min as max
-    else return Math.ceil(min + (Math.random() * (max - min)));
-  }
-
-  /**
    * returns random float from min to max.
    * if only min is specified, it returns float from 0 to min
    * @param {number} min lower bound (inclusive)
@@ -29,8 +17,26 @@ class General {
    * @returns {number}
    */
   static randfloat (min, max) {
-    if (max === undefined) return Math.random() * min; // if max is not specified treat min as max
-    else return min + (Math.random() * (max - min));
+    if (max === undefined && min === undefined) throw new Error('no arguments');
+    // if max is not specified treat min as max
+    if (max === undefined) {
+      max = min;
+      min = 0;
+    }
+    if (typeof min !== 'number' || typeof max !== 'number') throw new TypeError(`invalid arguments: "${[...arguments].join(',')}"`);
+    if (min > max) throw new Error('lowerbound must be smaller than upper bound');
+    return min + (Math.random() * (max - min));
+  }
+
+  /**
+   * returns random integer from min to max.
+   * if only min is specified, it returns integer from 0 to min
+   * @param {number} min lower bound (inclusive)
+   * @param {number} [max] upper bound (exclusive)
+   * @returns {number}
+   */
+  static randint (min, max) {
+    return Math.floor(General.randfloat(...arguments));
   }
 
   /**
@@ -41,11 +47,8 @@ class General {
    * @template T, U
    */
   static * mapGenerator (generator, callbackFn) {
-    while (true) {
-      const next = generator.next();
-      if (next.done) return;
-      yield callbackFn(next.value);
-    }
+    for (const value of generator) yield callbackFn(value);
   }
 }
-export default General;
+
+module.exports = General;

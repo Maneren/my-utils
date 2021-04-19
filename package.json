@@ -3,5 +3,18 @@
   "version": "0.2.1",
   "main": "index.js",
   "author": "Maneren",
-  "license": "ISC"
+  "license": "ISC",
+  "scripts": {
+    "test": "semistandard && jest -i",
+    "test-watch": "jest --watchAll -i"
+  },
+  "semistandard": {
+    "env": [
+      "jest"
+    ]
+  },
+  "devDependencies": {
+    "jest": "^26.6.3",
+    "jest-mock-random": "^1.1.1"
+  }
 }

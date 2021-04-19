@@ -1,4 +1,4 @@
-import Range from './range';
+const Range = require('./range');
 
 class Array {
   /**
@@ -26,17 +26,18 @@ class Array {
 
   /**
    * shuffles Array
-   * @param {T[]} array array to be shuffled
+   * @param {T[]} shuffled array to be shuffled
    * @returns {T[]} new shuffled array
    * @template T
    */
   static shuffle (array) {
-    for (let i = 0; i < array.length * 2; i++) {
-      const a = Array.randomIndex(array);
-      const b = Array.randomIndex(array);
-      Array.swap(array, a, b);
+    const shuffled = [...array];
+    for (let i = 0; i < shuffled.length * 2; i++) {
+      const a = Array.randomIndex(shuffled);
+      const b = Array.randomIndex(shuffled);
+      Array.swap(shuffled, a, b);
     }
-    return array;
+    return shuffled;
   }
 
   /**
@@ -70,12 +71,17 @@ class Array {
   /**
    * creates new array populated with values from function
    * @param {Number} length length of the new array
-   * @param {(index:number) => T} [callbackFn] function which is called for every element (default is undefined)
+   * @param {T | (index:number) => T} [callbackFn] value or function which returns value of every element
    * @returns {T[]}
    * @template T
    */
-  static generateArr (length, callbackFn = _ => undefined) {
+  static generateArr (length, callbackFn = undefined) {
     const { range, mapRng } = Range;
+
+    if (!(callbackFn instanceof Function)) {
+      return mapRng(range(length), () => callbackFn);
+    }
+
     return mapRng(range(length), callbackFn);
   }
 
@@ -94,4 +100,5 @@ class Array {
     ];
   }
 }
-export default Array;
+
+module.exports = Array;
