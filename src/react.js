@@ -1,14 +1,14 @@
 class React {
   static importAll (requireContext, preserveExtension = false) {
     const modules = {};
-    requireContext.keys().forEach(pathToFile => {
+    Object.keys(requireContext).forEach(pathToFile => {
       let basename;
       if (preserveExtension) {
         basename = pathToFile.match(/[^/]*(\.?[^/\s]*(\.\w+))/)[0];
       } else {
         basename = pathToFile.match(/[^/]+?(?=\.\w+$)/)[0];
       }
-      modules[basename] = requireContext(pathToFile).default;
+      modules[basename] = requireContext[pathToFile].default;
     });
     return modules;
   }
@@ -16,11 +16,12 @@ class React {
   static classListBuilder (styles) {
     return function (classNames) {
       const classesList = Array.isArray(classNames) ? classNames : classNames.split(' ');
-      return classesList.map(x => styles[x])
+      return classesList
+        .map(x => styles[x])
         .filter(x => x)
         .join(' ');
     };
   }
 }
 
-export default React;
+module.exports = React;
