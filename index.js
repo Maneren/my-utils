@@ -1,8 +1,8 @@
-import Array from './array';
-import General from './general';
-import Network from './network';
-import React from './react';
-import Range from './range';
+import Array from './src/array';
+import General from './src/general';
+import Network from './src/network';
+import React from './src/react';
+import Range from './src/range';
 
 const Utils = { Array, General, Network, React, Range };
 export default Utils;
