@@ -1,4 +1,4 @@
-const { swap, last, lastI, generateArr, shuffle, randomIndex, toFixedLengthArr } = require('../src/array');
+const { Array: { swap, last, lastI, generateArr, shuffle, randomIndex, toFixedLengthArr } } = require('../');
 const { mockRandom, resetMockRandom } = require('jest-mock-random');
 
 test('swap', () => {

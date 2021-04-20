@@ -1,4 +1,4 @@
-const { importAll, classListBuilder } = require('../src/react');
+const { React: { importAll, classListBuilder } } = require('../');
 
 test('importAll', () => {
   const testRequireContext = {

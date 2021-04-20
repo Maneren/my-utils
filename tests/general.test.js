@@ -1,5 +1,5 @@
 const { mockRandom, resetMockRandom } = require('jest-mock-random');
-const { randint, randfloat, mapGenerator } = require('../src/general');
+const { General: { randint, randfloat, mapGenerator } } = require('../');
 
 test('randfloat', () => {
   mockRandom([0.0, 0.255, 0.5189, 0.7564]);

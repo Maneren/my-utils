@@ -1,4 +1,4 @@
-const { range, mapRng, reduceRng } = require('../src/range');
+const { Range: { range, mapRng, reduceRng } } = require('../');
 
 test('range', () => {
   const testRange1 = range(3);

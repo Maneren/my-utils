@@ -1,8 +1,7 @@
-import Array from './src/array';
-import General from './src/general';
-import Network from './src/network';
-import React from './src/react';
-import Range from './src/range';
+const Array = require('./src/array');
+const General = require('./src/general');
+const Range = require('./src/range');
+const React = require('./src/react');
 
-const Utils = { Array, General, Network, React, Range };
-export default Utils;
+const Utils = { Array, General, Range, React };
+module.exports = Utils;
