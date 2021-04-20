@@ -1,14 +1,16 @@
 class React {
   static importAll (requireContext, preserveExtension = false) {
     const modules = {};
-    Object.keys(requireContext).forEach(pathToFile => {
+    requireContext.keys().forEach(pathToFile => {
       let basename;
+
       if (preserveExtension) {
         basename = pathToFile.match(/[^/]*(\.?[^/\s]*(\.\w+))/)[0];
       } else {
         basename = pathToFile.match(/[^/]+?(?=\.\w+$)/)[0];
       }
-      modules[basename] = requireContext[pathToFile].default;
+
+      modules[basename] = requireContext(pathToFile).default;
     });
     return modules;
   }

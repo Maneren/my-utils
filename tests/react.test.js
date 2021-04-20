@@ -1,13 +1,21 @@
 const { React: { importAll, classListBuilder } } = require('../');
 
 test('importAll', () => {
-  const testRequireContext = {
+  const data = {
     './path/to/file.js': {
       default: 'console.log("hello")'
     },
     './path/to/another_file.txt': {
       default: 'text in the file'
     }
+  };
+
+  const testRequireContext = function (id) {
+    return data[id];
+  };
+
+  testRequireContext.keys = () => {
+    return Object.keys(data);
   };
 
   const modulesWithoutExtensions = importAll(testRequireContext, false);
