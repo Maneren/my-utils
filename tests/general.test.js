@@ -1,5 +1,14 @@
 const { mockRandom, resetMockRandom } = require('jest-mock-random');
-const { General: { randint, randfloat, mapGenerator } } = require('../');
+const { General: { sleep, randint, randfloat, mapGenerator } } = require('../');
+
+test('sleep', async () => {
+  const start = Date.now();
+  await sleep(1000);
+  const end = Date.now();
+  const delta = end - start;
+  expect(delta).toBeGreaterThanOrEqual(1000);
+  expect(delta).toBeLessThan(1050);
+});
 
 test('randfloat', () => {
   mockRandom([0.0, 0.255, 0.5189, 0.7564]);
