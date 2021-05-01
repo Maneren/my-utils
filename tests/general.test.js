@@ -19,7 +19,7 @@ test('randfloat', () => {
   expect(randfloat(-10, 0)).toBe(-2.436);
   expect(() => randfloat()).toThrow('no arguments');
   expect(() => randfloat('1')).toThrow('invalid arguments: "1"');
-  expect(() => randfloat(10, 0)).toThrow('lowerbound must be smaller than upper bound');
+  expect(() => randfloat(10, 0)).toThrow('lower bound must be smaller than upper bound');
 
   resetMockRandom();
 });
@@ -33,7 +33,7 @@ test('randint', () => {
   expect(randint(-10, 0)).toBe(-3);
   expect(() => randint()).toThrow('no arguments');
   expect(() => randint('1')).toThrow('invalid arguments: "1"');
-  expect(() => randint(10, 0)).toThrow('lowerbound must be smaller than upper bound');
+  expect(() => randint(10, 0)).toThrow('lower bound must be smaller than upper bound');
 
   resetMockRandom();
 });

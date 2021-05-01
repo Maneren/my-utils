@@ -24,7 +24,7 @@ class General {
       min = 0;
     }
     if (typeof min !== 'number' || typeof max !== 'number') throw new TypeError(`invalid arguments: "${[...arguments].join(',')}"`);
-    if (min > max) throw new Error('lowerbound must be smaller than upper bound');
+    if (min > max) throw new Error('lower bound must be smaller than upper bound');
     return min + (Math.random() * (max - min));
   }
 
