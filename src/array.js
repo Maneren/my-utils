@@ -86,17 +86,18 @@ class Array {
   }
 
   /**
-   * extends all arrays in array to specified length, calling the callback for every new element
-   * @param {T[][]} array
-   * @param {number} length length to which are the arrays going to be extended
-   * @param {(index:number) => U} [callbackFn] function which is called for every new element (default is _ => undefined)
-   * @returns {(T|U)[][]}
+   * return new array extended to specified length (but not shortened if longer)
+   * @param {T[]} array
+   * @param {number} length final length of the array
+   * @param {(U | (index:number) => U)} [callback] value or function which returns value of every new element
+   * @returns {(T | U)[]} new array
    * @template T, U
    */
-  static toFixedLengthArr (array, length, callbackFn = _ => undefined) {
+  static rightPadArray (array, length, callback) {
+    if (array.length > length) return [...array];
     return [
       ...array,
-      ...Array.generateArr(length - array.length, callbackFn)
+      ...Array.generateArr(length - array.length, callback)
     ];
   }
 }

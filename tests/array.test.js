@@ -1,4 +1,4 @@
-const { Array: { swap, last, lastI, generateArr, shuffle, randomIndex, toFixedLengthArr } } = require('../');
+const { Array: { swap, last, lastI, generateArr, shuffle, randomIndex, rightPadArray } } = require('../');
 const { mockRandom, resetMockRandom } = require('jest-mock-random');
 
 test('swap', () => {
@@ -57,8 +57,8 @@ test('generateArr', () => {
   expect(testArray2).toStrictEqual([0, 0, 0, 0, 0]);
 });
 
-test('toFixedLengthArr', () => {
-  const array = generateArr(3, x => x);
-  const padded = toFixedLengthArr(array, 5, x => x);
+test('rightPadArray', () => {
+  const array = generateArr(3, x => x); // [0, 1, 2]
+  const padded = rightPadArray(array, 5, x => x);
   expect(padded).toStrictEqual([0, 1, 2, 0, 1]);
 });
