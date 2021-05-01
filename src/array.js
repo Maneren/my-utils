@@ -76,6 +76,7 @@ class Array {
    * @template T
    */
   static generateArr (length, callbackFn = undefined) {
+    if (length <= 0) throw new Error('length can\'t be less than 1');
     const { range, mapRng } = Range;
 
     if (!(callbackFn instanceof Function)) {

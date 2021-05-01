@@ -55,6 +55,8 @@ test('generateArr', () => {
 
   const testArray2 = generateArr(5, 0);
   expect(testArray2).toStrictEqual([0, 0, 0, 0, 0]);
+
+  expect(() => generateArr(-1, 10)).toThrow('length can\'t be less than 1');
 });
 
 test('rightPadArray', () => {

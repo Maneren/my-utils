@@ -24,6 +24,11 @@ test('range', () => {
   expect(testRange4.next().value).toBe(3);
   expect(testRange4.next().value).toBe(1);
   expect(testRange4.next().done).toBe(true);
+
+  expect(() => range().next()).toThrow('no arguments');
+  expect(() => range('1', 0).next()).toThrow('invalid arguments: "1,0"');
+  expect(() => range(10, 0).next()).toThrow('start must be smaller than end');
+  expect(() => range(0, 10, -1).next()).toThrow('when step is lower than 0, start must be larger than end');
 });
 
 test('mapRng', () => {

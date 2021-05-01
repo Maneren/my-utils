@@ -12,19 +12,31 @@ class Range {
    * @returns {Range}
    */
   static * range (start, end, step) {
+    if (
+      start === undefined &&
+      end === undefined &&
+      step === undefined
+    ) throw new Error('no arguments');
+
     if (end === undefined) {
       // if only start is specified, then go from 0 to "start"
       end = start;
       start = 0;
     }
-
     if (step === undefined) step = 1;
+    if (
+      typeof start !== 'number' ||
+      typeof end !== 'number' ||
+      typeof step !== 'number'
+    ) throw new TypeError(`invalid arguments: "${[...arguments].join(',')}"`);
 
     if (step < 0) {
       if (start < end) throw new Error('when step is lower than 0, start must be larger than end');
 
       for (let i = start; i > end; i += step) yield i;
     } else {
+      if (start > end) throw new Error('start must be smaller than end');
+
       for (let i = start; i < end; i += step) yield i;
     }
   }
