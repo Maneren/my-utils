@@ -41,7 +41,9 @@ test('shuffle', () => {
   const testArray = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   const shuffled = shuffle(testArray);
 
+  // original shouldn't be modified
   expect(testArray).toStrictEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
   expect(shuffled).toStrictEqual([4, 1, 5, 3, 6, 7, 0, 2, 8, 9]);
 
   resetMockRandom();

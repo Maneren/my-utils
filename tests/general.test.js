@@ -40,9 +40,10 @@ test('randint', () => {
 
 test('mapGenerator', () => {
   const testGenerator = function * () {
-    for (let i = 5; i <= 10; i += 2) yield i;
+    for (let i = 5; i <= 10; i += 2) yield i; // yields 5,7,9
   };
 
+  // should yield 6,8,10
   const modifiedGenerator = mapGenerator(testGenerator(), x => x + 1);
 
   expect(modifiedGenerator.next().value).toBe(6);
