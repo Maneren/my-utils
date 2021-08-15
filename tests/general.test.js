@@ -1,5 +1,5 @@
 const { mockRandom, resetMockRandom } = require('jest-mock-random');
-const { General: { sleep, randint, randfloat, mapGenerator } } = require('../');
+const { General: { sleep, randint, randfloat, mapGenerator, reduceGenerator, generatorToArray } } = require('../');
 
 test('sleep', async () => {
   const start = Date.now();
@@ -18,7 +18,7 @@ test('randfloat', () => {
   expect(randfloat(10, 20)).toBe(15.189);
   expect(randfloat(-10, 0)).toBe(-2.436);
   expect(() => randfloat()).toThrow('no arguments');
-  expect(() => randfloat('1')).toThrow('invalid arguments: "1"');
+  expect(() => randfloat('1')).toThrow('invalid arguments: "0, 1"');
   expect(() => randfloat(10, 0)).toThrow('lower bound must be smaller than upper bound');
 
   resetMockRandom();
@@ -32,7 +32,7 @@ test('randint', () => {
   expect(randint(10, 20)).toBe(15);
   expect(randint(-10, 0)).toBe(-3);
   expect(() => randint()).toThrow('no arguments');
-  expect(() => randint('1')).toThrow('invalid arguments: "1"');
+  expect(() => randint('1')).toThrow('invalid arguments: "0, 1"');
   expect(() => randint(10, 0)).toThrow('lower bound must be smaller than upper bound');
 
   resetMockRandom();
@@ -50,4 +50,24 @@ test('mapGenerator', () => {
   expect(modifiedGenerator.next().value).toBe(8);
   expect(modifiedGenerator.next().value).toBe(10);
   expect(modifiedGenerator.next().done).toBe(true);
+});
+
+test('reduceGenerator', () => {
+  const testGenerator = function * () {
+    for (let i = 0; i <= 5; i += 1) yield i;
+  };
+
+  const sum = reduceGenerator(testGenerator(), (total, value) => total + value, 0);
+
+  expect(sum).toBe(15);
+});
+
+test('generatorToArray', () => {
+  const testGenerator = function * () {
+    for (let i = 0; i <= 5; i += 1) yield i;
+  };
+
+  const array = generatorToArray(testGenerator());
+
+  expect(array).toStrictEqual([0, 1, 2, 3, 4, 5]);
 });

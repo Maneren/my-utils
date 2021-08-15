@@ -23,7 +23,7 @@ class General {
       max = min;
       min = 0;
     }
-    if (typeof min !== 'number' || typeof max !== 'number') throw new TypeError(`invalid arguments: "${[...arguments].join(',')}"`);
+    if (typeof min !== 'number' || typeof max !== 'number') throw new TypeError(`invalid arguments: "${min}, ${max}"`);
     if (min > max) throw new Error('lower bound must be smaller than upper bound');
     return min + (Math.random() * (max - min));
   }
@@ -36,18 +36,49 @@ class General {
    * @returns {number}
    */
   static randint (min, max) {
-    return Math.floor(General.randfloat(...arguments));
+    return Math.floor(General.randfloat(min, max));
   }
 
   /**
    * maps values from Generator using callbackFn
-   * @param {Generator<any, any, U>} generator generator to map
-   * @param {(value:U) => T} callbackFn function to be called for every value from range
-   * @returns {T[]}
+   * @param {Iterable<T>} generator generator to map
+   * @param {(value:T) => U} callbackFn function to be called for every value from range
+   * @returns {Iterable<U>}
    * @template T, U
    */
   static * mapGenerator (generator, callbackFn) {
     for (const value of generator) yield callbackFn(value);
+  }
+
+  /**
+   * reduces values from Generator to one value via callbackFn
+   * @param {Iterable<U>} generator generator to reduce
+   * @param {(total: T, value:U, index:number) => T} callbackFn function to be called for every value from range
+   * @param {T} [total] starting value for total (default = 0)
+   * @returns {T}
+   * @template T, U
+   */
+  static reduceGenerator (generator, callbackFn, total = 0) {
+    let i = 0;
+    for (const el of generator) {
+      total = callbackFn(total, el, i);
+      i++;
+    }
+    return total;
+  }
+
+  /**
+   * reduces values from Generator to one array
+   * @param {Iterable<T>} generator generator to convert
+   * @returns {T[]}
+   * @template T
+   */
+  static generatorToArray (generator) {
+    const array = [];
+    for (const el of generator) {
+      array.push(el);
+    }
+    return array;
   }
 }
 

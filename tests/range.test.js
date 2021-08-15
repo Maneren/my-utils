@@ -1,4 +1,4 @@
-const { Range: { range, mapRng, reduceRng } } = require('../');
+const { Range: { range, mapRange, reduceRange, rangeToArray } } = require('../');
 
 test('range', () => {
   const testRange1 = range(3);
@@ -26,18 +26,28 @@ test('range', () => {
   expect(testRange4.next().done).toBe(true);
 
   expect(() => range().next()).toThrow('no arguments');
-  expect(() => range('1', 0).next()).toThrow('invalid arguments: "1,0"');
+  expect(() => range('1', 0).next()).toThrow('invalid arguments: "1, 0, 1"');
   expect(() => range(10, 0).next()).toThrow('start must be smaller than end');
   expect(() => range(0, 10, -1).next()).toThrow('when step is lower than 0, start must be larger than end');
 });
 
-test('mapRng', () => {
-  const array = mapRng(range(5), x => x * 2);
-  expect(array).toStrictEqual([0, 2, 4, 6, 8]);
+test('mapRange', () => {
+  const generator = mapRange(range(3), x => x * 2);
+
+  expect(generator.next().value).toBe(0);
+  expect(generator.next().value).toBe(2);
+  expect(generator.next().value).toBe(4);
+  expect(generator.next().done).toBe(true);
 });
 
-test('reduceRng', () => {
-  const sum = reduceRng(range(5), (total, value) => total + value, 0);
+test('reduceRange', () => {
+  const sum = reduceRange(range(5), (total, value) => total + value, 0);
 
   expect(sum).toBe(10);
+});
+
+test('rangeToArray', () => {
+  const array = rangeToArray(range(5));
+
+  expect(array).toStrictEqual([0, 1, 2, 3, 4]);
 });
