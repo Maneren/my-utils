@@ -19,8 +19,7 @@ class React {
     return function (classNames) {
       const classesList = Array.isArray(classNames) ? classNames : classNames.split(' ');
       return classesList
-        .map(x => styles[x])
-        .filter(x => x)
+        .map(x => styles[x] ? styles[x] : x)
         .join(' ');
     };
   }

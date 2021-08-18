@@ -1,4 +1,5 @@
 const Range = require('./range');
+const General = require('./general');
 
 class Array {
   /**
@@ -77,13 +78,17 @@ class Array {
    */
   static generateArr (length, callbackFn = undefined) {
     if (length <= 0) throw new Error('length can\'t be less than 1');
-    const { range, mapRng } = Range;
+    const { range, mapRange } = Range;
+    const { generatorToArray } = General;
 
+    let generator;
     if (!(callbackFn instanceof Function)) {
-      return mapRng(range(length), () => callbackFn);
+      generator = mapRange(range(length), () => callbackFn);
+    } else {
+      generator = mapRange(range(length), callbackFn);
     }
 
-    return mapRng(range(length), callbackFn);
+    return generatorToArray(generator);
   }
 
   /**

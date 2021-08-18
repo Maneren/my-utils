@@ -44,5 +44,5 @@ test('classListBuilder', () => {
   expect(classes('')).toBe('');
   expect(classes('container dark')).toBe('Button_container_123abc Colors_dark_456def');
   expect(classes(['container', 'dark'])).toBe('Button_container_123abc Colors_dark_456def');
-  expect(classes('container light')).toBe('Button_container_123abc');
+  expect(classes('container light')).toBe('Button_container_123abc light');
 });

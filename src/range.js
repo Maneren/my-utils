@@ -1,6 +1,6 @@
 class Range {
   /**
-   * @typedef {Generator<T = number,void,null>} Range
+   * @typedef {Iterable<number>} Range
    */
 
   /**
@@ -28,7 +28,7 @@ class Range {
       typeof start !== 'number' ||
       typeof end !== 'number' ||
       typeof step !== 'number'
-    ) throw new TypeError(`invalid arguments: "${[...arguments].join(',')}"`);
+    ) throw new TypeError(`invalid arguments: "${start}, ${end}, ${step}"`);
 
     if (step < 0) {
       if (start < end) throw new Error('when step is lower than 0, start must be larger than end');
@@ -45,31 +45,35 @@ class Range {
    * maps values from Range to array via callbackFn
    * @param {Range} range range to map
    * @param {(value:number, index:number) => T} callbackFn function to be called for every value from range
-   * @returns {T[]}
+   * @returns {Iterable<T>}
    * @template T
    */
-  static mapRng (range, callbackFn) {
+  static * mapRange (range, callbackFn) {
     const { mapGenerator } = require('./general');
-    const result = [];
-    for (const value of mapGenerator(range, callbackFn)) result.push(value);
-    return result;
+    for (const value of mapGenerator(range, callbackFn)) yield value;
   }
 
   /**
    * reduces values from Range to one value via callbackFn
    * @param {Range} range range to map
-   * @param {(total: T, value:number, index:number) => (T|U)} callbackFn function to be called for every value from range
-   * @param {U} [total] starting value for total (default = 0)
-   * @returns {(T|U)}
-   * @template T, U
+   * @param {(total: T, value:number, index:number) => T} callbackFn function to be called for every value from range
+   * @param {T} [total] starting value for total (default = 0)
+   * @returns {T}
+   * @template T
    */
-  static reduceRng (range, callbackFn, total = 0) {
-    let i = 0;
-    for (const el of range) {
-      total = callbackFn(total, el, i);
-      i++;
-    }
-    return total;
+  static reduceRange (range, callbackFn, total = 0) {
+    const { reduceGenerator } = require('./general');
+    return reduceGenerator(range, callbackFn, total);
+  }
+
+  /**
+   * reduces values from Range to one array
+   * @param {Range} range range to convert
+   * @returns {number[]}
+   */
+  static rangeToArray (range) {
+    const { generatorToArray } = require('./general');
+    return generatorToArray(range);
   }
 }
 
