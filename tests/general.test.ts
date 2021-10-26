@@ -1,12 +1,22 @@
-const { mockRandom, resetMockRandom } = require('jest-mock-random');
-const { General: { sleep, randint, randfloat, mapGenerator, reduceGenerator, generatorToArray } } = require('../');
+import General from '../src/general';
+
+import { mockRandom, resetMockRandom } from 'jest-mock-random';
+
+const {
+  sleep,
+  randint,
+  randfloat,
+  mapGenerator,
+  reduceGenerator,
+  generatorToArray
+} = General;
 
 test('sleep', async () => {
   const start = Date.now();
   await sleep(1000);
   const end = Date.now();
   const delta = end - start;
-  expect(delta).toBeGreaterThanOrEqual(1000);
+  expect(delta).toBeGreaterThanOrEqual(999);
   expect(delta).toBeLessThan(1050);
 });
 
@@ -17,9 +27,9 @@ test('randfloat', () => {
   expect(randfloat(100)).toBe(25.5);
   expect(randfloat(10, 20)).toBe(15.189);
   expect(randfloat(-10, 0)).toBe(-2.436);
-  expect(() => randfloat()).toThrow('no arguments');
-  expect(() => randfloat('1')).toThrow('invalid arguments: "0, 1"');
-  expect(() => randfloat(10, 0)).toThrow('lower bound must be smaller than upper bound');
+  expect(() => randfloat(10, 0)).toThrow(
+    'lower bound must be smaller than upper bound'
+  );
 
   resetMockRandom();
 });
@@ -31,20 +41,20 @@ test('randint', () => {
   expect(randint(100)).toBe(20);
   expect(randint(10, 20)).toBe(15);
   expect(randint(-10, 0)).toBe(-3);
-  expect(() => randint()).toThrow('no arguments');
-  expect(() => randint('1')).toThrow('invalid arguments: "0, 1"');
-  expect(() => randint(10, 0)).toThrow('lower bound must be smaller than upper bound');
+  expect(() => randint(10, 0)).toThrow(
+    'lower bound must be smaller than upper bound'
+  );
 
   resetMockRandom();
 });
 
 test('mapGenerator', () => {
-  const testGenerator = function * () {
+  const testGenerator = function * (): Generator<number> {
     for (let i = 5; i <= 10; i += 2) yield i; // yields 5,7,9
   };
 
   // should yield 6,8,10
-  const modifiedGenerator = mapGenerator(testGenerator(), x => x + 1);
+  const modifiedGenerator = mapGenerator(testGenerator(), (x: number) => x + 1);
 
   expect(modifiedGenerator.next().value).toBe(6);
   expect(modifiedGenerator.next().value).toBe(8);
@@ -53,17 +63,21 @@ test('mapGenerator', () => {
 });
 
 test('reduceGenerator', () => {
-  const testGenerator = function * () {
+  const testGenerator = function * (): Generator<number> {
     for (let i = 0; i <= 5; i += 1) yield i;
   };
 
-  const sum = reduceGenerator(testGenerator(), (total, value) => total + value, 0);
+  const sum = reduceGenerator(
+    testGenerator(),
+    (total: number, value: number) => total + value,
+    0
+  );
 
   expect(sum).toBe(15);
 });
 
 test('generatorToArray', () => {
-  const testGenerator = function * () {
+  const testGenerator = function * (): Generator<number> {
     for (let i = 0; i <= 5; i += 1) yield i;
   };
 

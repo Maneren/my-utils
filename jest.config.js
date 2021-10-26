@@ -6,8 +6,15 @@
 module.exports = {
   verbose: true,
   testEnvironment: 'jest-environment-node',
-  transform: {},
   globals: {
     extensionsToTreatAsEsm: ['.js']
-  }
+  },
+  transform: {
+    '.tsx?': 'ts-jest'
+  },
+  moduleFileExtensions: [
+    'ts',
+    'tsx',
+    'js'
+  ]
 };

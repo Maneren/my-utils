@@ -5,8 +5,8 @@ class General {
    * @param {number} milis
    * @returns {Promise<null>}
    */
-  static sleep (milis) {
-    return new Promise(resolve => setTimeout(() => resolve(null), milis));
+  static async sleep (milis: number): Promise<null> {
+    return await new Promise((resolve) => setTimeout(() => resolve(null), milis));
   }
 
   /**
@@ -16,16 +16,17 @@ class General {
    * @param {number} [max] upper bound (exclusive)
    * @returns {number}
    */
-  static randfloat (min, max) {
-    if (max === undefined && min === undefined) throw new Error('no arguments');
+  static randfloat (min: number): number;
+  static randfloat (min: number, max: number): number;
+  static randfloat (min: number, max?: number): number {
     // if max is not specified treat min as max
     if (max === undefined) {
       max = min;
       min = 0;
     }
-    if (typeof min !== 'number' || typeof max !== 'number') throw new TypeError(`invalid arguments: "${min}, ${max}"`);
     if (min > max) throw new Error('lower bound must be smaller than upper bound');
-    return min + (Math.random() * (max - min));
+
+    return min + Math.random() * (max - min);
   }
 
   /**
@@ -35,30 +36,41 @@ class General {
    * @param {number} [max] upper bound (exclusive)
    * @returns {number}
    */
-  static randint (min, max) {
-    return Math.floor(General.randfloat(min, max));
+  static randint (min: number): number;
+  static randint (min: number, max: number): number;
+  static randint (min: number, max?: number): number {
+    return max === undefined
+      ? Math.floor(General.randfloat(min))
+      : Math.floor(General.randfloat(min, max));
   }
 
   /**
    * maps values from Generator using callbackFn
-   * @param {Iterable<T>} generator generator to map
+   * @param {Generator<T>} generator generator to map
    * @param {(value:T) => U} callbackFn function to be called for every value from range
-   * @returns {Iterable<U>}
+   * @returns {Generator<U>}
    * @template T, U
    */
-  static * mapGenerator (generator, callbackFn) {
+  static * mapGenerator<T, U>(
+    generator: Generator<T>,
+    callbackFn: (value: T) => U
+  ): Generator<U> {
     for (const value of generator) yield callbackFn(value);
   }
 
   /**
    * reduces values from Generator to one value via callbackFn
-   * @param {Iterable<U>} generator generator to reduce
+   * @param {Generator<U>} generator generator to reduce
    * @param {(total: T, value:U, index:number) => T} callbackFn function to be called for every value from range
    * @param {T} [total] starting value for total (default = 0)
    * @returns {T}
    * @template T, U
    */
-  static reduceGenerator (generator, callbackFn, total = 0) {
+  static reduceGenerator<T, U>(
+    generator: Generator<U>,
+    callbackFn: (total: T, value: U, index: number) => T,
+    total: T
+  ): T {
     let i = 0;
     for (const el of generator) {
       total = callbackFn(total, el, i);
@@ -69,12 +81,12 @@ class General {
 
   /**
    * reduces values from Generator to one array
-   * @param {Iterable<T>} generator generator to convert
+   * @param {Generator<T>} generator generator to convert
    * @returns {T[]}
    * @template T
    */
-  static generatorToArray (generator) {
-    const array = [];
+  static generatorToArray<T>(generator: Generator<T>): T[] {
+    const array: T[] = [];
     for (const el of generator) {
       array.push(el);
     }
@@ -82,4 +94,4 @@ class General {
   }
 }
 
-module.exports = General;
+export default General;

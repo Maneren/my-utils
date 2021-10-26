@@ -1,4 +1,5 @@
-const { React: { importAll, classListBuilder } } = require('../');
+import React from '../src/react';
+const { importAll, classListBuilder } = React;
 
 test('importAll', () => {
   const data = {
@@ -10,10 +11,7 @@ test('importAll', () => {
     }
   };
 
-  const testRequireContext = function (id) {
-    return data[id];
-  };
-
+  const testRequireContext = (id: keyof typeof data): { default: string } => data[id];
   testRequireContext.keys = () => {
     return Object.keys(data);
   };
@@ -23,7 +21,9 @@ test('importAll', () => {
     file: 'console.log("hello")',
     another_file: 'text in the file'
   };
-  expect(modulesWithoutExtensions).toStrictEqual(expectedModulesWithoutExtensions);
+  expect(modulesWithoutExtensions).toStrictEqual(
+    expectedModulesWithoutExtensions
+  );
 
   const modulesWithExtensions = importAll(testRequireContext, true);
   const expectedModulesWithExtensions = {
@@ -42,7 +42,11 @@ test('classListBuilder', () => {
   const classes = classListBuilder(testStyles);
 
   expect(classes('')).toBe('');
-  expect(classes('container dark')).toBe('Button_container_123abc Colors_dark_456def');
-  expect(classes(['container', 'dark'])).toBe('Button_container_123abc Colors_dark_456def');
+  expect(classes('container dark')).toBe(
+    'Button_container_123abc Colors_dark_456def'
+  );
+  expect(classes(['container', 'dark'])).toBe(
+    'Button_container_123abc Colors_dark_456def'
+  );
   expect(classes('container light')).toBe('Button_container_123abc light');
 });

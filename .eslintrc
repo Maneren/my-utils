@@ -1,0 +1,17 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"], // Your TypeScript files extension
+      "parserOptions": {
+        "project": ["./tsconfig.json"] // Specify it only for TypeScript files
+      }
+    }
+  ],
+  "extends": "standard-with-typescript",
+  "rules": {
+    "semi": [2, "always"],
+    "@typescript-eslint/semi": [2, "always"],
+    "@typescript-eslint/no-extraneous-class": [0]
+  }
+}

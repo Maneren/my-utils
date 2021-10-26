@@ -1,4 +1,5 @@
-const { Range: { range, mapRange, reduceRange, rangeToArray } } = require('../');
+import Ranges from '../src/ranges';
+const { range, mapRange, reduceRange, rangeToArray } = Ranges;
 
 test('range', () => {
   const testRange1 = range(3);
@@ -25,14 +26,14 @@ test('range', () => {
   expect(testRange4.next().value).toBe(1);
   expect(testRange4.next().done).toBe(true);
 
-  expect(() => range().next()).toThrow('no arguments');
-  expect(() => range('1', 0).next()).toThrow('invalid arguments: "1, 0, 1"');
   expect(() => range(10, 0).next()).toThrow('start must be smaller than end');
-  expect(() => range(0, 10, -1).next()).toThrow('when step is lower than 0, start must be larger than end');
+  expect(() => range(0, 10, -1).next()).toThrow(
+    'when step is lower than 0, start must be larger than end'
+  );
 });
 
 test('mapRange', () => {
-  const generator = mapRange(range(3), x => x * 2);
+  const generator = mapRange(range(3), (x: number) => x * 2);
 
   expect(generator.next().value).toBe(0);
   expect(generator.next().value).toBe(2);
