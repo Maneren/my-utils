@@ -1,3 +1,5 @@
+import Ranges from './ranges';
+
 class A {
   /**
    * swaps elements in the array (mutates original)
@@ -13,7 +15,7 @@ class A {
 
   /**
    * shuffles Array
-   * @param {T[]} shuffled array to be shuffled
+   * @param {T[]} array array to be shuffled
    * @returns {T[]} new shuffled array
    * @template T
    */
@@ -72,7 +74,7 @@ class A {
 
     const array = new Array<T>(length);
 
-    for (let i = 0; i < length; i++) {
+    for (const i of Ranges.range(0, length)) {
       callback instanceof Function
         ? array[i] = callback(i)
         : array[i] = callback;
