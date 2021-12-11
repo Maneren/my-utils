@@ -13,11 +13,11 @@ const {
 
 test('sleep', async () => {
   const start = Date.now();
-  await sleep(1000);
+  await sleep(500);
   const end = Date.now();
   const delta = end - start;
-  expect(delta).toBeGreaterThanOrEqual(999);
-  expect(delta).toBeLessThan(1050);
+  expect(delta).toBeGreaterThanOrEqual(499);
+  expect(delta).toBeLessThan(550);
 });
 
 test('randfloat', () => {
