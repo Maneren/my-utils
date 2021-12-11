@@ -9,6 +9,7 @@
     "noImplicitThis": true /* Enable error reporting when `this` is given the type `any`. */,
     "alwaysStrict": true /* Ensure 'use strict' is always emitted. */,
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "lib": ["ES2017", "DOM"]
   }
 }

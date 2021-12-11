@@ -4,6 +4,7 @@
   "author": "Maneren",
   "license": "ISC",
   "main": "index.js",
+  "type": "module",
   "typings": "index.d.ts",
   "scripts": {
     "test": "eslint . && jest -i",
