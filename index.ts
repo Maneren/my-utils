@@ -1,7 +1,7 @@
 import A from './src/array';
 import General from './src/general';
-import Range from './src/ranges';
+import Ranges from './src/ranges';
 import React from './src/react';
 
-const Utils = { Array: A, General, Range, React };
+const Utils = { Array: A, General, Ranges, React };
 export default Utils;
