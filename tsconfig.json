@@ -10,6 +10,8 @@
     "alwaysStrict": true /* Ensure 'use strict' is always emitted. */,
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "strictNullChecks": true,
-    "lib": ["ES2017", "DOM"]
-  }
+    "lib": ["ES2017", "DOM"],
+    "outDir": "./dist"
+  },
+  "exclude": ["dist", "node_modules"]
 }

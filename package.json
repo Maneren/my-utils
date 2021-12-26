@@ -1,19 +1,15 @@
 {
   "name": "my-utils",
-  "version": "1.0.0",
+  "version": "2.0.1",
   "author": "Maneren",
   "license": "ISC",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
   "type": "module",
-  "typings": "index.d.ts",
   "scripts": {
+    "build": "tsc",
     "test": "eslint . && jest -i",
     "test-watch": "jest --watchAll -i"
-  },
-  "semistandard": {
-    "env": [
-      "jest"
-    ]
   },
   "devDependencies": {
     "@types/jest": "^27.0.2",
