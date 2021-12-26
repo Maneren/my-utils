@@ -6,7 +6,9 @@ class General {
    * @returns {Promise<null>}
    */
   static async sleep (milis: number): Promise<null> {
-    return await new Promise((resolve) => setTimeout(() => resolve(null), milis));
+    return await new Promise((resolve) =>
+      setTimeout(() => resolve(null), milis)
+    );
   }
 
   /**
@@ -24,7 +26,9 @@ class General {
       max = min;
       min = 0;
     }
-    if (min > max) throw new Error('lower bound must be smaller than upper bound');
+    if (min > max) {
+      throw new Error('lower bound must be smaller than upper bound');
+    }
 
     return min + Math.random() * (max - min);
   }
