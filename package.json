@@ -6,6 +6,18 @@
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "type": "module",
+  "homepage": "https://github.com/Maneren/maneren-utils",
+  "bugs": {
+    "url": "https://github.com/Maneren/maneren-utils/issues",
+    "email": "maneren731@gmail.com"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Maneren/maneren-utils"
+  },
   "scripts": {
     "build": "tsc",
     "test": "eslint . && jest -i",
