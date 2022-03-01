@@ -19,6 +19,7 @@
     "url": "https://github.com/Maneren/maneren-utils"
   },
   "scripts": {
+    "prepublishOnly": "tsc",
     "build": "tsc",
     "test": "eslint . && jest -i",
     "test-watch": "jest --watchAll -i"
