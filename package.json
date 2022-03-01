@@ -1,6 +1,6 @@
 {
   "name": "maneren-utils",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "author": "Maneren",
   "license": "ISC",
   "main": "./dist/index.js",
