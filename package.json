@@ -1,7 +1,7 @@
 {
   "name": "@maneren/utils",
   "version": "2.0.2",
-  "author": "Maneren",
+  "author": "Maneren <maneren731@gmail.com>",
   "license": "ISC",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
