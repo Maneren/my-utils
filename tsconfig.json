@@ -13,5 +13,6 @@
     "lib": ["ES2017", "DOM"],
     "outDir": "./dist"
   },
+  "include": ["index.ts", "src", "tests"],
   "exclude": ["dist", "node_modules"]
 }

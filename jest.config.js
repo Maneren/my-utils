@@ -9,5 +9,6 @@ export default {
   transform: {
     '.tsx?': 'ts-jest'
   },
-  moduleFileExtensions: ['ts', 'tsx', 'js']
+  moduleFileExtensions: ['ts', 'tsx', 'js'],
+  modulePathIgnorePatterns: ['<rootDir>/dist/']
 };
