@@ -1,5 +1,4 @@
-import React from '../src/react';
-const { importAll, classListBuilder } = React;
+import { importAll, classListBuilder } from '../src/react';
 
 test('importAll', () => {
   const data = {
@@ -11,7 +10,8 @@ test('importAll', () => {
     }
   };
 
-  const testRequireContext = (id: keyof typeof data): { default: string } => data[id];
+  const testRequireContext = (id: keyof typeof data): { default: string } =>
+    data[id];
   testRequireContext.keys = () => {
     return Object.keys(data);
   };

@@ -1,5 +1,4 @@
-import Ranges from '../src/ranges';
-const { range, mapRange, reduceRange, rangeToArray } = Ranges;
+import { range, mapRange, reduceRange, rangeToArray } from '../src/ranges';
 
 test('range', () => {
   const testRange1 = range(3);

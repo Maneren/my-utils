@@ -1,15 +1,12 @@
-import General from '../src/general';
-
-import { mockRandom, resetMockRandom } from 'jest-mock-random';
-
-const {
+import {
   sleep,
   randint,
   randfloat,
   mapGenerator,
   reduceGenerator,
   generatorToArray
-} = General;
+} from '../src/general';
+import { mockRandom, resetMockRandom } from 'jest-mock-random';
 
 test('sleep', async () => {
   const start = Date.now();

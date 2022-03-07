@@ -1,8 +1,13 @@
-import A from '../src/array';
+import {
+  swap,
+  last,
+  lastIndex,
+  generate,
+  shuffle,
+  randomIndex,
+  rightPad
+} from '../src/array';
 import { mockRandom, resetMockRandom } from 'jest-mock-random';
-
-const { swap, last, lastIndex: lastI, generate: generateArr, shuffle, randomIndex, rightPad: rightPadArray } =
-  A;
 
 test('swap', () => {
   const array = [1, 2, 3];
@@ -12,7 +17,7 @@ test('swap', () => {
 
 test('lastI', () => {
   const array = [5, 1, 8];
-  expect(lastI(array)).toBe(2);
+  expect(lastIndex(array)).toBe(2);
 });
 
 test('last', () => {
@@ -53,17 +58,17 @@ test('shuffle', () => {
 });
 
 test('generateArr', () => {
-  const testArray1 = generateArr(5, (x: number) => x * 2);
+  const testArray1 = generate(5, (x: number) => x * 2);
   expect(testArray1).toStrictEqual([0, 2, 4, 6, 8]);
 
-  const testArray2 = generateArr(5, 0);
+  const testArray2 = generate(5, 0);
   expect(testArray2).toStrictEqual([0, 0, 0, 0, 0]);
 
-  expect(() => generateArr(-1, 10)).toThrow("length can't be less than 1");
+  expect(() => generate(-1, 10)).toThrow("length can't be less than 1");
 });
 
 test('rightPadArray', () => {
-  const array = generateArr(3, (x: number) => x); // [0, 1, 2]
-  const padded = rightPadArray(array, 5, (x: number) => x);
+  const array = generate(3, (x: number) => x); // [0, 1, 2]
+  const padded = rightPad(array, 5, (x: number) => x);
   expect(padded).toStrictEqual([0, 1, 2, 0, 1]);
 });
