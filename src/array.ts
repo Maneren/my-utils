@@ -1,4 +1,4 @@
-import * as Ranges from './ranges';
+import { Ranges } from '.';
 
 /**
  * swaps elements in the array (mutates original)
