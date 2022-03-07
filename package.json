@@ -3,8 +3,8 @@
   "version": "3.0.0-4",
   "author": "Maneren <maneren731@gmail.com>",
   "license": "ISC",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "typings": "dist/src/index.d.ts",
   "type": "module",
   "homepage": "https://github.com/Maneren/maneren-utils",
   "bugs": {
@@ -23,7 +23,7 @@
     "build": "tsc",
     "test": "eslint . && jest -i",
     "test-watch": "jest --watchAll -i",
-    "format": "prettier --write \"{index.ts,{src,tests}/*.ts}\" && eslint --fix index.ts src tests"
+    "format": "prettier --write \"{src,tests}/*.ts\" && eslint --fix src tests"
   },
   "devDependencies": {
     "@types/jest": "^27.4.1",
@@ -43,7 +43,6 @@
   },
   "files": [
     "dist",
-    "index.ts",
     "src"
   ]
 }
