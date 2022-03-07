@@ -8,13 +8,18 @@ import {
 } from '../src/general';
 import { mockRandom, resetMockRandom } from 'jest-mock-random';
 
-test('sleep', async () => {
-  const start = Date.now();
-  await sleep(500);
-  const end = Date.now();
-  const delta = end - start;
-  expect(delta).toBeGreaterThanOrEqual(499);
-  expect(delta).toBeLessThan(550);
+afterEach(() => {
+  jest.useRealTimers();
+});
+
+test('sleep', () => {
+  jest.useFakeTimers();
+  jest.spyOn(global, 'setTimeout');
+
+  void sleep(500);
+
+  expect(setTimeout).toHaveBeenCalledTimes(1);
+  expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 500);
 });
 
 test('randfloat', () => {
