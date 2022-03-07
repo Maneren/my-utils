@@ -22,7 +22,8 @@
     "prepublishOnly": "tsc",
     "build": "tsc",
     "test": "eslint . && jest -i",
-    "test-watch": "jest --watchAll -i"
+    "test-watch": "jest --watchAll -i",
+    "format": "prettier --write \"{index.ts,{src,tests}/*.ts}\" && eslint --fix index.ts src tests"
   },
   "devDependencies": {
     "@types/jest": "^27.4.1",
@@ -35,6 +36,7 @@
     "eslint-plugin-promise": "^5.2.0",
     "jest": "^27.5.1",
     "jest-mock-random": "^1.1.1",
+    "prettier": "^2.5.1",
     "ts-jest": "^27.1.3",
     "typescript": "^4.6.2"
   },
