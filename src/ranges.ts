@@ -1,4 +1,4 @@
-import { General } from '../';
+import { General } from '.';
 
 type R = Generator<number>;
 /**
