@@ -10,6 +10,7 @@ import { mockRandom, resetMockRandom } from 'jest-mock-random';
 
 afterEach(() => {
   jest.useRealTimers();
+  resetMockRandom();
 });
 
 test('sleep', () => {
@@ -32,8 +33,6 @@ test('randfloat', () => {
   expect(() => randfloat(10, 0)).toThrow(
     'lower bound must be smaller than upper bound'
   );
-
-  resetMockRandom();
 });
 
 test('randint', () => {
@@ -46,8 +45,6 @@ test('randint', () => {
   expect(() => randint(10, 0)).toThrow(
     'lower bound must be smaller than upper bound'
   );
-
-  resetMockRandom();
 });
 
 test('mapGenerator', () => {
