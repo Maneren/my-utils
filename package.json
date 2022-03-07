@@ -6,9 +6,9 @@
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
   "type": "module",
-  "homepage": "https://github.com/Maneren/maneren-utils",
+  "homepage": "https://github.com/Maneren/my-utils",
   "bugs": {
-    "url": "https://github.com/Maneren/maneren-utils/issues",
+    "url": "https://github.com/Maneren/my-utils/issues",
     "email": "maneren731@gmail.com"
   },
   "publishConfig": {
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Maneren/maneren-utils"
+    "url": "https://github.com/Maneren/my-utils"
   },
   "scripts": {
     "prepublishOnly": "tsc",
