@@ -1,4 +1,6 @@
-import { importAll, classListBuilder } from '../src/react';
+import { ReactUtils } from '../src';
+
+const { importAll, classListBuilder } = ReactUtils;
 
 test('importAll', () => {
   const data = {

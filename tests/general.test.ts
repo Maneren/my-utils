@@ -1,12 +1,14 @@
-import {
+import { General } from '../src';
+import { mockRandom, resetMockRandom } from 'jest-mock-random';
+
+const {
   sleep,
   randint,
   randfloat,
   mapGenerator,
   reduceGenerator,
   generatorToArray
-} from '../src/general';
-import { mockRandom, resetMockRandom } from 'jest-mock-random';
+} = General;
 
 afterEach(() => {
   jest.useRealTimers();

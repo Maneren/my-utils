@@ -1,13 +1,8 @@
-import {
-  swap,
-  last,
-  lastIndex,
-  generate,
-  shuffle,
-  randomIndex,
-  rightPad
-} from '../src/array';
+import { Array } from '../src';
 import { mockRandom, resetMockRandom } from 'jest-mock-random';
+
+const { swap, last, lastIndex, generate, shuffle, randomIndex, rightPad } =
+  Array;
 
 test('swap', () => {
   const array = [1, 2, 3];
