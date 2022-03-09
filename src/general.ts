@@ -45,6 +45,48 @@ export function randint (min: number, max?: number): number {
     : Math.floor(randfloat(min, max));
 }
 
+export class Iter<T> implements Iterable<T> {
+  data: Iterable<T>;
+
+  constructor (data: Iterable<T>) {
+    this.data = data;
+  }
+
+  * [Symbol.iterator] (): IterableIterator<T> {
+    for (const value of this.data) {
+      yield value;
+    }
+  }
+
+  map<V>(f: (value: T) => V): Map<T, V> {
+    return new Map(this, f);
+  }
+
+  fold<W>(f: (total: W, current: T) => W, start: W): W {
+    let total = start;
+    for (const value of this) {
+      total = f(total, value);
+    }
+    return total;
+  }
+}
+
+class Map<T, U> extends Iter<U> {
+  data: Iterable<U>;
+
+  constructor (data: Iter<T>, f: (value: T) => U) {
+    const generator = function * (): IterableIterator<U> {
+      for (const value of data) {
+        yield f(value);
+      }
+    };
+
+    const mapped = new Iter<U>(generator());
+
+    super(mapped);
+  }
+}
+
 /**
  * maps values from Generator using callbackFn
  * @param {Generator<T>} generator generator to map
