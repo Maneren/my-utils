@@ -3,7 +3,7 @@
  * https://jestjs.io/docs/en/configuration.html
  */
 
-export default {
+module.exports = {
   verbose: true,
   testEnvironment: 'jest-environment-node',
   transform: {
