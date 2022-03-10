@@ -1,16 +1,22 @@
-import { iter, Iter, MapIter, Take, Filter } from '../src/iterator';
+import { Iter, iter, MapIter /* , Take, Filter */ } from '../src/iterator';
+
+test('iter', () => {
+  const data = iter([0, 1, 2]);
+
+  expect(data).toBeInstanceOf(Iter);
+});
 
 test('Iter.map', () => {
   const data = iter([0, 1, 2]);
 
   const mapped = data.map((x: number) => x + 1);
 
-  const iterator = mapped[Symbol.iterator]();
+  expect(mapped).toBeInstanceOf(MapIter);
 
-  expect(iterator.next().value).toBe(1);
-  expect(iterator.next().value).toBe(2);
-  expect(iterator.next().value).toBe(3);
-  expect(iterator.next().done).toBe(true);
+  expect(mapped.next().value).toBe(1);
+  expect(mapped.next().value).toBe(2);
+  expect(mapped.next().value).toBe(3);
+  expect(mapped.next().done).toBe(true);
 });
 /*
 test('reduceGenerator', () => {

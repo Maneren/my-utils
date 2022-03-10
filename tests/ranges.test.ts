@@ -1,6 +1,6 @@
 import { Ranges } from '../src';
 
-const { range, mapRange, reduceRange, rangeToArray } = Ranges;
+const { range } = Ranges;
 
 test('range', () => {
   const testRange1 = range(3);
@@ -31,25 +31,4 @@ test('range', () => {
   expect(() => range(0, 10, -1).next()).toThrow(
     'when step is lower than 0, start must be larger than end'
   );
-});
-
-test('mapRange', () => {
-  const generator = mapRange(range(3), (x: number) => x * 2);
-
-  expect(generator.next().value).toBe(0);
-  expect(generator.next().value).toBe(2);
-  expect(generator.next().value).toBe(4);
-  expect(generator.next().done).toBe(true);
-});
-
-test('reduceRange', () => {
-  const sum = reduceRange(range(5), (total, value) => total + value, 0);
-
-  expect(sum).toBe(10);
-});
-
-test('rangeToArray', () => {
-  const array = rangeToArray(range(5));
-
-  expect(array).toStrictEqual([0, 1, 2, 3, 4]);
 });

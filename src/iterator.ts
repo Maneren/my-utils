@@ -9,7 +9,11 @@ export class Iter<T> implements Iterable<T> {
     this.data = data;
   }
 
-  * [Symbol.iterator] (): Iterator<T> {
+  next (): IteratorResult<T> {
+    return this[Symbol.iterator]().next();
+  }
+
+  [Symbol.iterator] (): Iterator<T> {
     return this.data[Symbol.iterator]();
   }
 
@@ -25,6 +29,16 @@ export class Iter<T> implements Iterable<T> {
     return new Filter(this, f);
   }
 
+  fold<U>(f: (total: U, current: T) => U, start: U): U {
+    let total = start;
+
+    for (const value of this) {
+      total = f(total, value);
+    }
+
+    return total;
+  }
+
   nth (n: number): T | null {
     let i = 0;
 
@@ -38,13 +52,15 @@ export class Iter<T> implements Iterable<T> {
 
   /**
    * creates array from the values of the iterator
-   * @returns {T[]}
+   * @returns {T[]} array of the values from the iterator
    */
   collect (): T[] {
     const array = [];
+
     for (const el of this) {
       array.push(el);
     }
+
     return array;
   }
 }
@@ -61,12 +77,16 @@ export class MapIter<T, U> extends Iter<U> {
   }
 }
 
-interface Enumerated<T> { index: number, value: T }
+interface Enumerated<T> {
+  index: number
+  value: T
+}
 
 export class Enumerate<T> extends Iter<Enumerated<T>> {
   constructor (data: Iterable<T>) {
     const generator = function * (): Iterable<Enumerated<T>> {
       let index = 0;
+
       for (const value of data) {
         yield { index, value };
         index++;
@@ -87,6 +107,7 @@ export class Take<T> extends Iter<T> {
       if (limit <= 0) return;
 
       let count = 0;
+
       for (const value of data) {
         yield value;
         count++;

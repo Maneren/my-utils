@@ -74,13 +74,11 @@ export function generate<T> (
 ): T[] {
   if (length <= 0) throw new Error("length can't be less than 1");
 
-  const array = new Array<T>(length);
+  const isFunction = callback instanceof Function;
 
-  for (const i of Ranges.range(0, length)) {
-    callback instanceof Function
-      ? (array[i] = callback(i))
-      : (array[i] = callback);
-  }
+  const array = Ranges.range(length)
+    .map((i) => (isFunction ? callback(i) : callback))
+    .collect();
 
   return array;
 }

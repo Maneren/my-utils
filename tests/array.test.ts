@@ -66,4 +66,12 @@ test('rightPadArray', () => {
   const array = generate(3, (x: number) => x); // [0, 1, 2]
   const padded = rightPad(array, 5, (x: number) => x);
   expect(padded).toStrictEqual([0, 1, 2, 0, 1]);
+
+  const array2 = generate(5, (x: number) => x); // [0, 1, 2]
+  const padded2 = rightPad(array2, 3, (x: number) => x);
+  expect(padded2).toStrictEqual([0, 1, 2, 3, 4]);
+
+  const array3 = generate(3, (x: number) => x); // [0, 1, 2]
+  const padded3 = rightPad(array3, 5, null);
+  expect(padded3).toStrictEqual([0, 1, 2, null, null]);
 });
