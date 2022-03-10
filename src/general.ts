@@ -79,17 +79,3 @@ export function reduceGenerator<T, U> (
   }
   return total;
 }
-
-/**
- * reduces values from Generator to one array
- * @param {Generator<T>} generator generator to convert
- * @returns {T[]}
- * @template T
- */
-export function generatorToArray<T> (generator: Generator<T>): T[] {
-  const array: T[] = [];
-  for (const el of generator) {
-    array.push(el);
-  }
-  return array;
-}

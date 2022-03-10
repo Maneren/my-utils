@@ -1,14 +1,7 @@
 import { General } from '../src';
 import { mockRandom, resetMockRandom } from 'jest-mock-random';
 
-const {
-  sleep,
-  randint,
-  randfloat,
-  mapGenerator,
-  reduceGenerator,
-  generatorToArray
-} = General;
+const { sleep, randint, randfloat } = General;
 
 afterEach(() => {
   jest.useRealTimers();
@@ -47,42 +40,4 @@ test('randint', () => {
   expect(() => randint(10, 0)).toThrow(
     'lower bound must be smaller than upper bound'
   );
-});
-
-test('mapGenerator', () => {
-  const testGenerator = function * (): Generator<number> {
-    for (let i = 5; i <= 10; i += 2) yield i; // yields 5,7,9
-  };
-
-  // should yield 6,8,10
-  const modifiedGenerator = mapGenerator(testGenerator(), (x: number) => x + 1);
-
-  expect(modifiedGenerator.next().value).toBe(6);
-  expect(modifiedGenerator.next().value).toBe(8);
-  expect(modifiedGenerator.next().value).toBe(10);
-  expect(modifiedGenerator.next().done).toBe(true);
-});
-
-test('reduceGenerator', () => {
-  const testGenerator = function * (): Generator<number> {
-    for (let i = 0; i <= 5; i += 1) yield i;
-  };
-
-  const sum = reduceGenerator(
-    testGenerator(),
-    (total: number, value: number) => total + value,
-    0
-  );
-
-  expect(sum).toBe(15);
-});
-
-test('generatorToArray', () => {
-  const testGenerator = function * (): Generator<number> {
-    for (let i = 0; i <= 5; i += 1) yield i;
-  };
-
-  const array = generatorToArray(testGenerator());
-
-  expect(array).toStrictEqual([0, 1, 2, 3, 4, 5]);
 });
