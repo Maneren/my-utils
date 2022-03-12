@@ -64,6 +64,18 @@ test('take', () => {
   expect(taken.next().value).toBe(1);
   expect(taken.next().value).toBe(2);
   expect(taken.next().done).toBe(true);
+
+  const data2 = iter([0, 1, 2, 4, 5]);
+
+  const taken2 = data2.take(0);
+
+  expect(taken2).toBeInstanceOf(Take);
+
+  expect(taken2.next().done).toBe(true);
+
+  const data3 = iter([0, 1, 2, 4, 5]);
+
+  expect(() => data3.take(-1)).toThrow('Expected positive integer but found -1');
 });
 
 test('takeWhile', () => {
