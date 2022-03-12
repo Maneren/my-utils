@@ -1,11 +1,15 @@
 import {
+  Chained,
+  empty,
   Enumerate,
   Filter,
   Iter,
   iter,
   MapIter,
+  once,
   range,
   repeat,
+  StepBy,
   Take,
   TakeWhile
 } from '../src/iterator';
@@ -152,6 +156,32 @@ test('skip', () => {
   expect(skipped.next().done).toBe(true);
 });
 
+test('skipWhile', () => {
+  const data = iter([0, 2, 4, 5, 7]);
+
+  const skipped = data.skipWhile((x: number) => x % 2 === 0);
+
+  expect(skipped).toBeInstanceOf(Iter);
+
+  expect(skipped.next().value).toBe(5);
+  expect(skipped.next().value).toBe(7);
+  expect(skipped.next().done).toBe(true);
+});
+
+test('stepBy', () => {
+  const data = iter([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+  const step = data.stepBy(3);
+
+  expect(step).toBeInstanceOf(StepBy);
+
+  expect(step.next().value).toBe(0);
+  expect(step.next().value).toBe(3);
+  expect(step.next().value).toBe(6);
+  expect(step.next().value).toBe(9);
+  expect(step.next().done).toBe(true);
+});
+
 test('collect', () => {
   const data = iter([0, 1, 2]);
 
@@ -162,23 +192,35 @@ test('collect', () => {
   expect(collected).toStrictEqual([0, 1, 2]);
 });
 
-test('repeat', () => {
-  const data = repeat(2);
+test('chain', () => {
+  const data = iter([0, 1]);
+  const data2 = iter([2, 3]);
 
-  expect(data).toBeInstanceOf(Iter);
+  const chained = data.chain(data2);
 
-  expect(data.next()).toStrictEqual({
-    value: 2,
-    done: false
-  });
-  expect(data.next()).toStrictEqual({
-    value: 2,
-    done: false
-  });
-  expect(data.next()).toStrictEqual({
-    value: 2,
-    done: false
-  });
+  expect(chained).toBeInstanceOf(Chained);
+
+  expect(chained.next().value).toBe(0);
+  expect(chained.next().value).toBe(1);
+  expect(chained.next().value).toBe(2);
+  expect(chained.next().value).toBe(3);
+  expect(chained.next().done).toBe(true);
+});
+
+test('count', () => {
+  const data = iter([0, 1, 2, 4, 5]);
+
+  const count = data.count();
+
+  expect(count).toBe(5);
+});
+
+test('last', () => {
+  const data = iter([0, 1, 2, 4, 5]);
+
+  const count = data.last();
+
+  expect(count).toBe(5);
 });
 
 test('join', () => {
@@ -220,4 +262,34 @@ test('range', () => {
   expect(() => range(0, 10, -1).next()).toThrow(
     'when step is lower than 0, start must be larger than end'
   );
+});
+
+test('repeat', () => {
+  const data = repeat(2);
+
+  expect(data).toBeInstanceOf(Iter);
+
+  expect(data.next()).toStrictEqual({
+    value: 2,
+    done: false
+  });
+  expect(data.next()).toStrictEqual({
+    value: 2,
+    done: false
+  });
+  expect(data.next()).toStrictEqual({
+    value: 2,
+    done: false
+  });
+});
+
+test('empty', () => {
+  const iter = empty();
+  expect(iter.next().done).toBe(true);
+});
+
+test('once', () => {
+  const iter = once(0);
+  expect(iter.next().value).toBe(0);
+  expect(iter.next().done).toBe(true);
 });

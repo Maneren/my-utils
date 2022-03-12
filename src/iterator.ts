@@ -3,9 +3,22 @@ export function iter<T> (data: Iterable<T>): Iter<T> {
 }
 
 export function repeat<T> (value: T): Iter<T> {
-  const generator = function * (): Iterable<T> {
+  function * generator (): Iterable<T> {
     while (true) yield value;
-  };
+  }
+
+  return iter(generator());
+}
+
+export function empty<T> (): Iter<T> {
+  function * generator (): Iterable<T> {}
+  return iter(generator());
+}
+
+export function once<T> (value: T): Iter<T> {
+  function * generator (): Iterable<T> {
+    yield value;
+  }
 
   return iter(generator());
 }
@@ -108,17 +121,75 @@ export class Iter<T> implements Iterable<T> {
   nth (n: number): T | undefined {
     if (n <= 0) return this.next().value;
 
-    this.skip(n);
+    this.advanceBy(n);
 
     return this.next().value;
   }
 
-  skip (n: number): Iter<T> {
+  advanceBy (n: number): Iter<T> {
     for (const _ of range(n)) {
       this.next();
     }
 
     return this;
+  }
+
+  skip (n: number): Iter<T> {
+    if (n <= 0) return this;
+
+    let element;
+    let count = 0;
+
+    while (true) {
+      const current = this.next();
+      if (current.done ?? false) return empty();
+
+      element = current.value;
+
+      if (count >= n) break;
+      count++;
+    }
+
+    if (element === undefined) return empty();
+
+    return once(element).chain(this);
+  }
+
+  skipWhile (f: Predicate<T>): Iter<T> {
+    let element;
+
+    while (true) {
+      const current = this.next();
+      if (current.done ?? false) return empty();
+
+      element = current.value;
+
+      if (!f(element)) break;
+    }
+
+    if (element === undefined) return empty();
+
+    return once(element).chain(this);
+  }
+
+  stepBy (n: number): StepBy<T> {
+    return new StepBy(this, n);
+  }
+
+  chain (iter: Iterable<T>): Chained<T> {
+    return new Chained(this, iter);
+  }
+
+  count (): number {
+    return this.fold((count) => count + 1, 0);
+  }
+
+  last (): T | undefined {
+    let element;
+
+    for (const current of this) element = current;
+
+    return element;
   }
 
   /**
@@ -228,6 +299,37 @@ export class Filter<T> extends Iter<T> {
       for (const value of data) {
         if (f(value)) yield value;
       }
+    }
+
+    super(generator());
+  }
+}
+
+export class StepBy<T> extends Iter<T> {
+  constructor (data: Iterable<T>, n: number) {
+    function * generator (): Iterable<T> {
+      const iterator = iter(data);
+
+      while (true) {
+        const current = iterator.next();
+        if (current.done ?? false) break;
+
+        yield current.value;
+
+        iterator.advanceBy(n - 1);
+      }
+    }
+
+    super(generator());
+  }
+}
+
+export class Chained<T> extends Iter<T> {
+  constructor (data: Iterable<T>, extension: Iterable<T>) {
+    function * generator (): Iterable<T> {
+      for (const value of data) yield value;
+
+      for (const value of extension) yield value;
     }
 
     super(generator());
