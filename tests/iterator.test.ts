@@ -56,7 +56,7 @@ test('map', () => {
 test('take', () => {
   const data = iter([0, 1, 2, 4, 5]);
 
-  const taken = data.take(3);
+  const taken = iter(data).take(3);
 
   expect(taken).toBeInstanceOf(Take);
 
@@ -65,17 +65,13 @@ test('take', () => {
   expect(taken.next().value).toBe(2);
   expect(taken.next().done).toBe(true);
 
-  const data2 = iter([0, 1, 2, 4, 5]);
-
-  const taken2 = data2.take(0);
+  const taken2 = iter(data).take(0);
 
   expect(taken2).toBeInstanceOf(Take);
 
   expect(taken2.next().done).toBe(true);
 
-  const data3 = iter([0, 1, 2, 4, 5]);
-
-  expect(() => data3.take(-1)).toThrow(
+  expect(() => iter(data).take(-1)).toThrow(
     'Expected positive integer but found -1'
   );
 });
@@ -133,12 +129,10 @@ test('fold', () => {
 test('nth', () => {
   const data = iter([0, 1, 2]);
 
-  const third = data.nth(2);
+  const third = iter(data).nth(2);
   expect(third).toBe(2);
 
-  const data2 = iter([0, 1, 2]);
-
-  const fourth = data2.nth(3);
+  const fourth = iter(data).nth(3);
   expect(fourth).toBe(undefined);
 });
 
