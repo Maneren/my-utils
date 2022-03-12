@@ -10,7 +10,7 @@ test('swap', () => {
   expect(array).toStrictEqual([1, 3, 2]);
 });
 
-test('lastI', () => {
+test('lastIndex', () => {
   const array = [5, 1, 8];
   expect(lastIndex(array)).toBe(2);
 });
@@ -52,7 +52,7 @@ test('shuffle', () => {
   resetMockRandom();
 });
 
-test('generateArr', () => {
+test('generate', () => {
   const testArray1 = generate(5, (x: number) => x * 2);
   expect(testArray1).toStrictEqual([0, 2, 4, 6, 8]);
 
@@ -62,7 +62,7 @@ test('generateArr', () => {
   expect(() => generate(-1, 10)).toThrow("length can't be less than 1");
 });
 
-test('rightPadArray', () => {
+test('rightPad', () => {
   const array = generate(3, (x: number) => x); // [0, 1, 2]
   const padded = rightPad(array, 5, (x: number) => x);
   expect(padded).toStrictEqual([0, 1, 2, 0, 1]);
