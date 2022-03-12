@@ -6,15 +6,20 @@ interface Styles {
   [index: string]: string
 }
 
+interface Modules {
+  [index: string]: NodeModule
+}
+
 export function importAll (
   requireContext: RequireContext,
-  preserveExtension = false
-): { [index: string]: NodeModule } {
-  const modules: any = {};
-  requireContext.keys().forEach((pathToFile) => {
-    let basename: any;
+  preserveExtensions = false
+): Modules {
+  const modules: Modules = {};
 
-    if (preserveExtension) {
+  for (const pathToFile of requireContext.keys()) {
+    let basename: string | undefined;
+
+    if (preserveExtensions) {
       basename = pathToFile.match(/[^/]*(\.?[^/\s]*(\.\w+))/)?.[0];
     } else {
       basename = pathToFile.match(/[^/]+?(?=\.\w+$)/)?.[0];
@@ -25,17 +30,24 @@ export function importAll (
     }
 
     modules[basename] = requireContext(pathToFile).default;
-  });
+  };
+
   return modules;
 }
 
-export function classListBuilder (styles: Styles) {
-  return (classNames: string | string[]) => {
-    const classesList = Array.isArray(classNames)
-      ? classNames
-      : classNames.split(' ');
-    return classesList
-      .map((x) => (styles[x] !== undefined ? styles[x] : x))
-      .join(' ');
-  };
+type Builder = (classNames: string | string[]) => string;
+
+export function classListBuilder (styles: Styles): Builder {
+  function builder (classNames: string): string;
+  function builder (classNames: string[]): string;
+
+  function builder (classNames: string | string[]): string {
+    if (!Array.isArray(classNames)) classNames = classNames.split(' ');
+
+    const result = classNames.map((x) => styles[x] ?? x).join(' ');
+
+    return result;
+  }
+
+  return builder;
 }
