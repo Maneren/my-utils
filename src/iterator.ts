@@ -56,7 +56,7 @@ export class Iter<T> implements Iterable<T> {
   iterator: Iterator<T, undefined>;
 
   constructor (data: Iterable<T>) {
-    const generator = function * (): Iterator<T, undefined> {
+    function * generator (): Iterator<T, undefined> {
       for (const value of data) {
         yield value;
       }
@@ -160,7 +160,7 @@ export class Iter<T> implements Iterable<T> {
 
 export class MapIter<T, U> extends Iter<U> {
   constructor (data: Iterable<T>, f: (value: T) => U) {
-    const generator = function * (): Iterable<U> {
+    function * generator (): Iterable<U> {
       for (const value of data) {
         yield f(value);
       }
@@ -177,7 +177,7 @@ interface Enumerated<T> {
 
 export class Enumerate<T> extends Iter<Enumerated<T>> {
   constructor (data: Iterable<T>) {
-    const generator = function * (): Iterable<Enumerated<T>> {
+    function * generator (): Iterable<Enumerated<T>> {
       let index = 0;
 
       for (const value of data) {
@@ -196,7 +196,7 @@ export class Take<T> extends Iter<T> {
       throw new Error(`Expected positive integer but found ${limit}`);
     }
 
-    const generator = function * (): Iterable<T> {
+    function * generator (): Iterable<T> {
       if (limit <= 0) return;
 
       let count = 0;
@@ -214,7 +214,7 @@ export class Take<T> extends Iter<T> {
 
 export class TakeWhile<T> extends Iter<T> {
   constructor (data: Iterable<T>, f: (value: T) => boolean) {
-    const generator = function * (): Iterable<T> {
+    function * generator (): Iterable<T> {
       for (const value of data) {
         if (!f(value)) break;
         yield value;
@@ -227,7 +227,7 @@ export class TakeWhile<T> extends Iter<T> {
 
 export class Filter<T> extends Iter<T> {
   constructor (data: Iterable<T>, f: (value: T) => boolean) {
-    const generator = function * (): Iterable<T> {
+    function * generator (): Iterable<T> {
       for (const value of data) {
         if (f(value)) yield value;
       }
