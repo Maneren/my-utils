@@ -75,7 +75,9 @@ test('take', () => {
 
   const data3 = iter([0, 1, 2, 4, 5]);
 
-  expect(() => data3.take(-1)).toThrow('Expected positive integer but found -1');
+  expect(() => data3.take(-1)).toThrow(
+    'Expected positive integer but found -1'
+  );
 });
 
 test('takeWhile', () => {
