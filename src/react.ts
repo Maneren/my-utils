@@ -30,7 +30,7 @@ export function importAll (
     }
 
     modules[basename] = requireContext(pathToFile).default;
-  };
+  }
 
   return modules;
 }
