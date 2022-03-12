@@ -2,6 +2,8 @@ export function iter<T> (data: Iterable<T>): Iter<T> {
   return new Iter(data);
 }
 
+type Predicate<T> = (value: T) => boolean;
+
 export class Iter<T> implements Iterable<T> {
   data: Iterable<T>;
 
@@ -13,8 +15,12 @@ export class Iter<T> implements Iterable<T> {
     return this[Symbol.iterator]().next();
   }
 
-  [Symbol.iterator] (): Iterator<T> {
-    return this.data[Symbol.iterator]();
+  * [Symbol.iterator] (): Iterator<T, null> {
+    for (const value of this.data) {
+      yield value;
+    }
+
+    return null;
   }
 
   map<U>(f: (value: T) => U): MapIter<T, U> {
@@ -25,7 +31,11 @@ export class Iter<T> implements Iterable<T> {
     return new Take(this, n);
   }
 
-  filter (f: (value: T) => boolean): Filter<T> {
+  takeWhile (f: Predicate<T>): Take<T> {
+    return new TakeWhile(this, f);
+  }
+
+  filter (f: Predicate<T>): Filter<T> {
     return new Filter(this, f);
   }
 
@@ -50,10 +60,21 @@ export class Iter<T> implements Iterable<T> {
     return null;
   }
 
+  skip (n: number): Iter<T> {
+    let i = 0;
+
+    for (const _ of this) {
+      if (i >= n) break;
+      i++;
+    }
+
+    return this;
+  }
+
   /**
    * creates array from the values of the iterator
    * @returns {T[]} array of the values from the iterator
-   */
+  */
   collect (): T[] {
     const array = [];
 
@@ -62,6 +83,14 @@ export class Iter<T> implements Iterable<T> {
     }
 
     return array;
+  }
+
+  static repeat<T>(value: T): Iter<T> {
+    const generator = function * (): Iterable<T> {
+      while (true) yield value;
+    };
+
+    return iter(generator());
   }
 }
 
@@ -112,6 +141,19 @@ export class Take<T> extends Iter<T> {
         yield value;
         count++;
         if (count <= limit) break;
+      }
+    };
+
+    super(generator());
+  }
+}
+
+export class TakeWhile<T> extends Iter<T> {
+  constructor (data: Iterable<T>, f: (value: T) => boolean) {
+    const generator = function * (): Iterable<T> {
+      for (const value of data) {
+        if (!f(value)) break;
+        yield value;
       }
     };
 
