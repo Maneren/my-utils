@@ -2,25 +2,37 @@ export function iter<T> (data: Iterable<T>): Iter<T> {
   return new Iter(data);
 }
 
+export function repeat<T> (value: T): Iter<T> {
+  const generator = function * (): Iterable<T> {
+    while (true) yield value;
+  };
+
+  return iter(generator());
+}
+
 type Predicate<T> = (value: T) => boolean;
 
 export class Iter<T> implements Iterable<T> {
-  data: Iterable<T>;
+  iterator: Iterator<T, undefined>;
 
   constructor (data: Iterable<T>) {
-    this.data = data;
+    const generator = function * (): Iterator<T, undefined> {
+      for (const value of data) {
+        yield value;
+      }
+
+      return undefined; // to satisfy type checker
+    };
+
+    this.iterator = generator();
   }
 
   next (): IteratorResult<T> {
-    return this[Symbol.iterator]().next();
+    return this.iterator.next();
   }
 
-  * [Symbol.iterator] (): Iterator<T, null> {
-    for (const value of this.data) {
-      yield value;
-    }
-
-    return null;
+  [Symbol.iterator] (): Iterator<T, undefined> {
+    return this.iterator;
   }
 
   map<U>(f: (value: T) => U): MapIter<T, U> {
@@ -39,6 +51,10 @@ export class Iter<T> implements Iterable<T> {
     return new Filter(this, f);
   }
 
+  enumerate (): Enumerate<T> {
+    return new Enumerate(this);
+  }
+
   fold<U>(f: (total: U, current: T) => U, start: U): U {
     let total = start;
 
@@ -49,7 +65,7 @@ export class Iter<T> implements Iterable<T> {
     return total;
   }
 
-  nth (n: number): T | null {
+  nth (n: number): T | undefined {
     let i = 0;
 
     for (const value of this) {
@@ -57,15 +73,12 @@ export class Iter<T> implements Iterable<T> {
       i++;
     }
 
-    return null;
+    return undefined;
   }
 
   skip (n: number): Iter<T> {
-    let i = 0;
-
-    for (const _ of this) {
-      if (i >= n) break;
-      i++;
+    for (let i = 0; i < n; i++) {
+      this.next();
     }
 
     return this;
@@ -74,7 +87,7 @@ export class Iter<T> implements Iterable<T> {
   /**
    * creates array from the values of the iterator
    * @returns {T[]} array of the values from the iterator
-  */
+   */
   collect (): T[] {
     const array = [];
 
@@ -83,14 +96,6 @@ export class Iter<T> implements Iterable<T> {
     }
 
     return array;
-  }
-
-  static repeat<T>(value: T): Iter<T> {
-    const generator = function * (): Iterable<T> {
-      while (true) yield value;
-    };
-
-    return iter(generator());
   }
 }
 
@@ -140,7 +145,7 @@ export class Take<T> extends Iter<T> {
       for (const value of data) {
         yield value;
         count++;
-        if (count <= limit) break;
+        if (count >= limit) break;
       }
     };
 
