@@ -97,6 +97,25 @@ export class Iter<T> implements Iterable<T> {
 
     return array;
   }
+
+  join (separator = ''): string {
+    const iter = this.map((value) => String(value));
+
+    const first = iter.next();
+
+    if (first.done ?? false) {
+      return '';
+    }
+
+    let result = first.value;
+
+    for (const v of iter) {
+      result += separator;
+      result += v;
+    }
+
+    return result;
+  }
 }
 
 export class MapIter<T, U> extends Iter<U> {

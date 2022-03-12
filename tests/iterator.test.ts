@@ -185,3 +185,13 @@ test('repeat', () => {
     done: false
   });
 });
+
+test('join', () => {
+  const data = [0, 1, 2];
+
+  const joined = iter(data).join(', ');
+  expect(joined).toStrictEqual('0, 1, 2');
+
+  const joined2 = iter(data).join();
+  expect(joined2).toStrictEqual('012');
+});
