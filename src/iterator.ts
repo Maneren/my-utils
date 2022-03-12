@@ -106,18 +106,15 @@ export class Iter<T> implements Iterable<T> {
   }
 
   nth (n: number): T | undefined {
-    let i = 0;
+    if (n <= 0) return this.next().value;
 
-    for (const value of this) {
-      if (i === n) return value;
-      i++;
-    }
+    this.skip(n - 1);
 
-    return undefined;
+    return this.next().value;
   }
 
   skip (n: number): Iter<T> {
-    for (let i = 0; i < n; i++) {
+    for (const _ in range(n)) {
       this.next();
     }
 
