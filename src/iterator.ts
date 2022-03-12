@@ -45,7 +45,7 @@ export function range (start: number, end?: number, step?: number): R {
 
       for (let i = start; i < end; i += step) yield i;
     }
-  };
+  }
 
   return iter(generator());
 }
@@ -62,7 +62,7 @@ export class Iter<T> implements Iterable<T> {
       }
 
       return undefined; // to satisfy type checker
-    };
+    }
 
     this.iterator = generator();
   }
@@ -108,13 +108,13 @@ export class Iter<T> implements Iterable<T> {
   nth (n: number): T | undefined {
     if (n <= 0) return this.next().value;
 
-    this.skip(n - 1);
+    this.skip(n);
 
     return this.next().value;
   }
 
   skip (n: number): Iter<T> {
-    for (const _ in range(n)) {
+    for (const _ of range(n)) {
       this.next();
     }
 
@@ -161,7 +161,7 @@ export class MapIter<T, U> extends Iter<U> {
       for (const value of data) {
         yield f(value);
       }
-    };
+    }
 
     super(generator());
   }
@@ -181,7 +181,7 @@ export class Enumerate<T> extends Iter<Enumerated<T>> {
         yield { index, value };
         index++;
       }
-    };
+    }
 
     super(generator());
   }
@@ -203,7 +203,7 @@ export class Take<T> extends Iter<T> {
         count++;
         if (count >= limit) break;
       }
-    };
+    }
 
     super(generator());
   }
@@ -216,7 +216,7 @@ export class TakeWhile<T> extends Iter<T> {
         if (!f(value)) break;
         yield value;
       }
-    };
+    }
 
     super(generator());
   }
@@ -228,7 +228,7 @@ export class Filter<T> extends Iter<T> {
       for (const value of data) {
         if (f(value)) yield value;
       }
-    };
+    }
 
     super(generator());
   }

@@ -1,4 +1,4 @@
-import { Ranges } from '.';
+import { range } from './iterator';
 
 /**
  * swaps elements in the array (mutates original)
@@ -76,7 +76,7 @@ export function generate<T> (
 
   const isFunction = callback instanceof Function;
 
-  const array = Ranges.range(length)
+  const array = range(length)
     .map((i) => (isFunction ? callback(i) : callback))
     .collect();
 
