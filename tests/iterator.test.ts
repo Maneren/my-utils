@@ -1,18 +1,4 @@
-import {
-  Chained,
-  empty,
-  Enumerate,
-  Filter,
-  Iter,
-  iter,
-  MapIter,
-  once,
-  range,
-  repeat,
-  StepBy,
-  Take,
-  TakeWhile
-} from '../src/iterator';
+import { empty, Iter, iter, once, range, repeat } from '../src/iterator';
 
 test('iter', () => {
   const data = iter([0, 1, 2]);
@@ -50,8 +36,6 @@ test('map', () => {
 
   const mapped = data.map((x: number) => x + 1);
 
-  expect(mapped).toBeInstanceOf(MapIter);
-
   expect(mapped.next().value).toBe(1);
   expect(mapped.next().value).toBe(2);
   expect(mapped.next().value).toBe(3);
@@ -63,16 +47,12 @@ test('take', () => {
 
   const taken = iter(data).take(3);
 
-  expect(taken).toBeInstanceOf(Take);
-
   expect(taken.next().value).toBe(0);
   expect(taken.next().value).toBe(1);
   expect(taken.next().value).toBe(2);
   expect(taken.next().done).toBe(true);
 
   const taken2 = iter(data).take(0);
-
-  expect(taken2).toBeInstanceOf(Take);
 
   expect(taken2.next().done).toBe(true);
 
@@ -86,8 +66,6 @@ test('takeWhile', () => {
 
   const taken = data.takeWhile((x: number) => x < 10);
 
-  expect(taken).toBeInstanceOf(TakeWhile);
-
   expect(taken.next().value).toBe(0);
   expect(taken.next().value).toBe(3);
   expect(taken.next().value).toBe(6);
@@ -100,8 +78,6 @@ test('filter', () => {
 
   const filtered = data.filter((x: number) => x % 2 === 0);
 
-  expect(filtered).toBeInstanceOf(Filter);
-
   expect(filtered.next().value).toBe(0);
   expect(filtered.next().value).toBe(2);
   expect(filtered.next().done).toBe(true);
@@ -111,8 +87,6 @@ test('enumerate', () => {
   const data = iter([2, 1, 0]);
 
   const enumerated = data.enumerate();
-
-  expect(enumerated).toBeInstanceOf(Enumerate);
 
   expect(enumerated.next().value).toStrictEqual({ index: 0, value: 2 });
   expect(enumerated.next().value).toStrictEqual({ index: 1, value: 1 });
@@ -149,8 +123,6 @@ test('skip', () => {
 
   const skipped = data.skip(2);
 
-  expect(skipped).toBeInstanceOf(Iter);
-
   expect(skipped.next().value).toBe(4);
   expect(skipped.next().value).toBe(5);
   expect(skipped.next().done).toBe(true);
@@ -161,8 +133,6 @@ test('skipWhile', () => {
 
   const skipped = data.skipWhile((x: number) => x % 2 === 0);
 
-  expect(skipped).toBeInstanceOf(Iter);
-
   expect(skipped.next().value).toBe(5);
   expect(skipped.next().value).toBe(7);
   expect(skipped.next().done).toBe(true);
@@ -172,8 +142,6 @@ test('stepBy', () => {
   const data = iter([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
   const step = data.stepBy(3);
-
-  expect(step).toBeInstanceOf(StepBy);
 
   expect(step.next().value).toBe(0);
   expect(step.next().value).toBe(3);
@@ -198,12 +166,21 @@ test('chain', () => {
 
   const chained = data.chain(data2);
 
-  expect(chained).toBeInstanceOf(Chained);
-
   expect(chained.next().value).toBe(0);
   expect(chained.next().value).toBe(1);
   expect(chained.next().value).toBe(2);
   expect(chained.next().value).toBe(3);
+  expect(chained.next().done).toBe(true);
+});
+
+test('zip', () => {
+  const data = iter([0, 1]);
+  const data2 = iter([2, 3]);
+
+  const chained = data.zip(data2);
+
+  expect(chained.next().value).toStrictEqual({ a: 0, b: 2 });
+  expect(chained.next().value).toStrictEqual({ a: 1, b: 3 });
   expect(chained.next().done).toBe(true);
 });
 
@@ -266,8 +243,6 @@ test('range', () => {
 
 test('repeat', () => {
   const data = repeat(2);
-
-  expect(data).toBeInstanceOf(Iter);
 
   expect(data.next()).toStrictEqual({
     value: 2,

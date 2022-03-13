@@ -64,6 +64,10 @@ export function range (start: number, end?: number, step?: number): R {
 }
 
 type Predicate<T> = (value: T) => boolean;
+interface Enumerated<T> {
+  index: number
+  value: T
+}
 
 export class Iter<T> implements Iterable<T> {
   iterator: Iterator<T, undefined>;
@@ -88,24 +92,78 @@ export class Iter<T> implements Iterable<T> {
     return this.iterator;
   }
 
-  map<U>(f: (value: T) => U): MapIter<T, U> {
-    return new MapIter(this, f);
+  map<U>(f: (value: T) => U): Iter<U> {
+    const data = iter(this);
+
+    function * generator (): Iterable<U> {
+      for (const value of data) {
+        yield f(value);
+      }
+    }
+
+    return iter(generator());
   }
 
-  take (n: number): Take<T> {
-    return new Take(this, n);
+  take (limit: number): Iter<T> {
+    if (limit < 0 || limit % 1 !== 0) {
+      throw new Error(`Expected positive integer but found ${limit}`);
+    }
+
+    const data = iter(this);
+
+    function * generator (): Iterable<T> {
+      if (limit <= 0) return;
+
+      let count = 0;
+
+      for (const value of data) {
+        yield value;
+        count++;
+        if (count >= limit) break;
+      }
+    }
+
+    return iter(generator());
   }
 
-  takeWhile (f: Predicate<T>): Take<T> {
-    return new TakeWhile(this, f);
+  takeWhile (f: Predicate<T>): Iter<T> {
+    const data = iter(this);
+
+    function * generator (): Iterable<T> {
+      for (const value of data) {
+        if (!f(value)) break;
+        yield value;
+      }
+    }
+
+    return iter(generator());
   }
 
-  filter (f: Predicate<T>): Filter<T> {
-    return new Filter(this, f);
+  filter (f: Predicate<T>): Iter<T> {
+    const data = iter(this);
+
+    function * generator (): Iterable<T> {
+      for (const value of data) {
+        if (f(value)) yield value;
+      }
+    }
+
+    return iter(generator());
   }
 
-  enumerate (): Enumerate<T> {
-    return new Enumerate(this);
+  enumerate (): Iter<Enumerated<T>> {
+    const data = iter(this);
+
+    function * generator (): Iterable<Enumerated<T>> {
+      let index = 0;
+
+      for (const value of data) {
+        yield { index, value };
+        index++;
+      }
+    }
+
+    return iter(generator());
   }
 
   fold<U>(f: (total: U, current: T) => U, start: U): U {
@@ -172,12 +230,54 @@ export class Iter<T> implements Iterable<T> {
     return once(element).chain(this);
   }
 
-  stepBy (n: number): StepBy<T> {
-    return new StepBy(this, n);
+  stepBy (n: number): Iter<T> {
+    const data = iter(this);
+
+    function * generator (): Iterable<T> {
+      const iterator = iter(data);
+
+      while (true) {
+        const current = iterator.next();
+        if (current.done ?? false) break;
+
+        yield current.value;
+
+        iterator.advanceBy(n - 1);
+      }
+    }
+
+    return iter(generator());
   }
 
-  chain (iter: Iterable<T>): Chained<T> {
-    return new Chained(this, iter);
+  chain (extension: Iterable<T>): Iter<T> {
+    const data = iter(this);
+
+    function * generator (): Iterable<T> {
+      for (const value of data) yield value;
+
+      for (const value of extension) yield value;
+    }
+
+    return iter(generator());
+  }
+
+  zip<U>(other: Iterable<U>): Iter<{ a: T, b: U }> {
+    const data = iter(this);
+    const data2 = iter(other);
+
+    function * generator (): Iterable<{ a: T, b: U }> {
+      while (true) {
+        const next1 = data.next();
+        const next2 = data2.next();
+
+        if (next1.done ?? false) break;
+        if (next2.done ?? false) break;
+
+        yield { a: next1.value, b: next2.value };
+      }
+    }
+
+    return iter(generator());
   }
 
   count (): number {
@@ -223,115 +323,5 @@ export class Iter<T> implements Iterable<T> {
     }
 
     return result;
-  }
-}
-
-export class MapIter<T, U> extends Iter<U> {
-  constructor (data: Iterable<T>, f: (value: T) => U) {
-    function * generator (): Iterable<U> {
-      for (const value of data) {
-        yield f(value);
-      }
-    }
-
-    super(generator());
-  }
-}
-
-interface Enumerated<T> {
-  index: number
-  value: T
-}
-
-export class Enumerate<T> extends Iter<Enumerated<T>> {
-  constructor (data: Iterable<T>) {
-    function * generator (): Iterable<Enumerated<T>> {
-      let index = 0;
-
-      for (const value of data) {
-        yield { index, value };
-        index++;
-      }
-    }
-
-    super(generator());
-  }
-}
-
-export class Take<T> extends Iter<T> {
-  constructor (data: Iterable<T>, limit: number) {
-    if (limit < 0 || limit % 1 !== 0) {
-      throw new Error(`Expected positive integer but found ${limit}`);
-    }
-
-    function * generator (): Iterable<T> {
-      if (limit <= 0) return;
-
-      let count = 0;
-
-      for (const value of data) {
-        yield value;
-        count++;
-        if (count >= limit) break;
-      }
-    }
-
-    super(generator());
-  }
-}
-
-export class TakeWhile<T> extends Iter<T> {
-  constructor (data: Iterable<T>, f: (value: T) => boolean) {
-    function * generator (): Iterable<T> {
-      for (const value of data) {
-        if (!f(value)) break;
-        yield value;
-      }
-    }
-
-    super(generator());
-  }
-}
-
-export class Filter<T> extends Iter<T> {
-  constructor (data: Iterable<T>, f: (value: T) => boolean) {
-    function * generator (): Iterable<T> {
-      for (const value of data) {
-        if (f(value)) yield value;
-      }
-    }
-
-    super(generator());
-  }
-}
-
-export class StepBy<T> extends Iter<T> {
-  constructor (data: Iterable<T>, n: number) {
-    function * generator (): Iterable<T> {
-      const iterator = iter(data);
-
-      while (true) {
-        const current = iterator.next();
-        if (current.done ?? false) break;
-
-        yield current.value;
-
-        iterator.advanceBy(n - 1);
-      }
-    }
-
-    super(generator());
-  }
-}
-
-export class Chained<T> extends Iter<T> {
-  constructor (data: Iterable<T>, extension: Iterable<T>) {
-    function * generator (): Iterable<T> {
-      for (const value of data) yield value;
-
-      for (const value of extension) yield value;
-    }
-
-    super(generator());
   }
 }
