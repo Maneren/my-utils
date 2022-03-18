@@ -235,10 +235,11 @@ test('range', () => {
   expect(testRange4.next().value).toBe(1);
   expect(testRange4.next().done).toBe(true);
 
-  expect(() => range(10, 0).next()).toThrow('start must be smaller than end');
-  expect(() => range(0, 10, -1).next()).toThrow(
-    'when step is lower than 0, start must be larger than end'
-  );
+  expect(range(10, 0).next()).toStrictEqual({ done: true, value: undefined });
+  expect(range(0, 10, -1).next()).toStrictEqual({
+    done: true,
+    value: undefined
+  });
 });
 
 test('repeat', () => {

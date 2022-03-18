@@ -8,14 +8,18 @@ afterEach(() => {
   resetMockRandom();
 });
 
-test('sleep', () => {
+test('sleep', async () => {
   jest.useFakeTimers();
   jest.spyOn(global, 'setTimeout');
 
-  void sleep(500);
+  const result = sleep(500);
 
   expect(setTimeout).toHaveBeenCalledTimes(1);
   expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 500);
+
+  jest.runAllTimers();
+
+  expect(await result).toBe(null);
 });
 
 test('randfloat', () => {

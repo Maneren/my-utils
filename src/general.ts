@@ -40,7 +40,5 @@ export function randfloat (min: number, max?: number): number {
 export function randint (min: number): number;
 export function randint (min: number, max: number): number;
 export function randint (min: number, max?: number): number {
-  return max === undefined
-    ? Math.floor(randfloat(min))
-    : Math.floor(randfloat(min, max));
+  return Math.floor(max === undefined ? randfloat(min) : randfloat(min, max));
 }

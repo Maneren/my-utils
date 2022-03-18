@@ -31,8 +31,8 @@ type R = Iter<number>;
  * @param {number} end upper bound (exclusive)
  * @param {number} step
  * @returns {R}
-  */
-  export function range (end: number): R;
+ */
+export function range (end: number): R;
 export function range (start: number, end: number): R;
 export function range (start: number, end: number, step: number): R;
 export function range (start: number, end?: number, step?: number): R {
@@ -288,20 +288,22 @@ export class Iter<T> implements Iterable<T> {
     return element;
   }
 
-  consume () {
-    for (const _ of this) {}
+  consume (): void {
+    for (const _ of this) {
+      // pass
+    }
   }
 
-  forEach (f: (value: T) => void) {
+  forEach (f: (value: T) => void): void {
     for (const el of this) {
-      f(el)
+      f(el);
     }
   }
 
   /**
    * creates array from the values of the iterator
    * @returns {T[]} array of the values from the iterator
-  */
+   */
   collect (): T[] {
     const array = [];
 
