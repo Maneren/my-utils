@@ -1,5 +1,16 @@
 import { empty, Iter, iter, once, range, repeat } from '../src/iterator';
 
+function expectIsEmpty<T> (iter: Iter<T>): void {
+  expect(iter.next()).toStrictEqual({
+    value: undefined,
+    done: true
+  });
+}
+
+function expectCollected<T> (iter: Iter<T>, array: T[]): void {
+  expect(iter.collect()).toStrictEqual(array);
+}
+
 test('iter', () => {
   const data = iter([0, 1, 2]);
 
@@ -34,79 +45,61 @@ test('next', () => {
 test('map', () => {
   const data = iter([0, 1, 2]);
 
-  const mapped = data.map((x: number) => x + 1);
-
-  expect(mapped.next().value).toBe(1);
-  expect(mapped.next().value).toBe(2);
-  expect(mapped.next().value).toBe(3);
-  expect(mapped.next().done).toBe(true);
-});
-
-test('take', () => {
-  const data = iter([0, 1, 2, 4, 5]);
-
-  const taken = iter(data).take(3);
-
-  expect(taken.next().value).toBe(0);
-  expect(taken.next().value).toBe(1);
-  expect(taken.next().value).toBe(2);
-  expect(taken.next().done).toBe(true);
-
-  const taken2 = iter(data).take(0);
-
-  expect(taken2.next().done).toBe(true);
-
-  expect(() => iter(data).take(-1)).toThrow(
-    'Expected positive integer but found -1'
+  expectCollected(
+    data.map((x) => x + 1),
+    [1, 2, 3]
   );
 });
 
+test('take', () => {
+  const data = [0, 1, 2, 3, 4, 5];
+
+  expectCollected(iter(data).take(3), [0, 1, 2]);
+
+  expectIsEmpty(iter(data).take(0));
+  expectIsEmpty(iter(data).take(-1));
+});
+
 test('takeWhile', () => {
-  const data = iter([0, 3, 6, 9, 12]);
+  const data = [0, 3, 6, 9, 12, 15];
 
-  const taken = data.takeWhile((x: number) => x < 10);
+  expectCollected(
+    iter(data).takeWhile((x) => x < 10),
+    [0, 3, 6, 9]
+  );
 
-  expect(taken.next().value).toBe(0);
-  expect(taken.next().value).toBe(3);
-  expect(taken.next().value).toBe(6);
-  expect(taken.next().value).toBe(9);
-  expect(taken.next().done).toBe(true);
+  expectIsEmpty(iter(data).takeWhile((x) => x < 0));
 });
 
 test('filter', () => {
-  const data = iter([0, 1, 2]);
+  const data = iter([0, 1, 2, 3, 4, 5]);
 
-  const filtered = data.filter((x: number) => x % 2 === 0);
-
-  expect(filtered.next().value).toBe(0);
-  expect(filtered.next().value).toBe(2);
-  expect(filtered.next().done).toBe(true);
+  expectCollected(
+    data.filter((x) => x % 2 === 0),
+    [0, 2, 4]
+  );
 });
 
 test('enumerate', () => {
   const data = iter([2, 1, 0]);
 
-  const enumerated = data.enumerate();
-
-  expect(enumerated.next().value).toStrictEqual({ index: 0, value: 2 });
-  expect(enumerated.next().value).toStrictEqual({ index: 1, value: 1 });
-  expect(enumerated.next().value).toStrictEqual({ index: 2, value: 0 });
-  expect(enumerated.next().done).toBe(true);
+  expectCollected(data.enumerate(), [
+    { index: 0, value: 2 },
+    { index: 1, value: 1 },
+    { index: 2, value: 0 }
+  ]);
 });
 
 test('fold', () => {
   const data = iter([0, 1, 2, 4, 5]);
 
-  const folded = data.fold(
-    (total: number, current: number) => total + current,
-    0
-  );
+  const folded = data.fold((total, current) => total + current, 0);
 
   expect(folded).toBe(12);
 });
 
 test('nth', () => {
-  const data = iter([0, 1, 2]);
+  const data = [0, 1, 2];
 
   const third = iter(data).nth(2);
   expect(third).toBe(2);
@@ -116,46 +109,30 @@ test('nth', () => {
 });
 
 test('skip', () => {
-  const data = iter([0, 1, 2, 3, 4, 5]);
+  const data = iter([0, 1, 2, 3]);
 
-  expect(data.next().value).toBe(0);
-  expect(data.next().value).toBe(1);
-
-  const skipped = data.skip(2);
-
-  expect(skipped.next().value).toBe(4);
-  expect(skipped.next().value).toBe(5);
-  expect(skipped.next().done).toBe(true);
+  expectCollected(data.skip(2), [2, 3]);
 });
 
 test('skipWhile', () => {
-  const data = iter([0, 2, 4, 5, 7]);
+  const data = iter([0, 2, 4, 5, 6, 7]);
 
-  const skipped = data.skipWhile((x: number) => x % 2 === 0);
-
-  expect(skipped.next().value).toBe(5);
-  expect(skipped.next().value).toBe(7);
-  expect(skipped.next().done).toBe(true);
+  expectCollected(
+    data.skipWhile((x) => x % 2 === 0),
+    [5, 6, 7]
+  );
 });
 
 test('stepBy', () => {
   const data = iter([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
-  const step = data.stepBy(3);
-
-  expect(step.next().value).toBe(0);
-  expect(step.next().value).toBe(3);
-  expect(step.next().value).toBe(6);
-  expect(step.next().value).toBe(9);
-  expect(step.next().done).toBe(true);
+  expectCollected(data.stepBy(3), [0, 3, 6, 9]);
 });
 
 test('collect', () => {
   const data = iter([0, 1, 2]);
 
   const collected = data.collect();
-
-  expect(collected).toBeInstanceOf(Array);
 
   expect(collected).toStrictEqual([0, 1, 2]);
 });
@@ -164,82 +141,47 @@ test('chain', () => {
   const data = iter([0, 1]);
   const data2 = iter([2, 3]);
 
-  const chained = data.chain(data2);
-
-  expect(chained.next().value).toBe(0);
-  expect(chained.next().value).toBe(1);
-  expect(chained.next().value).toBe(2);
-  expect(chained.next().value).toBe(3);
-  expect(chained.next().done).toBe(true);
+  expectCollected(data.chain(data2), [0, 1, 2, 3]);
 });
 
 test('zip', () => {
   const data = iter([0, 1]);
   const data2 = iter([2, 3]);
 
-  const chained = data.zip(data2);
-
-  expect(chained.next().value).toStrictEqual({ a: 0, b: 2 });
-  expect(chained.next().value).toStrictEqual({ a: 1, b: 3 });
-  expect(chained.next().done).toBe(true);
+  expectCollected(data.zip(data2), [
+    { a: 0, b: 2 },
+    { a: 1, b: 3 }
+  ]);
 });
 
 test('count', () => {
   const data = iter([0, 1, 2, 4, 5]);
 
-  const count = data.count();
-
-  expect(count).toBe(5);
+  expect(data.count()).toBe(5);
 });
 
 test('last', () => {
   const data = iter([0, 1, 2, 4, 5]);
 
-  const count = data.last();
-
-  expect(count).toBe(5);
+  expect(data.last()).toBe(5);
 });
 
 test('join', () => {
   const data = [0, 1, 2];
 
-  const joined = iter(data).join(', ');
-  expect(joined).toStrictEqual('0, 1, 2');
-
-  const joined2 = iter(data).join();
-  expect(joined2).toStrictEqual('012');
+  expect(iter(data).join()).toBe('012');
+  expect(iter(data).join(', ')).toBe('0, 1, 2');
 });
 
 test('range', () => {
-  const testRange1 = range(3);
-  expect(testRange1.next().value).toBe(0);
-  expect(testRange1.next().value).toBe(1);
-  expect(testRange1.next().value).toBe(2);
-  expect(testRange1.next().done).toBe(true);
+  expectCollected(range(3), [0, 1, 2]);
+  expectCollected(range(3, 6), [3, 4, 5]);
+  expectCollected(range(0, 5, 2), [0, 2, 4]);
+  expectCollected(range(5, 0, -2), [5, 3, 1]);
 
-  const testRange2 = range(3, 6);
-  expect(testRange2.next().value).toBe(3);
-  expect(testRange2.next().value).toBe(4);
-  expect(testRange2.next().value).toBe(5);
-  expect(testRange2.next().done).toBe(true);
-
-  const testRange3 = range(0, 5, 2);
-  expect(testRange3.next().value).toBe(0);
-  expect(testRange3.next().value).toBe(2);
-  expect(testRange3.next().value).toBe(4);
-  expect(testRange3.next().done).toBe(true);
-
-  const testRange4 = range(5, 0, -2);
-  expect(testRange4.next().value).toBe(5);
-  expect(testRange4.next().value).toBe(3);
-  expect(testRange4.next().value).toBe(1);
-  expect(testRange4.next().done).toBe(true);
-
-  expect(range(10, 0).next()).toStrictEqual({ done: true, value: undefined });
-  expect(range(0, 10, -1).next()).toStrictEqual({
-    done: true,
-    value: undefined
-  });
+  expectIsEmpty(range(10, 0));
+  expectIsEmpty(range(0, 10, -1));
+  expect(() => range(0, 10, 0)).toThrow("step can't be 0");
 });
 
 test('repeat', () => {
@@ -260,12 +202,9 @@ test('repeat', () => {
 });
 
 test('empty', () => {
-  const iter = empty();
-  expect(iter.next().done).toBe(true);
+  expectIsEmpty(empty());
 });
 
 test('once', () => {
-  const iter = once(0);
-  expect(iter.next().value).toBe(0);
-  expect(iter.next().done).toBe(true);
+  expectCollected(once(0), [0]);
 });
