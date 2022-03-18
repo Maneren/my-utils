@@ -31,8 +31,8 @@ type R = Iter<number>;
  * @param {number} end upper bound (exclusive)
  * @param {number} step
  * @returns {R}
- */
-export function range (end: number): R;
+  */
+  export function range (end: number): R;
 export function range (start: number, end: number): R;
 export function range (start: number, end: number, step: number): R;
 export function range (start: number, end?: number, step?: number): R {
@@ -46,15 +46,11 @@ export function range (start: number, end?: number, step?: number): R {
     if (step === undefined) step = 1;
 
     if (step < 0) {
-      if (start < end) {
-        throw new Error(
-          'when step is lower than 0, start must be larger than end'
-        );
-      }
+      if (start < end) return empty();
 
       for (let i = start; i > end; i += step) yield i;
     } else {
-      if (start > end) throw new Error('start must be smaller than end');
+      if (start > end) return empty();
 
       for (let i = start; i < end; i += step) yield i;
     }
@@ -292,10 +288,20 @@ export class Iter<T> implements Iterable<T> {
     return element;
   }
 
+  consume () {
+    for (const _ of this) {}
+  }
+
+  forEach (f: (value: T) => void) {
+    for (const el of this) {
+      f(el)
+    }
+  }
+
   /**
    * creates array from the values of the iterator
    * @returns {T[]} array of the values from the iterator
-   */
+  */
   collect (): T[] {
     const array = [];
 
@@ -323,5 +329,34 @@ export class Iter<T> implements Iterable<T> {
     }
 
     return result;
+  }
+
+  all (f: Predicate<T>): boolean {
+    for (const value of this) {
+      if (!f(value)) return false;
+    }
+
+    return true;
+  }
+
+  some (f: Predicate<T>): boolean {
+    for (const value of this) {
+      if (f(value)) return true;
+    }
+
+    return false;
+  }
+
+  inspect (f: (value: any) => void): Iter<T> {
+    const data = iter(this);
+
+    function * generator (): Iterable<T> {
+      for (const value of data) {
+        f(value);
+        yield value;
+      }
+    }
+
+    return iter(generator());
   }
 }
