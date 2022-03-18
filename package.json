@@ -43,5 +43,11 @@
   "files": [
     "dist",
     "src"
-  ]
+  ],
+  "prettier": {
+    "trailingComma": "none",
+    "tabWidth": 4,
+    "semi": false,
+    "singleQuote": true
+  }
 }
