@@ -1,5 +1,12 @@
 import { empty, Iter, iter, once, range, repeat } from '../src/iterator';
 
+function expectNextEquals<T> (iter: Iter<T>, value: T): void {
+  expect(iter.next()).toStrictEqual({
+    value,
+    done: false
+  });
+}
+
 function expectIsEmpty<T> (iter: Iter<T>): void {
   expect(iter.next()).toStrictEqual({
     value: undefined,
@@ -20,26 +27,13 @@ test('iter', () => {
 test('next', () => {
   const data = iter([0, 1, 2]);
 
-  expect(data.next()).toStrictEqual({
-    value: 0,
-    done: false
-  });
-  expect(data.next()).toStrictEqual({
-    value: 1,
-    done: false
-  });
-  expect(data.next()).toStrictEqual({
-    value: 2,
-    done: false
-  });
-  expect(data.next()).toStrictEqual({
-    value: undefined,
-    done: true
-  });
-  expect(data.next()).toStrictEqual({
-    value: undefined,
-    done: true
-  });
+  expectNextEquals(data, 0);
+  expectNextEquals(data, 1);
+  expectNextEquals(data, 2);
+
+  expectIsEmpty(data);
+  expectIsEmpty(data);
+  expectIsEmpty(data);
 });
 
 test('map', () => {
@@ -150,6 +144,7 @@ test('chain', () => {
 
 test('zip', () => {
   const data = [0, 1];
+
   const data2 = iter([2, 3]);
 
   expectCollected(iter(data).zip(data2), [
@@ -197,18 +192,11 @@ test('range', () => {
 test('repeat', () => {
   const data = repeat(2);
 
-  expect(data.next()).toStrictEqual({
-    value: 2,
-    done: false
-  });
-  expect(data.next()).toStrictEqual({
-    value: 2,
-    done: false
-  });
-  expect(data.next()).toStrictEqual({
-    value: 2,
-    done: false
-  });
+  expectNextEquals(data, 2);
+  expectNextEquals(data, 2);
+  expectNextEquals(data, 2);
+  expectNextEquals(data, 2);
+  expectNextEquals(data, 2);
 });
 
 test('empty', () => {
