@@ -101,26 +101,30 @@ test('fold', () => {
 test('nth', () => {
   const data = [0, 1, 2];
 
-  const third = iter(data).nth(2);
-  expect(third).toBe(2);
+  expect(iter(data).nth(2)).toBe(2);
 
-  const fourth = iter(data).nth(3);
-  expect(fourth).toBe(undefined);
+  expect(iter(data).nth(3)).toBe(undefined);
+
+  expect(iter(data).nth(-3)).toBe(iter(data).nth(0));
 });
 
 test('skip', () => {
-  const data = iter([0, 1, 2, 3]);
+  const data = [0, 1, 2, 3];
 
-  expectCollected(data.skip(2), [2, 3]);
+  expectCollected(iter(data).skip(2), [2, 3]);
+  expectCollected(iter(data).skip(0), [0, 1, 2, 3]);
+  expectIsEmpty(iter(data).skip(5));
 });
 
 test('skipWhile', () => {
-  const data = iter([0, 2, 4, 5, 6, 7]);
+  const data = [0, 2, 4, 5, 6, 7];
 
   expectCollected(
-    data.skipWhile((x) => x % 2 === 0),
+    iter(data).skipWhile((x) => x % 2 === 0),
     [5, 6, 7]
   );
+
+  expectIsEmpty(iter(data).skipWhile((x) => x < 10));
 });
 
 test('stepBy', () => {
@@ -145,13 +149,17 @@ test('chain', () => {
 });
 
 test('zip', () => {
-  const data = iter([0, 1]);
+  const data = [0, 1];
   const data2 = iter([2, 3]);
 
-  expectCollected(data.zip(data2), [
+  expectCollected(iter(data).zip(data2), [
     { a: 0, b: 2 },
     { a: 1, b: 3 }
   ]);
+
+  const data3 = iter([2]);
+
+  expectCollected(iter(data).zip(data3), [{ a: 0, b: 2 }]);
 });
 
 test('count', () => {
@@ -171,6 +179,8 @@ test('join', () => {
 
   expect(iter(data).join()).toBe('012');
   expect(iter(data).join(', ')).toBe('0, 1, 2');
+
+  expect(iter([]).join(', ')).toBe('');
 });
 
 test('range', () => {
@@ -207,4 +217,46 @@ test('empty', () => {
 
 test('once', () => {
   expectCollected(once(0), [0]);
+});
+
+test('forEach', () => {
+  const data = iter([0, 1, 2, 3]);
+  const fn = jest.fn();
+
+  data.map(fn).consume();
+
+  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
+});
+
+test('forEach', () => {
+  const data = iter([0, 1, 2, 3]);
+  const fn = jest.fn();
+
+  data.forEach(fn);
+
+  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
+});
+
+test('inspect', () => {
+  const data = iter([0, 1, 2, 3]);
+  const fn = jest.fn();
+
+  expectCollected(data.inspect(fn), [0, 1, 2, 3]);
+
+  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
+});
+
+test('all', () => {
+  const data = [0, 1, 2, 3];
+
+  expect(iter(data).all((x) => x < 5)).toBe(true);
+  expect(iter(data).all((x) => x > 2)).toBe(false);
+});
+
+test('some', () => {
+  const data = [0, 1, 2, 3];
+
+  expect(iter(data).some((x) => x < 5)).toBe(true);
+  expect(iter(data).some((x) => x > 2)).toBe(true);
+  expect(iter(data).some((x) => x < 0)).toBe(false);
 });

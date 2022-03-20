@@ -130,54 +130,45 @@ export class Iter<T> implements Iterable<T> {
   skip (n: number): Iter<T> {
     if (n <= 0) return this;
 
-    let element;
     let count = 0;
 
     while (true) {
-      const current = this.next();
-      if (current.done ?? false) return empty();
+      const { done, value } = this.next();
+      if (done ?? false) break;
 
-      element = current.value;
-
-      if (count >= n) break;
+      if (count >= n) {
+        return once(value).chain(this);
+      }
       count++;
     }
 
-    if (element === undefined) return empty();
-
-    return once(element).chain(this);
+    return empty();
   }
 
   skipWhile (f: Predicate<T>): Iter<T> {
-    let element;
-
     while (true) {
-      const current = this.next();
-      if (current.done ?? false) return empty();
+      const { done, value } = this.next();
+      if (done ?? false) break;
 
-      element = current.value;
-
-      if (!f(element)) break;
+      if (!f(value)) {
+        return once(value).chain(this);
+      }
     }
 
-    if (element === undefined) return empty();
-
-    return once(element).chain(this);
+    return empty();
   }
 
   stepBy (n: number): Iter<T> {
     const data = iter(this);
 
     function * generator (): Iterable<T> {
-      const iterator = iter(data);
-
       while (true) {
-        const current = iterator.next();
-        if (current.done ?? false) break;
+        const { done, value } = data.next();
+        if (done ?? false) break;
 
-        yield current.value;
+        yield value;
 
-        iterator.advanceBy(n - 1);
+        data.advanceBy(n - 1);
       }
     }
 
