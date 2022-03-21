@@ -1,5 +1,6 @@
-interface RequireContext extends Function {
+interface RequireContext {
   keys: () => string[]
+  (file: string): string
 }
 
 interface Styles {
@@ -7,29 +8,33 @@ interface Styles {
 }
 
 interface Modules {
-  [index: string]: NodeModule
+  [index: string]: string
 }
 
+/**
+ * imports all files from `require.context` and returns mapping to resulting bundle files
+ * @param requireContext `require.context` call
+ * @param preserveExtensions if the original file extensions should be preserved
+ * @returns object mapping old filenames to bundled filepaths, eg. `{ "file": "./static/file.abcvzjh.jpg" }`
+ */
 export function importAll (
   requireContext: RequireContext,
   preserveExtensions = false
 ): Modules {
   const modules: Modules = {};
 
-  for (const pathToFile of requireContext.keys()) {
-    let basename: string | undefined;
+  const filenameRegex = preserveExtensions
+    ? /[^/]*(\.?[^/\s]*(\.\w+))/
+    : /[^/]+?(?=\.\w+$)/;
 
-    if (preserveExtensions) {
-      basename = pathToFile.match(/[^/]*(\.?[^/\s]*(\.\w+))/)?.[0];
-    } else {
-      basename = pathToFile.match(/[^/]+?(?=\.\w+$)/)?.[0];
-    }
+  for (const pathToFile of requireContext.keys()) {
+    const basename = pathToFile.match(filenameRegex)?.[0];
 
     if (basename === undefined) {
       throw new Error(`Error while parsing file ${pathToFile}`);
     }
 
-    modules[basename] = requireContext(pathToFile).default;
+    modules[basename] = requireContext(pathToFile);
   }
 
   return modules;

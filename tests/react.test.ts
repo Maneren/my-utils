@@ -4,35 +4,24 @@ const { importAll, classListBuilder } = ReactUtils;
 
 test('importAll', () => {
   const data = {
-    './path/to/file.js': {
-      default: 'console.log("hello")'
-    },
-    './path/to/another_file.txt': {
-      default: 'text in the file'
-    }
+    './path/to/file.js': 'console.log("hello")',
+    './path/to/another_file.txt': 'text in the file'
   };
 
-  const testRequireContext = (id: keyof typeof data): { default: string } =>
-    data[id];
-  testRequireContext.keys = () => {
-    return Object.keys(data);
-  };
+  const requireContext = (id: keyof typeof data): string => data[id];
+  requireContext.keys = () => Object.keys(data);
 
-  const modulesWithoutExtensions = importAll(testRequireContext, false);
-  const expectedModulesWithoutExtensions = {
+  const withoutExtensions = importAll(requireContext, false);
+  expect(withoutExtensions).toStrictEqual({
     file: 'console.log("hello")',
     another_file: 'text in the file'
-  };
-  expect(modulesWithoutExtensions).toStrictEqual(
-    expectedModulesWithoutExtensions
-  );
+  });
 
-  const modulesWithExtensions = importAll(testRequireContext, true);
-  const expectedModulesWithExtensions = {
+  const withExtensions = importAll(requireContext, true);
+  expect(withExtensions).toStrictEqual({
     'file.js': 'console.log("hello")',
     'another_file.txt': 'text in the file'
-  };
-  expect(modulesWithExtensions).toStrictEqual(expectedModulesWithExtensions);
+  });
 });
 
 test('classListBuilder', () => {
