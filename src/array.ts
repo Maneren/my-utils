@@ -77,28 +77,28 @@ export function generate<T> (
  * @param callback value or function which returns value of every new element
  * @returns new array
  */
-export function rightPad<T, U> (
+export function rightPad<T> (
   array: T[],
   length: number,
-  fillValue: U
-): Array<T | U>;
-export function rightPad<T, U> (
+  fillValue: T
+): T[];
+export function rightPad<T> (
   array: T[],
   length: number,
-  callback: (index: number) => U
-): Array<T | U>;
-export function rightPad<T, U> (
+  callback: (index: number) => T
+): T[];
+export function rightPad<T> (
   array: T[],
   length: number,
-  callback: U | ((index: number) => U)
-): Array<T | U> {
+  callback: T | ((index: number) => T)
+): T[] {
   if (array.length > length) return [...array];
 
   const delta = length - array.length;
 
   const padding =
     callback instanceof Function
-      ? generate<U>(delta, callback)
+      ? generate<T>(delta, callback)
       : generate(delta, callback);
 
   return [...array, ...padding];
