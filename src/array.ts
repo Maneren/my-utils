@@ -64,10 +64,7 @@ export function randomIndex (array: any[]): number {
  * @template T
  */
 export function generate<T> (length: number, fillValue: T): T[];
-export function generate<T> (
-  length: number,
-  callback: (index: number) => T
-): T[];
+export function generate<T> (length: number, callback: (index: number) => T): T[];
 export function generate<T> (
   length: number,
   callback: T | ((index: number) => T)
@@ -111,9 +108,9 @@ export function rightPad<T, U> (
   const delta = length - array.length;
 
   const padding =
-    callback instanceof Function
-      ? generate<U>(delta, callback)
-      : generate(delta, callback);
+        callback instanceof Function
+          ? generate<U>(delta, callback)
+          : generate(delta, callback);
 
   return [...array, ...padding];
 }
