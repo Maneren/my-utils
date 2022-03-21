@@ -231,13 +231,7 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
      * @returns {T[]} array of the values from the iterator
      */
   collect (): T[] {
-    const array = [];
-
-    for (const el of this) {
-      array.push(el);
-    }
-
-    return array;
+    return [...this];
   }
 
   join (separator = ''): string {
