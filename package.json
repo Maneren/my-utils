@@ -1,53 +1,53 @@
 {
-    "name": "@maneren/utils",
-    "version": "4.1.1",
-    "author": "Maneren <maneren731@gmail.com>",
-    "license": "ISC",
-    "main": "dist/src/index.js",
-    "typings": "dist/src/index.d.ts",
-    "type": "commonjs",
-    "homepage": "https://github.com/Maneren/my-utils",
-    "bugs": {
-        "url": "https://github.com/Maneren/my-utils/issues",
-        "email": "maneren731@gmail.com"
-    },
-    "publishConfig": {
-        "access": "public"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/Maneren/my-utils"
-    },
-    "scripts": {
-        "prepublishOnly": "tsc",
-        "build": "tsc",
-        "test": "eslint . && jest -i",
-        "test-watch": "jest --watchAll -i",
-        "format": "prettier --write \"{src,tests}/*.ts\" && eslint --fix src tests"
-    },
-    "devDependencies": {
-        "@types/jest": "^27.4.1",
-        "@typescript-eslint/eslint-plugin": "^4.33.0",
-        "@typescript-eslint/parser": "^4.33.0",
-        "eslint": "^7.32.0",
-        "eslint-config-standard-with-typescript": "^21.0.1",
-        "eslint-plugin-import": "^2.25.4",
-        "eslint-plugin-node": "^11.1.0",
-        "eslint-plugin-promise": "^5.2.0",
-        "jest": "^27.5.1",
-        "jest-mock-random": "^1.1.1",
-        "prettier": "^2.5.1",
-        "ts-jest": "^27.1.3",
-        "typescript": "^4.6.2"
-    },
-    "files": [
-        "dist",
-        "src"
-    ],
-    "prettier": {
-        "trailingComma": "none",
-        "tabWidth": 4,
-        "semi": false,
-        "singleQuote": true
-    }
+  "name": "@maneren/utils",
+  "version": "4.1.1",
+  "author": "Maneren <maneren731@gmail.com>",
+  "license": "ISC",
+  "main": "dist/src/index.js",
+  "typings": "dist/src/index.d.ts",
+  "type": "commonjs",
+  "homepage": "https://github.com/Maneren/my-utils",
+  "bugs": {
+    "url": "https://github.com/Maneren/my-utils/issues",
+    "email": "maneren731@gmail.com"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Maneren/my-utils"
+  },
+  "scripts": {
+    "prepublishOnly": "tsc",
+    "build": "tsc",
+    "test": "eslint . && jest -i",
+    "test-watch": "jest --watchAll -i",
+    "format": "prettier --write \"{src,tests}/*.ts\" && eslint --fix src tests"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.4.1",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "eslint": "^7.32.0",
+    "eslint-config-standard-with-typescript": "^21.0.1",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.2.0",
+    "jest": "^27.5.1",
+    "jest-mock-random": "^1.1.1",
+    "prettier": "^2.5.1",
+    "ts-jest": "^27.1.3",
+    "typescript": "^4.6.2"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "prettier": {
+    "trailingComma": "none",
+    "tabWidth": 2,
+    "semi": false,
+    "singleQuote": true
+  }
 }
