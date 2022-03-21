@@ -3,10 +3,6 @@ interface RequireContext {
   (file: string): string
 }
 
-interface Styles {
-  [index: string]: string
-}
-
 interface Modules {
   [index: string]: string
 }
@@ -40,18 +36,29 @@ export function importAll (
   return modules;
 }
 
+interface Styles {
+  [index: string]: string
+}
+
 type Builder = (classNames: string | string[]) => string;
 
+/**
+ * helper function factory for working with CSS modules
+ * @param styles imported styles object
+ * @returns function that substitues plain CSS classes with their bundled names
+ */
 export function classListBuilder (styles: Styles): Builder {
+  /**
+     * function that substitues plain CSS classes with their bundled names
+     * @param classNames CSS classes either as a String or Array<String>
+     * @returns string with CSS class names from the bundle
+     */
   function builder (classNames: string): string;
   function builder (classNames: string[]): string;
-
   function builder (classNames: string | string[]): string {
     if (!Array.isArray(classNames)) classNames = classNames.split(' ');
 
-    const result = classNames.map((x) => styles[x] ?? x).join(' ');
-
-    return result;
+    return classNames.map((x) => styles[x] ?? x).join(' ');
   }
 
   return builder;
