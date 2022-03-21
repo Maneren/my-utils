@@ -23,6 +23,10 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
     return this.iterator;
   }
 
+  get [Symbol.toStringTag] (): string {
+    return 'Iter';
+  }
+
   map<U>(f: (value: T) => U): Iter<U> {
     const data = this as Iter<T>;
 
