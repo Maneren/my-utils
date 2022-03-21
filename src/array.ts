@@ -20,7 +20,7 @@ export function swap<T> (array: T[], a: number, b: number): void {
  */
 export function shuffle<T> (array: T[]): T[] {
   const shuffled = [...array];
-  for (let i = 0; i < shuffled.length * 2; i++) {
+  for (const _ of range(shuffled.length * 2)) {
     const a = randomIndex(shuffled);
     const b = randomIndex(shuffled);
     swap(shuffled, a, b);
