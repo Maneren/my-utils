@@ -5,9 +5,7 @@
  * @returns {Promise<null>}
  */
 export async function sleep (milis: number): Promise<null> {
-  return await new Promise((resolve) =>
-    setTimeout(() => resolve(null), milis)
-  );
+  return await new Promise((resolve) => setTimeout(() => resolve(null), milis));
 }
 
 /**

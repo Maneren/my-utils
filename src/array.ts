@@ -108,9 +108,9 @@ export function rightPad<T, U> (
   const delta = length - array.length;
 
   const padding =
-        callback instanceof Function
-          ? generate<U>(delta, callback)
-          : generate(delta, callback);
+    callback instanceof Function
+      ? generate<U>(delta, callback)
+      : generate(delta, callback);
 
   return [...array, ...padding];
 }
