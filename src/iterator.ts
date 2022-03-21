@@ -231,8 +231,7 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
   }
 
   /**
-   * creates array from the values of the iterator
-   * @returns {T[]} array of the values from the iterator
+   * creates new array from the values of the iterator
    */
   collect (): T[] {
     return [...this];

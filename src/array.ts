@@ -1,10 +1,10 @@
 import { range } from './iterator';
 
 /**
- * swaps elements in the array (mutates original)
- * @param {T[]} array
- * @param {number} a first index
- * @param {number} b second index
+ * swaps elements in the array in place
+ * @param array
+ * @param a first index
+ * @param b second index
  */
 export function swap<T> (array: T[], a: number, b: number): void {
   const temp = array[a];
@@ -14,9 +14,8 @@ export function swap<T> (array: T[], a: number, b: number): void {
 
 /**
  * shuffles Array
- * @param {T[]} array array to be shuffled
- * @returns {T[]} new shuffled array
- * @template T
+ * @param array array to be shuffled
+ * @returns new shuffled array
  */
 export function shuffle<T> (array: T[]): T[] {
   const shuffled = [...array];
@@ -30,8 +29,6 @@ export function shuffle<T> (array: T[]): T[] {
 
 /**
  * returns last index of an array
- * @param {A} array
- * @returns {Number}
  */
 export function lastIndex (array: any[]): number {
   return array.length - 1;
@@ -39,9 +36,6 @@ export function lastIndex (array: any[]): number {
 
 /**
  * returns last element of an array
- * @param {T[]} array
- * @returns {T}
- * @template T
  */
 export function last<T> (array: T[]): T {
   return array[lastIndex(array)];
@@ -49,8 +43,6 @@ export function last<T> (array: T[]): T {
 
 /**
  * return random index from an array
- * @param {A} array
- * @returns {Number}
  */
 export function randomIndex (array: any[]): number {
   return Math.floor(Math.random() * array.length);
@@ -58,10 +50,8 @@ export function randomIndex (array: any[]): number {
 
 /**
  * creates new array populated with values from function
- * @param {Number} length length of the new array
- * @param {T | (index:number) => T} [callback] value or function which returns value of every element
- * @returns {T[]}
- * @template T
+ * @param length length of the new array
+ * @param callback value or function which returns value of every element
  */
 export function generate<T> (length: number, fillValue: T): T[];
 export function generate<T> (length: number, callback: (index: number) => T): T[];
@@ -82,11 +72,10 @@ export function generate<T> (
 
 /**
  * return new array extended to specified length (but not shortened if longer)
- * @param {T[]} array
- * @param {number} length final length of the array
- * @param {(U | (index:number) => U)} [callback] value or function which returns value of every new element
- * @returns {(T | U)[]} new array
- * @template T, U
+ * @param array
+ * @param length final length of the array
+ * @param callback value or function which returns value of every new element
+ * @returns new array
  */
 export function rightPad<T, U> (
   array: T[],

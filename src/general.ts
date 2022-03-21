@@ -1,8 +1,6 @@
 /**
- * returns Promise, which resolves to null after specified number of miliseconds
- * may not work properly with times below 10 ms
- * @param {number} milis
- * @returns {Promise<null>}
+ * returns Promise, which resolves to `null`
+ * after at least the specified number of miliseconds
  */
 export async function sleep (milis: number): Promise<null> {
   return await new Promise((resolve) => setTimeout(() => resolve(null), milis));
@@ -11,9 +9,8 @@ export async function sleep (milis: number): Promise<null> {
 /**
  * returns random float from min to max.
  * if only min is specified, it returns float from 0 to min
- * @param {number} min lower bound (inclusive)
- * @param {number} [max] upper bound (exclusive)
- * @returns {number}
+ * @param min lower bound (inclusive)
+ * @param max upper bound (exclusive)
  */
 export function randfloat (min: number): number;
 export function randfloat (min: number, max: number): number;
@@ -33,9 +30,8 @@ export function randfloat (min: number, max?: number): number {
 /**
  * returns random integer from min to max.
  * if only min is specified, it returns integer from 0 to min
- * @param {number} min lower bound (inclusive)
- * @param {number} [max] upper bound (exclusive)
- * @returns {number}
+ * @param min lower bound (inclusive)
+ * @param max upper bound (exclusive)
  */
 export function randint (min: number): number;
 export function randint (min: number, max: number): number;
