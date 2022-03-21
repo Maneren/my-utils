@@ -8,19 +8,11 @@ interface Enumerated<T> {
   value: T
 }
 
-export class Iter<T> implements Iterable<T> {
+export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
   iterator: Iterator<T, undefined>;
 
   constructor (data: Iterable<T>) {
-    function * generator (): Iterator<T, undefined> {
-      for (const value of data) {
-        yield value;
-      }
-
-      return undefined; // to satisfy type checker
-    }
-
-    this.iterator = generator();
+    this.iterator = data[Symbol.iterator]();
   }
 
   next (): IteratorResult<T> {
@@ -32,7 +24,7 @@ export class Iter<T> implements Iterable<T> {
   }
 
   map<U>(f: (value: T) => U): Iter<U> {
-    const data = iter(this);
+    const data = this as Iter<T>;
 
     function * generator (): Iterable<U> {
       for (const value of data) {
@@ -46,7 +38,7 @@ export class Iter<T> implements Iterable<T> {
   take (limit: number): Iter<T> {
     if (limit <= 0) return empty();
 
-    const data = iter(this);
+    const data = this as Iter<T>;
 
     function * generator (): Iterable<T> {
       let count = 0;
@@ -62,7 +54,7 @@ export class Iter<T> implements Iterable<T> {
   }
 
   takeWhile (f: Predicate<T>): Iter<T> {
-    const data = iter(this);
+    const data = this as Iter<T>;
 
     function * generator (): Iterable<T> {
       for (const value of data) {
@@ -75,7 +67,7 @@ export class Iter<T> implements Iterable<T> {
   }
 
   filter (f: Predicate<T>): Iter<T> {
-    const data = iter(this);
+    const data = this as Iter<T>;
 
     function * generator (): Iterable<T> {
       for (const value of data) {
@@ -87,7 +79,7 @@ export class Iter<T> implements Iterable<T> {
   }
 
   enumerate (): Iter<Enumerated<T>> {
-    const data = iter(this);
+    const data = this as Iter<T>;
 
     function * generator (): Iterable<Enumerated<T>> {
       let index = 0;
@@ -159,7 +151,7 @@ export class Iter<T> implements Iterable<T> {
   }
 
   stepBy (n: number): Iter<T> {
-    const data = iter(this);
+    const data = this as Iter<T>;
 
     function * generator (): Iterable<T> {
       while (true) {
@@ -176,7 +168,7 @@ export class Iter<T> implements Iterable<T> {
   }
 
   chain (extension: Iterable<T>): Iter<T> {
-    const data = iter(this);
+    const data = this as Iter<T>;
 
     function * generator (): Iterable<T> {
       for (const value of data) yield value;
@@ -188,7 +180,7 @@ export class Iter<T> implements Iterable<T> {
   }
 
   zip<U>(other: Iterable<U>): Iter<{ a: T, b: U }> {
-    const data = iter(this);
+    const data = this as Iter<T>;
     const data2 = iter(other);
 
     function * generator (): Iterable<{ a: T, b: U }> {
@@ -280,7 +272,7 @@ export class Iter<T> implements Iterable<T> {
   }
 
   inspect (f: (value: any) => void): Iter<T> {
-    const data = iter(this);
+    const data = this as Iter<T>;
 
     function * generator (): Iterable<T> {
       for (const value of data) {
