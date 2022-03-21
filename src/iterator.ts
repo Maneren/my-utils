@@ -2,6 +2,10 @@ export function iter<T> (data: Iterable<T>): Iter<T> {
   return new Iter(data);
 }
 
+export function asyncIter<T> (data: Iterable<Promise<T>>): AsyncIter<T> {
+  return new AsyncIter(data);
+}
+
 type Predicate<T> = (value: T) => boolean;
 interface Enumerated<T> {
   index: number
@@ -280,6 +284,27 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
     }
 
     return iter(generator());
+  }
+}
+
+export class AsyncIter<T> extends Iter<Promise<T>> {
+  async * [Symbol.asyncIterator] (): AsyncGenerator<T, undefined> {
+    let current;
+
+    do {
+      current = this.iterator.next();
+
+      if (current.value === undefined) break;
+
+      yield await current.value;
+    } while (!(current.done ?? false));
+
+    return undefined;
+  }
+
+  async toSync (): Promise<Iter<T>> {
+    const data = this as AsyncIter<T>;
+    return iter(await Promise.all(data));
   }
 }
 

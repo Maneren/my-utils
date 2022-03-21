@@ -1,4 +1,13 @@
-import { empty, Iter, iter, once, range, repeat } from '../src/iterator';
+import {
+  AsyncIter,
+  asyncIter,
+  empty,
+  Iter,
+  iter,
+  once,
+  range,
+  repeat
+} from '../src/iterator';
 
 function expectNextEquals<T> (iter: Iter<T>, value: T): void {
   expect(iter.next()).toStrictEqual({
@@ -205,7 +214,7 @@ test('once', () => {
   expectCollected(once(0), [0]);
 });
 
-test('forEach', () => {
+test('consume', () => {
   const data = iter([0, 1, 2, 3]);
   const fn = jest.fn();
 
@@ -245,4 +254,27 @@ test('some', () => {
   expect(iter(data).some((x) => x < 5)).toBe(true);
   expect(iter(data).some((x) => x > 2)).toBe(true);
   expect(iter(data).some((x) => x < 0)).toBe(false);
+});
+
+test('asyncIter', () => {
+  const data = asyncIter([Promise.resolve(0)]);
+
+  expect(data).toBeInstanceOf(AsyncIter);
+});
+
+test('toSync', async () => {
+  const data = asyncIter(range(5).map(async (x) => x));
+
+  const awaited = await data.toSync();
+
+  expect(awaited).toBeInstanceOf(Iter);
+  expectCollected(awaited, [0, 1, 2, 3, 4]);
+});
+
+test('Symbol.asyncIterator', async () => {
+  const data = asyncIter(range(5).map(async (x) => x));
+
+  for await (const value of data) {
+    expect(typeof value).toBe('number');
+  }
 });
