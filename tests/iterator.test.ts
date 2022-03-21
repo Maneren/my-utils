@@ -128,11 +128,9 @@ test('stepBy', () => {
 });
 
 test('collect', () => {
-  const data = iter([0, 1, 2]);
+  const data = [0, 1, 2];
 
-  const collected = data.collect();
-
-  expect(collected).toStrictEqual([0, 1, 2]);
+  expect(iter(data).collect()).toStrictEqual(data);
 });
 
 test('chain', () => {
