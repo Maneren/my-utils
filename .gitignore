@@ -1,4 +1,8 @@
 /node_modules
 *.log
-dist
-coverage
+/dist
+/coverage
+/reports
+
+# stryker temp files
+.stryker-tmp
