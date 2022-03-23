@@ -1,14 +1,12 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "downlevelIteration": true,
     "alwaysStrict": true,
     "baseUrl": ".",
     "rootDir": ".",
     "outDir": "dist",
-    "lib": ["es6", "dom", "es2018"],
     "module": "CommonJS",
-    "target": "es5",
+    "target": "ES6",
     "moduleResolution": "node",
     "sourceMap": true,
     "esModuleInterop": true,
