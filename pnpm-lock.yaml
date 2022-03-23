@@ -3,7 +3,6 @@ lockfileVersion: 5.3
 specifiers:
   '@stryker-mutator/core': ^5.6.1
   '@stryker-mutator/jest-runner': ^5.6.1
-  '@stryker-mutator/typescript': ^4.0.0
   '@types/jest': ^27.4.1
   '@typescript-eslint/eslint-plugin': ^4.33.0
   '@typescript-eslint/parser': ^4.33.0
@@ -14,14 +13,13 @@ specifiers:
   eslint-plugin-promise: ^5.2.0
   jest: ^27.5.1
   jest-mock-random: ^1.1.1
-  prettier: ^2.5.1
+  prettier: ^2.6.0
   ts-jest: ^27.1.3
   typescript: ^4.6.2
 
 devDependencies:
   '@stryker-mutator/core': 5.6.1
   '@stryker-mutator/jest-runner': 5.6.1_4d48d07f32cebc01d2b975d7c797ab3a
-  '@stryker-mutator/typescript': 4.0.0
   '@types/jest': 27.4.1
   '@typescript-eslint/eslint-plugin': 4.33.0_65e88d2733f36d3624b406e590cf0b3b
   '@typescript-eslint/parser': 4.33.0_eslint@7.32.0+typescript@4.6.2
@@ -32,7 +30,7 @@ devDependencies:
   eslint-plugin-promise: 5.2.0_eslint@7.32.0
   jest: 27.5.1
   jest-mock-random: 1.1.1
-  prettier: 2.5.1
+  prettier: 2.6.0
   ts-jest: 27.1.3_60149d457e34ffba7d4e845dde6a1263
   typescript: 4.6.2
 
@@ -1063,11 +1061,6 @@ packages:
       jest: 27.5.1
       semver: 7.3.5
       tslib: 2.3.1
-    dev: true
-
-  /@stryker-mutator/typescript/4.0.0:
-    resolution: {integrity: sha512-dTm8lyDP5HPSOd14ErXXAn6wY6QZMS6UbXPmexesZJeevNZUxRCHZqoTIJIY1a6WBbI2tKJzKuVjXih83jAXBQ==}
-    engines: {node: '>=10'}
     dev: true
 
   /@stryker-mutator/util/5.6.1:
@@ -3834,8 +3827,8 @@ packages:
     engines: {node: '>= 0.8.0'}
     dev: true
 
-  /prettier/2.5.1:
-    resolution: {integrity: sha512-vBZcPRUR5MZJwoyi3ZoyQlc1rXeEck8KgeC9AwwOn+exuxLxq5toTRDTSaVrXHxelDMHy9zlicw8u66yxoSUFg==}
+  /prettier/2.6.0:
+    resolution: {integrity: sha512-m2FgJibYrBGGgQXNzfd0PuDGShJgRavjUoRCw1mZERIWVSXF0iLzLm+aOqTAbLnC3n6JzUhAA8uZnFVghHJ86A==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     dev: true

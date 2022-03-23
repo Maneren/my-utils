@@ -77,11 +77,7 @@ export function generate<T> (
  * @param callback value or function which returns value of every new element
  * @returns new array
  */
-export function rightPad<T> (
-  array: T[],
-  length: number,
-  fillValue: T
-): T[];
+export function rightPad<T> (array: T[], length: number, fillValue: T): T[];
 export function rightPad<T> (
   array: T[],
   length: number,
@@ -92,7 +88,7 @@ export function rightPad<T> (
   length: number,
   callback: T | ((index: number) => T)
 ): T[] {
-  if (array.length > length) return [...array];
+  if (array.length >= length) return [...array];
 
   const delta = length - array.length;
 

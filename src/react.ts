@@ -1,3 +1,5 @@
+import path from 'path';
+
 interface RequireContext {
   keys: () => string[]
   (file: string): string
@@ -19,15 +21,12 @@ export function importAll (
 ): Modules {
   const modules: Modules = {};
 
-  const filenameRegex = preserveExtensions
-    ? /[^/]*(\.?[^/\s]*(\.\w+))/
-    : /[^/]+?(?=\.\w+$)/;
-
   for (const pathToFile of requireContext.keys()) {
-    const basename = pathToFile.match(filenameRegex)?.[0];
+    let basename = path.basename(pathToFile);
 
-    if (basename === undefined) {
-      throw new Error(`Error while parsing file ${pathToFile}`);
+    if (!preserveExtensions) {
+      const extension = path.extname(pathToFile);
+      basename = basename.replace(extension, '');
     }
 
     modules[basename] = requireContext(pathToFile);

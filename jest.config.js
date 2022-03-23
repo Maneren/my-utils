@@ -10,5 +10,5 @@ module.exports = {
     '.tsx?': 'ts-jest'
   },
   moduleFileExtensions: ['ts', 'tsx', 'js'],
-  modulePathIgnorePatterns: ['<rootDir>/dist/']
+  modulePathIgnorePatterns: ['<rootDir>/dist/', '<rootDir>/[.].*']
 };

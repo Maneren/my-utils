@@ -60,18 +60,23 @@ test('generate', () => {
   expect(testArray2).toStrictEqual([0, 0, 0, 0, 0]);
 
   expect(() => generate(-1, 10)).toThrow("length can't be less than 1");
+  expect(() => generate(0, 10)).toThrow("length can't be less than 1");
 });
 
 test('rightPad', () => {
-  const array = generate(3, (x: number) => x); // [0, 1, 2]
+  const array = generate(3, (x: number) => x);
   const padded = rightPad(array, 5, (x: number) => x);
   expect(padded).toStrictEqual([0, 1, 2, 0, 1]);
 
-  const array2 = generate(5, (x: number) => x); // [0, 1, 2]
-  const padded2 = rightPad(array2, 3, (x: number) => x);
+  const array2 = generate(5, (x: number) => x);
+  const padded2 = rightPad(array2, 5, (x: number) => x);
   expect(padded2).toStrictEqual([0, 1, 2, 3, 4]);
 
-  const array3 = generate(3, (x: number) => x); // [0, 1, 2]
-  const padded3 = rightPad(array3, 5, null);
-  expect(padded3).toStrictEqual([0, 1, 2, null, null]);
+  const array3 = generate(5, (x: number) => x);
+  const padded3 = rightPad(array3, 3, (x: number) => x);
+  expect(padded3).toStrictEqual([0, 1, 2, 3, 4]);
+
+  const array4 = generate(3, (x: number) => x);
+  const padded4 = rightPad(array4, 5, null);
+  expect(padded4).toStrictEqual([0, 1, 2, null, null]);
 });

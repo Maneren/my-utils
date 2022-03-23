@@ -45,6 +45,12 @@ test('next', () => {
   expectIsEmpty(data);
 });
 
+test('Symbol.toStringTag', () => {
+  const data = iter([]);
+
+  expect(String(data)).toBe('[object Iter]');
+});
+
 test('map', () => {
   const data = iter([0, 1, 2]);
 
@@ -104,11 +110,23 @@ test('fold', () => {
 test('nth', () => {
   const data = [0, 1, 2];
 
+  expect(iter(data).nth(0)).toBe(0);
   expect(iter(data).nth(2)).toBe(2);
 
   expect(iter(data).nth(3)).toBe(undefined);
 
-  expect(iter(data).nth(-3)).toBe(iter(data).nth(0));
+  expect(iter(data).nth(-3)).toBe(0);
+});
+
+test('advanceBy', () => {
+  const data = [0, 1, 2];
+
+  expectNextEquals(iter(data).advanceBy(0), 0);
+  expectNextEquals(iter(data).advanceBy(2), 2);
+
+  expectIsEmpty(iter(data).advanceBy(3));
+
+  expectNextEquals(iter(data).advanceBy(-2), 0);
 });
 
 test('skip', () => {
@@ -152,7 +170,7 @@ test('chain', () => {
 test('zip', () => {
   const data = [0, 1];
 
-  const data2 = iter([2, 3]);
+  const data2 = iter([2, 3, 4]);
 
   expectCollected(iter(data).zip(data2), [
     [0, 2],
@@ -188,6 +206,7 @@ test('join', () => {
 test('range', () => {
   expectCollected(range(3), [0, 1, 2]);
   expectCollected(range(3, 6), [3, 4, 5]);
+  expectCollected(range(3, 3), []);
   expectCollected(range(0, 5, 2), [0, 2, 4]);
   expectCollected(range(5, 0, -2), [5, 3, 1]);
 
@@ -256,10 +275,12 @@ test('some', () => {
   expect(iter(data).some((x) => x < 0)).toBe(false);
 });
 
-test('asyncIter', () => {
+test('asyncIter', async () => {
   const data = asyncIter([Promise.resolve(0)]);
 
   expect(data).toBeInstanceOf(AsyncIter);
+
+  expect(await data.next().value).toBe(0);
 });
 
 test('toSync', async () => {
@@ -274,7 +295,11 @@ test('toSync', async () => {
 test('Symbol.asyncIterator', async () => {
   const data = asyncIter(range(5).map(async (x) => x));
 
+  const fn = jest.fn();
+
   for await (const value of data) {
-    expect(typeof value).toBe('number');
+    fn(value);
   }
+
+  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3], [4]]);
 });

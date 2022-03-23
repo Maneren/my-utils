@@ -2,25 +2,135 @@ import { ReactUtils } from '../src';
 
 const { importAll, classListBuilder } = ReactUtils;
 
-test('importAll', () => {
-  const data = {
-    './path/to/file.js': 'console.log("hello")',
-    './path/to/another_file.txt': 'text in the file'
+describe('importAll', () => {
+  const context = (data: { [id: string]: string }): any => {
+    const context = (id: string): string => data[id];
+    context.keys = () => Object.keys(data);
+    return context;
   };
 
-  const requireContext = (id: keyof typeof data): string => data[id];
-  requireContext.keys = () => Object.keys(data);
+  it('imports a file', () => {
+    const data = {
+      './file.js': './static/file.abc.js'
+    };
 
-  const withoutExtensions = importAll(requireContext, false);
-  expect(withoutExtensions).toStrictEqual({
-    file: 'console.log("hello")',
-    another_file: 'text in the file'
+    const imported = importAll(context(data));
+    const expected = {
+      file: './static/file.abc.js'
+    };
+    expect(imported).toStrictEqual(expected);
   });
 
-  const withExtensions = importAll(requireContext, true);
-  expect(withExtensions).toStrictEqual({
-    'file.js': 'console.log("hello")',
-    'another_file.txt': 'text in the file'
+  it('imports a file with longer path', () => {
+    const data = {
+      './path/to/file.js': './static/file.abc.js'
+    };
+
+    const imported = importAll(context(data));
+    const expected = {
+      file: './static/file.abc.js'
+    };
+    expect(imported).toStrictEqual(expected);
+  });
+
+  it('imports a file without an extension', () => {
+    const data = {
+      './path/to/file': './static/file.abc'
+    };
+
+    const imported = importAll(context(data));
+    const expected = {
+      file: './static/file.abc'
+    };
+    expect(imported).toStrictEqual(expected);
+  });
+
+  it('imports a hidden file', () => {
+    const data = {
+      './path/to/.file.js': './static/file.abc.js'
+    };
+
+    const imported = importAll(context(data));
+    const expected = {
+      '.file': './static/file.abc.js'
+    };
+    expect(imported).toStrictEqual(expected);
+  });
+
+  it('imports a hidden file without an extension', () => {
+    const data = {
+      './path/to/.file': './static/file.abc'
+    };
+
+    const imported = importAll(context(data));
+    const expected = {
+      '.file': './static/file.abc'
+    };
+    expect(imported).toStrictEqual(expected);
+  });
+
+  it('preserves the extension', () => {
+    const data = {
+      './path/to/file.js': './static/file.abc.js'
+    };
+
+    const imported = importAll(context(data), true);
+    const expected = {
+      'file.js': './static/file.abc.js'
+    };
+    expect(imported).toStrictEqual(expected);
+  });
+
+  it('preserves the extension for hidden file', () => {
+    const data = {
+      './path/to/.file.js': './static/.file.abc.js'
+    };
+
+    const imported = importAll(context(data), true);
+    const expected = {
+      '.file.js': './static/.file.abc.js'
+    };
+    expect(imported).toStrictEqual(expected);
+  });
+
+  it('"preserves the extension" for file without an extension', () => {
+    const data = {
+      './path/to/file': './static/file.abc'
+    };
+
+    const imported = importAll(context(data), true);
+    const expected = {
+      file: './static/file.abc'
+    };
+    expect(imported).toStrictEqual(expected);
+  });
+
+  it('"preserves the extension" for hidden file without an extension', () => {
+    const data = {
+      './path/to/.file': './static/.file.abc'
+    };
+
+    const imported = importAll(context(data), true);
+    const expected = {
+      '.file': './static/.file.abc'
+    };
+    expect(imported).toStrictEqual(expected);
+  });
+
+  it('handles weird input', () => {
+    const data = {
+      '': './static/.file.abc',
+      '$$/$$': './static/.file.abc',
+      '...js': './static/.file.abc'
+    };
+
+    const imported = importAll(context(data), true);
+    const expected = {
+      '': './static/.file.abc',
+      $$: './static/.file.abc',
+      '...js': './static/.file.abc'
+    };
+    expect(imported).toStrictEqual(expected);
   });
 });
 

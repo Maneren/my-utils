@@ -14,14 +14,20 @@ export async function sleep (milis: number): Promise<null> {
  */
 export function randfloat (min: number): number;
 export function randfloat (min: number, max: number): number;
+export function randfloat (min: number, max?: number): number;
 export function randfloat (min: number, max?: number): number {
   // if max is not specified treat min as max
   if (max === undefined) {
     max = min;
     min = 0;
   }
+
   if (min > max) {
     throw new Error('lower bound must be smaller than upper bound');
+  }
+
+  if (min === max) {
+    return min;
   }
 
   return min + Math.random() * (max - min);
@@ -35,6 +41,7 @@ export function randfloat (min: number, max?: number): number {
  */
 export function randint (min: number): number;
 export function randint (min: number, max: number): number;
+export function randint (min: number, max?: number): number;
 export function randint (min: number, max?: number): number {
-  return Math.floor(max === undefined ? randfloat(min) : randfloat(min, max));
+  return Math.floor(randfloat(min, max));
 }

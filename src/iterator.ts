@@ -110,8 +110,6 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
   }
 
   nth (n: number): T | undefined {
-    if (n < 0) n = 0;
-
     this.advanceBy(n);
 
     return this.next().value;
@@ -119,15 +117,14 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
 
   advanceBy (n: number): Iter<T> {
     for (const _ of range(n)) {
-      this.next();
+      const { done } = this.next();
+      if (done ?? false) break;
     }
 
     return this;
   }
 
   skip (n: number): Iter<T> {
-    if (n <= 0) return this;
-
     let count = 0;
 
     while (true) {
@@ -349,6 +346,7 @@ export function range (start: number, end?: number, step?: number): RangeIter {
   step = step ?? 1;
 
   if (step === 0) throw new Error("step can't be 0");
+  if (start === end) return empty();
 
   if (step < 0) {
     if (start < end) return empty();
