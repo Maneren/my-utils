@@ -7,10 +7,8 @@ export function asyncIter<T> (data: Iterable<Promise<T>>): AsyncIter<T> {
 }
 
 type Predicate<T> = (value: T) => boolean;
-interface Enumerated<T> {
-  index: number
-  value: T
-}
+type Enumerated<T> = [number, T];
+type Zipped<T, U> = [T, U];
 
 export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
   iterator: Iterator<T, undefined>;
@@ -93,7 +91,7 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
       let index = 0;
 
       for (const value of data) {
-        yield { index, value };
+        yield [index, value];
         index++;
       }
     }
@@ -187,11 +185,11 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
     return iter(generator());
   }
 
-  zip<U>(other: Iterable<U>): Iter<{ a: T, b: U }> {
+  zip<U>(other: Iterable<U>): Iter<Zipped<T, U>> {
     const data = this as Iter<T>;
     const data2 = iter(other);
 
-    function * generator (): Iterable<{ a: T, b: U }> {
+    function * generator (): Iterable<Zipped<T, U>> {
       while (true) {
         const next1 = data.next();
         const next2 = data2.next();
@@ -199,7 +197,7 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
         if (next1.done ?? false) break;
         if (next2.done ?? false) break;
 
-        yield { a: next1.value, b: next2.value };
+        yield [next1.value, next2.value];
       }
     }
 

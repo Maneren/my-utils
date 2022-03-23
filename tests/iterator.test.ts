@@ -87,9 +87,9 @@ test('enumerate', () => {
   const data = iter([2, 1, 0]);
 
   expectCollected(data.enumerate(), [
-    { index: 0, value: 2 },
-    { index: 1, value: 1 },
-    { index: 2, value: 0 }
+    [0, 2],
+    [1, 1],
+    [2, 0]
   ]);
 });
 
@@ -155,13 +155,13 @@ test('zip', () => {
   const data2 = iter([2, 3]);
 
   expectCollected(iter(data).zip(data2), [
-    { a: 0, b: 2 },
-    { a: 1, b: 3 }
+    [0, 2],
+    [1, 3]
   ]);
 
   const data3 = iter([2]);
 
-  expectCollected(iter(data).zip(data3), [{ a: 0, b: 2 }]);
+  expectCollected(iter(data).zip(data3), [[0, 2]]);
 });
 
 test('count', () => {
