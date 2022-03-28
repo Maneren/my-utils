@@ -2,13 +2,9 @@ export function iter<T> (data: Iterable<T>): Iter<T> {
   return new Iter(data);
 }
 
-export function asyncIter<T> (data: AsyncIterable<T>): AsyncIter<T> {
-  return new AsyncIter(data);
-}
-
-type Predicate<T> = (value: T) => boolean;
-type Enumerated<T> = [number, T];
-type Zipped<T, U> = [T, U];
+export type Predicate<T> = (value: T) => boolean;
+export type Enumerated<T> = [number, T];
+export type Zipped<T, U> = [T, U];
 
 export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
   iterator: Iterator<T, undefined>;
@@ -55,9 +51,7 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
     const data = this as Iter<T>;
 
     function * generator (): Iterable<U> {
-      for (const value of data) {
-        yield f(value);
-      }
+      for (const value of data) yield f(value);
     }
 
     return iter(generator());
@@ -132,34 +126,36 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
   }
 
   nth (n: number): T | undefined {
-    this.advanceBy(n);
-
-    return this.next().value;
+    return this.skip(n).next().value;
   }
 
-  advanceBy (n: number): Iter<T> {
+  advanceBy (n: number): void {
     for (const _ of range(n)) {
       const { done } = this.next();
       if (done ?? false) break;
     }
-
-    return this;
   }
 
   skip (n: number): Iter<T> {
     let count = 0;
 
-    while (true) {
-      const { done, value } = this.next();
-      if (done ?? false) break;
+    const data = this as Iter<T>;
 
-      if (count >= n) {
-        return Iter.once(value).chain(this);
+    function * generator (): Iterable<T> {
+      while (true) {
+        const { done, value } = data.next();
+        if (done ?? false) break;
+
+        if (count < n) {
+          count++;
+          continue;
+        }
+
+        yield value;
       }
-      count++;
     }
 
-    return Iter.empty();
+    return iter(generator());
   }
 
   skipWhile (f: Predicate<T>): Iter<T> {
@@ -255,17 +251,15 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
   }
 
   join (separator = ''): string {
-    const iter = this.map((value) => String(value));
-
-    const first = iter.next();
+    const first = this.iterator.next();
 
     if (first.done ?? false) {
       return '';
     }
 
-    let result = first.value;
+    let result = String(first.value);
 
-    for (const v of iter) {
+    for (const v of this.map((value) => String(value))) {
       result += separator;
       result += v;
     }
@@ -303,335 +297,6 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
   }
 }
 
-export class AsyncIter<T> implements AsyncIterator<T>, AsyncIterable<T> {
-  iterator: AsyncIterator<T, undefined>;
-
-  constructor (data: AsyncIterable<T>) {
-    this.iterator = data[Symbol.asyncIterator]();
-  }
-
-  static asyncEmpty<T>(): AsyncIter<T> {
-    async function * generator (): AsyncIterable<T> {}
-
-    return asyncIter(generator());
-  }
-
-  static asyncOnce<T>(value: T): AsyncIter<T> {
-    async function * generator (): AsyncIterable<T> {
-      yield Promise.resolve(value);
-    }
-
-    return asyncIter(generator());
-  }
-
-  static fromSync<T>(data: Iterable<T> | Iterable<Promise<T>>): AsyncIter<T> {
-    async function * generator (): AsyncIterable<T> {
-      for (const value of data) {
-        if (value instanceof Promise) yield await value;
-        else yield value;
-      }
-    }
-
-    return asyncIter(generator());
-  }
-
-  async next (): Promise<IteratorResult<T>> {
-    return await this.iterator.next();
-  }
-
-  async * [Symbol.asyncIterator] (): AsyncGenerator<T, undefined> {
-    let current;
-
-    do {
-      current = await this.iterator.next();
-
-      if (current.value === undefined) break;
-
-      yield current.value;
-    } while (!(current.done ?? false));
-
-    return undefined;
-  }
-
-  get [Symbol.toStringTag] (): string {
-    return 'AsyncIter';
-  }
-
-  async toSync (): Promise<Iter<T>> {
-    return iter(await this.collect());
-  }
-
-  map<U>(f: (value: T) => U): AsyncIter<U> {
-    const data = this as AsyncIter<T>;
-
-    async function * generator (): AsyncIterable<U> {
-      for await (const value of data) {
-        yield f(value);
-      }
-    }
-
-    return asyncIter(generator());
-  }
-
-  take (limit: number): AsyncIter<T> {
-    if (limit <= 0) return AsyncIter.asyncEmpty();
-
-    const data = this as AsyncIter<T>;
-
-    async function * generator (): AsyncIterable<T> {
-      let count = 0;
-
-      for await (const value of data) {
-        yield value;
-        count++;
-        if (count >= limit) break;
-      }
-    }
-
-    return asyncIter(generator());
-  }
-
-  takeWhile (f: Predicate<T>): AsyncIter<T> {
-    const data = this as AsyncIter<T>;
-
-    async function * generator (): AsyncIterable<T> {
-      for await (const value of data) {
-        if (!f(value)) break;
-        yield value;
-      }
-    }
-
-    return asyncIter(generator());
-  }
-
-  filter (f: Predicate<T>): AsyncIter<T> {
-    const data = this as AsyncIter<T>;
-
-    async function * generator (): AsyncIterable<T> {
-      for await (const value of data) {
-        if (f(value)) yield value;
-      }
-    }
-
-    return asyncIter(generator());
-  }
-
-  enumerate (): AsyncIter<Enumerated<T>> {
-    const data = this as AsyncIter<T>;
-
-    async function * generator (): AsyncIterable<Enumerated<T>> {
-      let index = 0;
-
-      for await (const value of data) {
-        yield [index, value];
-        index++;
-      }
-    }
-
-    return asyncIter(generator());
-  }
-
-  async fold<U>(f: (total: U, current: T) => U, start: U): Promise<U> {
-    let total = start;
-
-    for await (const value of this) {
-      total = f(total, value);
-    }
-
-    return total;
-  }
-
-  async nth (n: number): Promise<T | undefined> {
-    if (n < 0) n = 0;
-
-    await this.advanceBy(n);
-
-    return (await this.next()).value;
-  }
-
-  async advanceBy (n: number): Promise<AsyncIter<T>> {
-    for (const _ of range(n)) {
-      const { done } = await this.next();
-      if (done ?? false) break;
-    }
-
-    return this;
-  }
-
-  skip (n: number): AsyncIter<T> {
-    if (n <= 0) return this;
-
-    let count = 0;
-
-    const data = this as AsyncIter<T>;
-
-    async function * generator (): AsyncIterable<T> {
-      while (true) {
-        const { done, value } = await data.next();
-        if (done ?? false) break;
-
-        if (count >= n) {
-          yield value;
-        }
-        count++;
-      }
-    }
-
-    return asyncIter(generator());
-  }
-
-  skipWhile (f: Predicate<T>): AsyncIter<T> {
-    const data = this as AsyncIter<T>;
-
-    async function * generator (): AsyncIterable<T> {
-      let flag = false;
-      while (true) {
-        const { done, value } = await data.next();
-        if (done ?? false) break;
-
-        if (flag || !f(value)) flag = true;
-        else continue;
-        yield value;
-      }
-    }
-
-    return asyncIter(generator());
-  }
-
-  stepBy (n: number): AsyncIter<T> {
-    const data = this as AsyncIter<T>;
-
-    async function * generator (): AsyncIterable<T> {
-      while (true) {
-        const { done, value } = await data.next();
-        if (done ?? false) break;
-
-        yield value;
-
-        await data.advanceBy(n - 1);
-      }
-    }
-
-    return asyncIter(generator());
-  }
-
-  chain (extension: AsyncIterable<T>): AsyncIter<T> {
-    const data = this as AsyncIter<T>;
-
-    async function * generator (): AsyncIterable<T> {
-      yield * data;
-
-      yield * extension;
-    }
-
-    return asyncIter(generator());
-  }
-
-  zip<U>(other: AsyncIterable<U>): AsyncIter<[T, U]> {
-    const data = this as AsyncIter<T>;
-    const data2 = asyncIter(other);
-
-    async function * generator (): AsyncIterable<[T, U]> {
-      while (true) {
-        const next1 = await data.next();
-        const next2 = await data2.next();
-
-        if (next1.done ?? false) break;
-        if (next2.done ?? false) break;
-
-        yield [await next1.value, await next2.value];
-      }
-    }
-
-    return asyncIter(generator());
-  }
-
-  async count (): Promise<number> {
-    return await this.fold((count) => count + 1, 0);
-  }
-
-  async last (): Promise<T | undefined> {
-    let element;
-
-    for await (const current of this) element = current;
-
-    return element;
-  }
-
-  async consume (): Promise<void> {
-    for await (const _ of this) {
-      // pass
-    }
-  }
-
-  async forEach (f: (value: T) => void): Promise<void> {
-    for await (const el of this) {
-      f(el);
-    }
-  }
-
-  /**
-   * creates new array from the values of the iterator
-   */
-  async collect (): Promise<T[]> {
-    const results = [];
-
-    for await (const el of this) {
-      results.push(el);
-    }
-
-    return results;
-  }
-
-  async join (separator = ''): Promise<string> {
-    const iter = this.map((value) => String(value));
-
-    const { done, value } = await iter.next();
-
-    if (done ?? false) {
-      return '';
-    }
-
-    let result = value;
-
-    for await (const v of iter) {
-      result += separator;
-      result += v;
-    }
-
-    return result;
-  }
-
-  async all (f: Predicate<T>): Promise<boolean> {
-    for await (const value of this) {
-      if (!f(value)) return false;
-    }
-
-    return true;
-  }
-
-  async some (f: Predicate<T>): Promise<boolean> {
-    for await (const value of this) {
-      if (f(value)) return true;
-    }
-
-    return false;
-  }
-
-  inspect (f: (value: any) => void): AsyncIter<T> {
-    const data = this as AsyncIter<T>;
-
-    async function * generator (): AsyncIterable<T> {
-      for await (const value of data) {
-        f(value);
-        yield value;
-      }
-    }
-
-    return asyncIter(generator());
-  }
-}
-
 type RangeIter = Iter<number>;
 /**
  * returns generator, which yields numbers from min to max with defined step
@@ -654,22 +319,13 @@ export function range (start: number, end?: number, step?: number): RangeIter {
   step = step ?? 1;
 
   if (step === 0) throw new Error("step can't be 0");
-  if (start === end) return Iter.empty();
-
-  if (step < 0) {
-    if (start < end) return Iter.empty();
-  } else {
-    if (start > end) return Iter.empty();
-  }
 
   function * generator (
     start: number,
     end: number,
     step: number
   ): Iterable<number> {
-    const done = (i: number): boolean => (step < 0 ? i > end : i < end);
-
-    for (let i = start; done(i); i += step) yield i;
+    for (let i = start; step > 0 ? i < end : i > end; i += step) yield i;
   }
 
   return iter(generator(start, end, step));

@@ -112,12 +112,30 @@ test('nth', () => {
 test('advanceBy', () => {
   const data = [0, 1, 2];
 
-  expectNextEquals(iter(data).advanceBy(0), 0);
-  expectNextEquals(iter(data).advanceBy(2), 2);
+  let iterator;
 
-  expectIsEmpty(iter(data).advanceBy(3));
+  iterator = iter(data);
+  iterator.advanceBy(0);
+  expectNextEquals(iterator, 0);
 
-  expectNextEquals(iter(data).advanceBy(-2), 0);
+  iterator = iter(data);
+  iterator.advanceBy(2);
+  expectNextEquals(iterator, 2);
+
+  iterator = iter(data);
+  iterator.advanceBy(3);
+  expectIsEmpty(iterator);
+
+  iterator = iter(data);
+  iterator.advanceBy(-2);
+  expectNextEquals(iterator, 0);
+
+  // check short-circuiting
+  iterator = iter(data);
+  const spy = jest.spyOn(iterator, 'next');
+  iterator.advanceBy(10);
+  expect(spy).toHaveBeenCalledTimes(4);
+  expectIsEmpty(iterator);
 });
 
 test('skip', () => {
@@ -126,6 +144,12 @@ test('skip', () => {
   expectCollected(iter(data).skip(2), [2, 3]);
   expectCollected(iter(data).skip(0), [0, 1, 2, 3]);
   expectIsEmpty(iter(data).skip(5));
+
+  // check short-circuiting
+  const iterator = iter(data);
+  const spy = jest.spyOn(iterator, 'next');
+  iterator.skip(10).consume();
+  expect(spy).toHaveBeenCalledTimes(5);
 });
 
 test('skipWhile', () => {
@@ -191,7 +215,7 @@ test('join', () => {
   expect(iter(data).join()).toBe('012');
   expect(iter(data).join(', ')).toBe('0, 1, 2');
 
-  expect(iter([]).join(', ')).toBe('');
+  expect(iter([]).join()).toBe('');
 });
 
 test('range', () => {
@@ -199,7 +223,7 @@ test('range', () => {
   expectCollected(range(3, 6), [3, 4, 5]);
   expectCollected(range(3, 3), []);
   expectCollected(range(0, 5, 2), [0, 2, 4]);
-  expectCollected(range(5, 0, -2), [5, 3, 1]);
+  expectCollected(range(5, 0, -1), [5, 4, 3, 2, 1]);
 
   expectIsEmpty(range(10, 0));
   expectIsEmpty(range(0, 10, -1));
@@ -266,33 +290,46 @@ test('some', () => {
   expect(iter(data).some((x) => x < 0)).toBe(false);
 });
 
-// TODO: write tests for AsyncIter
+test('incomplete iterator protocol', () => {
+  function incompleteGenerator (n: number): Iterable<number> {
+    let i = 0;
+    return {
+      [Symbol.iterator]: (): Iterator<number> => ({
+        next: function (): IteratorResult<number> {
+          if (i >= n) return { done: true, value: undefined };
+          return {
+            value: i++
+          };
+        }
+      })
+    };
+  }
 
-// test('asyncIter', async () => {
-//   const data = asyncIter([Promise.resolve(0)]);
+  let iterator;
 
-//   expect(data).toBeInstanceOf(AsyncIter);
+  iterator = iter(incompleteGenerator(4));
+  expectCollected(iterator, [0, 1, 2, 3]);
 
-//   expect(await data.next().value).toBe(0);
-// });
+  iterator = iter(incompleteGenerator(4));
+  iterator.advanceBy(2);
+  expectCollected(iterator, [2, 3]);
 
-// test('toSync', async () => {
-//   const data = asyncIter(range(5).map(async (x) => x));
+  iterator = iter(incompleteGenerator(4)).skip(2);
+  expectCollected(iterator, [2, 3]);
 
-//   const awaited = await data.toSync();
+  iterator = iter(incompleteGenerator(4)).skipWhile((x) => x < 2);
+  expectCollected(iterator, [2, 3]);
 
-//   expect(awaited).toBeInstanceOf(Iter);
-//   expectCollected(awaited, [0, 1, 2, 3, 4]);
-// });
+  iterator = iter(incompleteGenerator(5)).stepBy(2);
+  expectCollected(iterator, [0, 2, 4]);
 
-// test('Symbol.asyncIterator', async () => {
-//   const data = asyncIter(range(5).map(async (x) => x));
+  iterator = iter(incompleteGenerator(3));
+  const iterator2 = incompleteGenerator(2);
+  expectCollected(iterator.zip(iterator2), [
+    [0, 0],
+    [1, 1]
+  ]);
 
-//   const fn = jest.fn();
-
-//   for await (const value of data) {
-//     fn(value);
-//   }
-
-//   expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3], [4]]);
-// });
+  iterator = iter(incompleteGenerator(1));
+  expect(iterator.join()).toBe('0');
+});
