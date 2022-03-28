@@ -1,6 +1,4 @@
-import { ReactUtils } from '../src';
-
-const { importAll, classListBuilder } = ReactUtils;
+import { importAll, classListBuilder } from '../src/react';
 
 describe('importAll', () => {
   const context = (data: { [id: string]: string }): any => {

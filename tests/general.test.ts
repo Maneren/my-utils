@@ -1,7 +1,5 @@
-import { General } from '../src';
+import { sleep, randint, randfloat } from '../src/general';
 import { mockRandom, resetMockRandom } from 'jest-mock-random';
-
-const { sleep, randint, randfloat } = General;
 
 afterEach(() => {
   jest.useRealTimers();
