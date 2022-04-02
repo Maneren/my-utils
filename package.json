@@ -51,5 +51,8 @@
     "tabWidth": 2,
     "semi": false,
     "singleQuote": true
+  },
+  "dependencies": {
+    "path-browserify": "^1.0.1"
   }
 }
