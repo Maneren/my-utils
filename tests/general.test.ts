@@ -8,7 +8,7 @@ afterEach(() => {
 
 test('sleep', async () => {
   jest.useFakeTimers();
-  jest.spyOn(global, 'setTimeout');
+  jest.spyOn(globalThis, 'setTimeout');
 
   const result = sleep(500);
 
