@@ -87,6 +87,24 @@ test('map', async () => {
   );
 });
 
+test('mapAwait', async () => {
+  const data = fromSync([0, 1, 2]);
+
+  await expectCollected(
+    data.mapAwait(async (x) => x + 1),
+    [1, 2, 3]
+  );
+});
+
+test('await', async () => {
+  const data = fromSync([0, 1, 2]);
+
+  await expectCollected(
+    data.map(async (x) => x).await(),
+    [0, 1, 2]
+  );
+});
+
 test('take', async () => {
   const data = [0, 1, 2, 3, 4, 5];
 

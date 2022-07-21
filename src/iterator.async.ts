@@ -65,6 +65,16 @@ export class AsyncIter<T> implements AsyncIterator<T>, AsyncIterable<T> {
     return iter(await this.collect());
   }
 
+  await (): AsyncIter<Awaited<T>> {
+    const data = this as AsyncIter<T>;
+
+    async function * generator (): AsyncIterable<Awaited<T>> {
+      for await (const value of data) yield await value;
+    }
+
+    return asyncIter(generator());
+  }
+
   map<U>(f: (value: T) => U): AsyncIter<U> {
     const data = this as AsyncIter<T>;
 
@@ -73,6 +83,10 @@ export class AsyncIter<T> implements AsyncIterator<T>, AsyncIterable<T> {
     }
 
     return asyncIter(generator());
+  }
+
+  mapAwait<U>(f: (value: T) => Promise<U>): AsyncIter<U> {
+    return this.map(f).await();
   }
 
   take (limit: number): AsyncIter<T> {
