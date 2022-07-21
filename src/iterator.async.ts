@@ -143,6 +143,21 @@ export class AsyncIter<T> implements AsyncIterator<T>, AsyncIterable<T> {
     return total;
   }
 
+  async partition (f: Predicate<T>): Promise<[T[], T[]]> {
+    const left: T[] = [];
+    const right: T[] = [];
+
+    return await this.fold(([left, right], value) => {
+      if (f(value)) {
+        left.push(value);
+      } else {
+        right.push(value);
+      }
+
+      return [left, right];
+    }, [left, right]);
+  }
+
   async nth (n: number): Promise<T | undefined> {
     return (await this.skip(n).next()).value;
   }

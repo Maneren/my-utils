@@ -98,6 +98,15 @@ test('fold', () => {
   expect(folded).toBe(12);
 });
 
+test('partition', () => {
+  const data = iter([0, 1, 2, 3, 4, 5]);
+
+  const [even, odd] = data.partition(x => x % 2 === 0);
+
+  expect(even).toStrictEqual([0, 2, 4]);
+  expect(odd).toStrictEqual([1, 3, 5]);
+});
+
 test('nth', () => {
   const data = [0, 1, 2];
 

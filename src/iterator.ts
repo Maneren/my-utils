@@ -125,6 +125,21 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
     return total;
   }
 
+  partition (f: Predicate<T>): [T[], T[]] {
+    const left: T[] = [];
+    const right: T[] = [];
+
+    return this.fold(([left, right], value) => {
+      if (f(value)) {
+        left.push(value);
+      } else {
+        right.push(value);
+      }
+
+      return [left, right];
+    }, [left, right]);
+  }
+
   nth (n: number): T | undefined {
     return this.skip(n).next().value;
   }

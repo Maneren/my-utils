@@ -134,6 +134,15 @@ test('fold', async () => {
   expect(folded).toBe(12);
 });
 
+test('partition', async () => {
+  const data = fromSync([0, 1, 2, 3, 4, 5]);
+
+  const [even, odd] = await data.partition(x => x % 2 === 0);
+
+  expect(even).toStrictEqual([0, 2, 4]);
+  expect(odd).toStrictEqual([1, 3, 5]);
+});
+
 test('nth', async () => {
   const data = [0, 1, 2];
 
