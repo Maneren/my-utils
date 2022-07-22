@@ -96,6 +96,18 @@ test('mapAwait', async () => {
   );
 });
 
+test('peek', async () => {
+  const data = fromSync([0, 1]).peekable();
+
+  expect(await data.peek()).toStrictEqual({ value: 0, done: false });
+  await expectNextEquals(data, 0);
+  expect(await data.peek()).toStrictEqual({ value: 1, done: false });
+  await expectNextEquals(data, 1);
+
+  expect(await data.peek()).toStrictEqual({ value: undefined, done: true });
+  await expectIsEmpty(data);
+});
+
 test('await', async () => {
   const data = fromSync([0, 1, 2]);
 

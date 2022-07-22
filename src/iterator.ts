@@ -67,6 +67,10 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
     return new Map(this, f);
   }
 
+  peekable (): Peekable<T> {
+    return new Peekable(this);
+  }
+
   skip (n: number): Skip<T> {
     return new Skip(this, n);
   }
@@ -251,6 +255,59 @@ class Map<T, U> extends Iter<U> {
 
   get [Symbol.toStringTag] (): string {
     return 'Map';
+  }
+}
+
+// required to get around scoping and class initialization issues
+// as the generator has to be defined before the super call but
+// this.peeked can be assigned only after the super call
+class Peek<T> {
+  peeked: IteratorResult<T> | undefined;
+
+  next (data: Iterator<T>): IteratorResult<T> {
+    if (this.peeked !== undefined) {
+      const next = this.peeked;
+      this.peeked = undefined;
+      return next;
+    }
+
+    return data.next();
+  }
+
+  peek (data: Iterator<T>): IteratorResult<T> {
+    if (this.peeked !== undefined) return this.peeked.value;
+
+    const next = data.next();
+
+    this.peeked = next;
+
+    return next;
+  }
+}
+
+class Peekable<T> extends Iter<T> {
+  peeked: Peek<T>;
+
+  constructor (data: Iter<T>) {
+    const peeked = new Peek<T>();
+
+    function * generator (): Iterable<T> {
+      while (true) {
+        const { done, value } = peeked.next(data);
+
+        if (done ?? true) break;
+
+        yield value;
+      }
+    }
+
+    super(generator());
+
+    this.peeked = peeked;
+  }
+
+  peek (): IteratorResult<T> {
+    return this.peeked.peek(this.iterator);
   }
 }
 

@@ -51,6 +51,18 @@ test('map', () => {
   );
 });
 
+test('peek', () => {
+  const data = iter([0, 1]).peekable();
+
+  expect(data.peek()).toStrictEqual({ value: 0, done: false });
+  expectNextEquals(data, 0);
+  expect(data.peek()).toStrictEqual({ value: 1, done: false });
+  expectNextEquals(data, 1);
+
+  expect(data.peek()).toStrictEqual({ value: undefined, done: true });
+  expectIsEmpty(data);
+});
+
 test('take', () => {
   const data = [0, 1, 2, 3, 4, 5];
 

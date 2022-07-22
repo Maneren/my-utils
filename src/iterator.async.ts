@@ -89,6 +89,10 @@ export class AsyncIter<T> implements AsyncIterable<T>, AsyncIterator<T> {
     return new Map(this, f).await();
   }
 
+  peekable (): Peekable<T> {
+    return new Peekable(this);
+  }
+
   skip (n: number): Skip<T> {
     return new Skip(this, n);
   }
@@ -297,6 +301,59 @@ class Map<T, U> extends AsyncIter<U> {
 
   get [Symbol.toStringTag] (): string {
     return 'Map';
+  }
+}
+
+// required to get around scoping and class initialization issues
+// as the generator has to be defined before the super call but
+// this.peeked can be assigned only after the super call
+class Peek<T> {
+  peeked: IteratorResult<T> | undefined;
+
+  async next (data: AsyncIterator<T>): Promise<IteratorResult<T>> {
+    if (this.peeked !== undefined) {
+      const next = this.peeked;
+      this.peeked = undefined;
+      return next;
+    }
+
+    return await data.next();
+  }
+
+  async peek (data: AsyncIterator<T>): Promise<IteratorResult<T>> {
+    if (this.peeked !== undefined) return this.peeked.value;
+
+    const next = await data.next();
+
+    this.peeked = next;
+
+    return next;
+  }
+}
+
+class Peekable<T> extends AsyncIter<T> {
+  peeked: Peek<T>;
+
+  constructor (data: AsyncIter<T>) {
+    const peeked = new Peek<T>();
+
+    async function * generator (): AsyncIterable<T> {
+      while (true) {
+        const { done, value } = await peeked.next(data);
+
+        if (done ?? true) break;
+
+        yield value;
+      }
+    }
+
+    super(generator());
+
+    this.peeked = peeked;
+  }
+
+  async peek (): Promise<IteratorResult<T>> {
+    return await this.peeked.peek(this.iterator);
   }
 }
 
