@@ -342,3 +342,17 @@ test('incomplete iterator protocol', () => {
   iterator = iter(incompleteGenerator(1));
   expect(iterator.join()).toBe('0');
 });
+
+test('laziness', async () => {
+  const data = iter([0, 1, 2, 3]);
+
+  const fn = jest.fn(x => x);
+
+  const mapped = data.map(fn).take(2);
+
+  expect(fn.mock.calls).toMatchObject([]);
+
+  expectCollected(mapped, [0, 1]);
+
+  expect(fn.mock.calls).toMatchObject([[0], [1]]);
+});

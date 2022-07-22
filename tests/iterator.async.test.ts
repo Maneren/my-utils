@@ -383,3 +383,17 @@ test('incomplete iterator protocol', async () => {
   for await (const value of iterator) arr.push(value);
   expect(arr).toStrictEqual([0, 1, 2]);
 });
+
+test('laziness', async () => {
+  const data = fromSync([0, 1, 2, 3]);
+
+  const fn = jest.fn(x => x);
+
+  const mapped = data.map(fn).take(2);
+
+  expect(fn.mock.calls).toMatchObject([]);
+
+  await expectCollected(mapped, [0, 1]);
+
+  expect(fn.mock.calls).toMatchObject([[0], [1]]);
+});
