@@ -47,72 +47,80 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
     return 'Iter';
   }
 
-  map<U>(f: (value: T) => U): Iter<U> {
-    const data = this as Iter<T>;
-
-    function * generator (): Iterable<U> {
-      for (const value of data) yield f(value);
-    }
-
-    return iter(generator());
+  chain (extension: Iterable<T>): Chain<T> {
+    return new Chain(this, extension);
   }
 
-  take (limit: number): Iter<T> {
-    if (limit <= 0) return Iter.empty();
-
-    const data = this as Iter<T>;
-
-    function * generator (): Iterable<T> {
-      let count = 0;
-
-      for (const value of data) {
-        yield value;
-        count++;
-        if (count >= limit) break;
-      }
-    }
-
-    return iter(generator());
+  enumerate (): Enumerate<T> {
+    return new Enumerate(this);
   }
 
-  takeWhile (f: Predicate<T>): Iter<T> {
-    const data = this as Iter<T>;
-
-    function * generator (): Iterable<T> {
-      for (const value of data) {
-        if (!f(value)) break;
-        yield value;
-      }
-    }
-
-    return iter(generator());
+  filter (f: Predicate<T>): Filter<T> {
+    return new Filter(this, f);
   }
 
-  filter (f: Predicate<T>): Iter<T> {
-    const data = this as Iter<T>;
-
-    function * generator (): Iterable<T> {
-      for (const value of data) {
-        if (f(value)) yield value;
-      }
-    }
-
-    return iter(generator());
+  inspect (f: (value: any) => void): Inspect<T> {
+    return new Inspect(this, f);
   }
 
-  enumerate (): Iter<Enumerated<T>> {
-    const data = this as Iter<T>;
+  map<U>(f: (value: T) => U): Map<T, U> {
+    return new Map(this, f);
+  }
 
-    function * generator (): Iterable<Enumerated<T>> {
-      let index = 0;
+  skip (n: number): Skip<T> {
+    return new Skip(this, n);
+  }
 
-      for (const value of data) {
-        yield [index, value];
-        index++;
-      }
+  skipWhile (f: Predicate<T>): SkipWhile<T> {
+    return new SkipWhile(this, f);
+  }
+
+  stepBy (n: number): StepBy<T> {
+    return new StepBy(this, n);
+  }
+
+  take (limit: number): Take<T> {
+    return new Take(this, limit);
+  }
+
+  takeWhile (f: Predicate<T>): TakeWhile<T> {
+    return new TakeWhile(this, f);
+  }
+
+  zip<U>(other: Iterable<U>): Zip<T, U> {
+    return new Zip(this, other);
+  }
+
+  advanceBy (n: number): void {
+    for (const _ of range(n)) {
+      const { done } = this.next();
+      if (done ?? false) break;
+    }
+  }
+
+  all (f: Predicate<T>): boolean {
+    for (const value of this) {
+      if (!f(value)) return false;
     }
 
-    return iter(generator());
+    return true;
+  }
+
+  /**
+   * creates new array from the values of the iterator
+   */
+  collect (): T[] {
+    return [...this];
+  }
+
+  consume (): void {
+    for (const _ of this) {
+      // pass
+    }
+  }
+
+  count (): number {
+    return this.fold((count) => count + 1, 0);
   }
 
   fold<U>(f: (total: U, current: T) => U, start: U): U {
@@ -125,141 +133,10 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
     return total;
   }
 
-  partition (f: Predicate<T>): [T[], T[]] {
-    return this.fold<[T[], T[]]>(([left, right], value) => {
-      if (f(value)) {
-        left.push(value);
-      } else {
-        right.push(value);
-      }
-
-      return [left, right];
-    }, [[], []]);
-  }
-
-  nth (n: number): T | undefined {
-    return this.skip(n).next().value;
-  }
-
-  advanceBy (n: number): void {
-    for (const _ of range(n)) {
-      const { done } = this.next();
-      if (done ?? false) break;
-    }
-  }
-
-  skip (n: number): Iter<T> {
-    let count = 0;
-
-    const data = this as Iter<T>;
-
-    function * generator (): Iterable<T> {
-      while (true) {
-        const { done, value } = data.next();
-        if (done ?? false) break;
-
-        if (count < n) {
-          count++;
-          continue;
-        }
-
-        yield value;
-      }
-    }
-
-    return iter(generator());
-  }
-
-  skipWhile (f: Predicate<T>): Iter<T> {
-    while (true) {
-      const { done, value } = this.next();
-      if (done ?? false) break;
-
-      if (!f(value)) {
-        return Iter.once(value).chain(this);
-      }
-    }
-
-    return Iter.empty();
-  }
-
-  stepBy (n: number): Iter<T> {
-    const data = this as Iter<T>;
-
-    function * generator (): Iterable<T> {
-      while (true) {
-        const { done, value } = data.next();
-        if (done ?? false) break;
-
-        yield value;
-
-        data.advanceBy(n - 1);
-      }
-    }
-
-    return iter(generator());
-  }
-
-  chain (extension: Iterable<T>): Iter<T> {
-    const data = this as Iter<T>;
-
-    function * generator (): Iterable<T> {
-      for (const value of data) yield value;
-
-      for (const value of extension) yield value;
-    }
-
-    return iter(generator());
-  }
-
-  zip<U>(other: Iterable<U>): Iter<Zipped<T, U>> {
-    const data = this as Iter<T>;
-    const data2 = iter(other);
-
-    function * generator (): Iterable<Zipped<T, U>> {
-      while (true) {
-        const next1 = data.next();
-        const next2 = data2.next();
-
-        if (next1.done ?? false) break;
-        if (next2.done ?? false) break;
-
-        yield [next1.value, next2.value];
-      }
-    }
-
-    return iter(generator());
-  }
-
-  count (): number {
-    return this.fold((count) => count + 1, 0);
-  }
-
-  last (): T | undefined {
-    let element;
-
-    for (const current of this) element = current;
-
-    return element;
-  }
-
-  consume (): void {
-    for (const _ of this) {
-      // pass
-    }
-  }
-
   forEach (f: (value: T) => void): void {
     for (const el of this) {
       f(el);
     }
-  }
-
-  /**
-   * creates new array from the values of the iterator
-   */
-  collect (): T[] {
-    return [...this];
   }
 
   join (separator = ''): string {
@@ -279,12 +156,28 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
     return result;
   }
 
-  all (f: Predicate<T>): boolean {
-    for (const value of this) {
-      if (!f(value)) return false;
-    }
+  last (): T | undefined {
+    let element;
 
-    return true;
+    for (const current of this) element = current;
+
+    return element;
+  }
+
+  nth (n: number): T | undefined {
+    return this.skip(n).next().value;
+  }
+
+  partition (f: Predicate<T>): [T[], T[]] {
+    return this.fold<[T[], T[]]>(([left, right], value) => {
+      if (f(value)) {
+        left.push(value);
+      } else {
+        right.push(value);
+      }
+
+      return [left, right];
+    }, [[], []]);
   }
 
   some (f: Predicate<T>): boolean {
@@ -294,10 +187,208 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
 
     return false;
   }
+}
 
-  inspect (f: (value: any) => void): Iter<T> {
-    const data = this as Iter<T>;
+class Enumerate<T> extends Iter<Enumerated<T>> {
+  constructor (data: Iter<T>) {
+    function * generator (): Iterable<Enumerated<T>> {
+      let index = 0;
 
+      for (const value of data) {
+        yield [index, value];
+        index++;
+      }
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Enumerate';
+  }
+}
+
+class Chain<T> extends Iter<T> {
+  constructor (data: Iter<T>, extension: Iterable<T>) {
+    function * generator (): Iterable<T> {
+      for (const value of data) yield value;
+
+      for (const value of extension) yield value;
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Chain';
+  }
+}
+
+class Filter<T> extends Iter<T> {
+  constructor (data: Iter<T>, f: Predicate<T>) {
+    function * generator (): Iterable<T> {
+      for (const value of data) {
+        if (f(value)) yield value;
+      }
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Filter';
+  }
+}
+
+class Map<T, U> extends Iter<U> {
+  constructor (data: Iter<T>, f: (value: T) => U) {
+    function * generator (): Iterable<U> {
+      for (const value of data) yield f(value);
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Map';
+  }
+}
+
+class Skip<T> extends Iter<T> {
+  constructor (data: Iter<T>, n: number) {
+    let count = 0;
+
+    function * generator (): Iterable<T> {
+      while (true) {
+        const { done, value } = data.next();
+        if (done ?? false) break;
+
+        if (count < n) {
+          count++;
+          continue;
+        }
+
+        yield value;
+      }
+    }
+
+    super((n <= 0) ? data : generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Skip';
+  }
+}
+
+class SkipWhile<T> extends Iter<T> {
+  constructor (data: Iter<T>, f: Predicate<T>) {
+    let skip = true;
+
+    function * generator (): Iterable<T> {
+      for (const value of data) {
+        if (skip && f(value)) {
+          continue;
+        }
+
+        skip = false;
+        yield value;
+      }
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'SkipWhile';
+  }
+}
+
+class StepBy<T> extends Iter<T> {
+  constructor (data: Iter<T>, step: number) {
+    function * generator (): Iterable<T> {
+      while (true) {
+        const { done, value } = data.next();
+        if (done ?? false) break;
+
+        yield value;
+
+        data.advanceBy(step - 1);
+      }
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'StepBy';
+  }
+}
+
+class Take<T> extends Iter<T> {
+  constructor (data: Iter<T>, limit: number) {
+    if (limit <= 0) return Iter.empty();
+
+    function * generator (): Iterable<T> {
+      let count = 0;
+
+      for (const value of data) {
+        yield value;
+        count++;
+        if (count >= limit) break;
+      }
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Take';
+  }
+}
+
+class TakeWhile<T> extends Iter<T> {
+  constructor (data: Iter<T>, f: Predicate<T>) {
+    function * generator (): Iterable<T> {
+      for (const value of data) {
+        if (!f(value)) break;
+        yield value;
+      }
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'TakeWhile';
+  }
+}
+
+class Zip<T, U> extends Iter<Zipped<T, U>> {
+  constructor (data: Iter<T>, zipped: Iterable<U>) {
+    const data2 = zipped[Symbol.iterator]();
+
+    function * generator (): Iterable<Zipped<T, U>> {
+      while (true) {
+        const next1 = data.next();
+        const next2 = data2.next();
+
+        if (next1.done ?? false) break;
+        if (next2.done ?? false) break;
+
+        yield [next1.value, next2.value];
+      }
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Zip';
+  }
+}
+
+class Inspect<T> extends Iter<T> {
+  constructor (data: Iter<T>, f: (value: T) => void) {
     function * generator (): Iterable<T> {
       for (const value of data) {
         f(value);
@@ -305,7 +396,11 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
       }
     }
 
-    return iter(generator());
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Inspect';
   }
 }
 
