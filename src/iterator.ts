@@ -126,10 +126,7 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
   }
 
   partition (f: Predicate<T>): [T[], T[]] {
-    const left: T[] = [];
-    const right: T[] = [];
-
-    return this.fold(([left, right], value) => {
+    return this.fold<[T[], T[]]>(([left, right], value) => {
       if (f(value)) {
         left.push(value);
       } else {
@@ -137,7 +134,7 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
       }
 
       return [left, right];
-    }, [left, right]);
+    }, [[], []]);
   }
 
   nth (n: number): T | undefined {
