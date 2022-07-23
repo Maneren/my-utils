@@ -23,6 +23,7 @@
     "build": "tsc",
     "test": "eslint . && jest",
     "test-watch": "jest --watchAll",
+    "mutation-test": "stryker run",
     "format": "prettier --write \"{src,tests}/*.ts\" && eslint --fix src tests"
   },
   "devDependencies": {
