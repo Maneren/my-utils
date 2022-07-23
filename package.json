@@ -51,7 +51,7 @@
   "prettier": {
     "trailingComma": "none",
     "tabWidth": 2,
-    "semi": false,
+    "semi": true,
     "singleQuote": true
   },
   "dependencies": {
