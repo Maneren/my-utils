@@ -42,18 +42,87 @@ test('Symbol.toStringTag', () => {
   expect(String(data)).toBe('[object Iter]');
 });
 
+test('repeat', () => {
+  const data = Iter.repeat(2);
+
+  expectNextEquals(data, 2);
+  expectNextEquals(data, 2);
+  expectNextEquals(data, 2);
+  expectNextEquals(data, 2);
+  expectNextEquals(data, 2);
+});
+
+test('empty', () => {
+  expectIsEmpty(Iter.empty());
+});
+
+test('once', () => {
+  expectCollected(Iter.once(0), [0]);
+});
+
+test('chain', () => {
+  const data = iter([0, 1]);
+  const data2 = iter([2, 3]);
+
+  const chained = data.chain(data2);
+
+  expectCollected(chained, [0, 1, 2, 3]);
+
+  expect(String(chained)).toBe('[object Chain]');
+});
+
+test('enumerate', () => {
+  const data = iter([2, 1, 0]);
+
+  const enumerated = data.enumerate();
+
+  expectCollected(enumerated, [
+    [0, 2],
+    [1, 1],
+    [2, 0]
+  ]);
+
+  expect(String(enumerated)).toBe('[object Enumerate]');
+});
+
+test('filter', () => {
+  const data = iter([0, 1, 2, 3, 4, 5]);
+
+  const filtered = data.filter((x) => x % 2 === 0);
+
+  expectCollected(filtered, [0, 2, 4]);
+
+  expect(String(filtered)).toBe('[object Filter]');
+});
+
+test('inspect', () => {
+  const data = iter([0, 1, 2, 3]);
+  const fn = jest.fn();
+
+  const inspected = data.inspect(fn);
+
+  expectCollected(inspected, [0, 1, 2, 3]);
+
+  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
+
+  expect(String(inspected)).toBe('[object Inspect]');
+});
+
 test('map', () => {
   const data = iter([0, 1, 2]);
 
-  expectCollected(
-    data.map((x) => x + 1),
-    [1, 2, 3]
-  );
+  const mapped = data.map((x) => x + 1);
+
+  expectCollected(mapped, [1, 2, 3]);
+
+  expect(String(mapped)).toBe('[object Map]');
 });
 
 test('peek', () => {
   const data = iter([0, 1]).peekable();
 
+  expect(data.peek()).toStrictEqual({ value: 0, done: false });
+  // second peek has to return the same thing
   expect(data.peek()).toStrictEqual({ value: 0, done: false });
   expectNextEquals(data, 0);
   expect(data.peek()).toStrictEqual({ value: 1, done: false });
@@ -61,73 +130,90 @@ test('peek', () => {
 
   expect(data.peek()).toStrictEqual({ value: undefined, done: true });
   expectIsEmpty(data);
+
+  expect(String(data)).toBe('[object Peekable]');
+});
+
+test('skip', () => {
+  const data = [0, 1, 2, 3];
+
+  const skipped = iter(data).skip(5);
+
+  expectCollected(iter(data).skip(2), [2, 3]);
+  expectCollected(iter(data).skip(0), [0, 1, 2, 3]);
+  expectIsEmpty(skipped);
+
+  // check short-circuiting
+  const iterator = iter(data);
+  const spy = jest.spyOn(iterator, 'next');
+  iterator.skip(10).consume();
+  expect(spy).toHaveBeenCalledTimes(5);
+
+  expect(String(skipped)).toBe('[object Skip]');
+});
+
+test('skipWhile', () => {
+  const data = [0, 2, 4, 5, 6, 7];
+
+  const skipped = iter(data).skipWhile((x) => x % 2 === 0);
+
+  expectCollected(skipped, [5, 6, 7]);
+
+  expectIsEmpty(iter(data).skipWhile((x) => x < 10));
+
+  expect(String(skipped)).toBe('[object SkipWhile]');
+});
+
+test('stepBy', () => {
+  const data = iter([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+  const stepped = data.stepBy(3);
+
+  expectCollected(stepped, [0, 3, 6, 9]);
+
+  expect(String(stepped)).toBe('[object StepBy]');
 });
 
 test('take', () => {
   const data = [0, 1, 2, 3, 4, 5];
 
-  expectCollected(iter(data).take(3), [0, 1, 2]);
+  const taken = iter(data).take(3);
+
+  expectCollected(taken, [0, 1, 2]);
 
   expectIsEmpty(iter(data).take(0));
   expectIsEmpty(iter(data).take(-1));
+
+  expect(String(taken)).toBe('[object Take]');
 });
 
 test('takeWhile', () => {
   const data = [0, 3, 6, 9, 12, 15];
 
-  expectCollected(
-    iter(data).takeWhile((x) => x < 10),
-    [0, 3, 6, 9]
-  );
+  const taken = iter(data).takeWhile((x) => x < 10);
+
+  expectCollected(taken, [0, 3, 6, 9]);
 
   expectIsEmpty(iter(data).takeWhile((x) => x < 0));
+
+  expect(String(taken)).toBe('[object TakeWhile]');
 });
 
-test('filter', () => {
-  const data = iter([0, 1, 2, 3, 4, 5]);
+test('zip', () => {
+  const data = [0, 1];
 
-  expectCollected(
-    data.filter((x) => x % 2 === 0),
-    [0, 2, 4]
-  );
-});
+  const data2 = iter([2, 3, 4]);
 
-test('enumerate', () => {
-  const data = iter([2, 1, 0]);
-
-  expectCollected(data.enumerate(), [
+  expectCollected(iter(data).zip(data2), [
     [0, 2],
-    [1, 1],
-    [2, 0]
+    [1, 3]
   ]);
-});
 
-test('fold', () => {
-  const data = iter([0, 1, 2, 4, 5]);
+  const data3 = iter([2]);
 
-  const folded = data.fold((total, current) => total + current, 0);
+  expectCollected(iter(data).zip(data3), [[0, 2]]);
 
-  expect(folded).toBe(12);
-});
-
-test('partition', () => {
-  const data = iter([0, 1, 2, 3, 4, 5]);
-
-  const [even, odd] = data.partition(x => x % 2 === 0);
-
-  expect(even).toStrictEqual([0, 2, 4]);
-  expect(odd).toStrictEqual([1, 3, 5]);
-});
-
-test('nth', () => {
-  const data = [0, 1, 2];
-
-  expect(iter(data).nth(0)).toBe(0);
-  expect(iter(data).nth(2)).toBe(2);
-
-  expect(iter(data).nth(3)).toBe(undefined);
-
-  expect(iter(data).nth(-3)).toBe(0);
+  expect(String(iter(data).zip(data2))).toBe('[object Zip]');
 });
 
 test('advanceBy', () => {
@@ -159,35 +245,11 @@ test('advanceBy', () => {
   expectIsEmpty(iterator);
 });
 
-test('skip', () => {
+test('all', () => {
   const data = [0, 1, 2, 3];
 
-  expectCollected(iter(data).skip(2), [2, 3]);
-  expectCollected(iter(data).skip(0), [0, 1, 2, 3]);
-  expectIsEmpty(iter(data).skip(5));
-
-  // check short-circuiting
-  const iterator = iter(data);
-  const spy = jest.spyOn(iterator, 'next');
-  iterator.skip(10).consume();
-  expect(spy).toHaveBeenCalledTimes(5);
-});
-
-test('skipWhile', () => {
-  const data = [0, 2, 4, 5, 6, 7];
-
-  expectCollected(
-    iter(data).skipWhile((x) => x % 2 === 0),
-    [5, 6, 7]
-  );
-
-  expectIsEmpty(iter(data).skipWhile((x) => x < 10));
-});
-
-test('stepBy', () => {
-  const data = iter([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-
-  expectCollected(data.stepBy(3), [0, 3, 6, 9]);
+  expect(iter(data).all((x) => x < 5)).toBe(true);
+  expect(iter(data).all((x) => x > 2)).toBe(false);
 });
 
 test('collect', () => {
@@ -196,26 +258,13 @@ test('collect', () => {
   expect(iter(data).collect()).toStrictEqual(data);
 });
 
-test('chain', () => {
-  const data = iter([0, 1]);
-  const data2 = iter([2, 3]);
+test('consume', () => {
+  const data = iter([0, 1, 2, 3]);
+  const fn = jest.fn();
 
-  expectCollected(data.chain(data2), [0, 1, 2, 3]);
-});
+  data.map(fn).consume();
 
-test('zip', () => {
-  const data = [0, 1];
-
-  const data2 = iter([2, 3, 4]);
-
-  expectCollected(iter(data).zip(data2), [
-    [0, 2],
-    [1, 3]
-  ]);
-
-  const data3 = iter([2]);
-
-  expectCollected(iter(data).zip(data3), [[0, 2]]);
+  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
 });
 
 test('count', () => {
@@ -224,10 +273,21 @@ test('count', () => {
   expect(data.count()).toBe(5);
 });
 
-test('last', () => {
+test('fold', () => {
   const data = iter([0, 1, 2, 4, 5]);
 
-  expect(data.last()).toBe(5);
+  const folded = data.fold((total, current) => total + current, 0);
+
+  expect(folded).toBe(12);
+});
+
+test('forEach', () => {
+  const data = iter([0, 1, 2, 3]);
+  const fn = jest.fn();
+
+  data.forEach(fn);
+
+  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
 });
 
 test('join', () => {
@@ -237,6 +297,40 @@ test('join', () => {
   expect(iter(data).join(', ')).toBe('0, 1, 2');
 
   expect(iter([]).join()).toBe('');
+});
+
+test('last', () => {
+  const data = iter([0, 1, 2, 4, 5]);
+
+  expect(data.last()).toBe(5);
+});
+
+test('nth', () => {
+  const data = [0, 1, 2];
+
+  expect(iter(data).nth(0)).toBe(0);
+  expect(iter(data).nth(2)).toBe(2);
+
+  expect(iter(data).nth(3)).toBe(undefined);
+
+  expect(iter(data).nth(-3)).toBe(0);
+});
+
+test('partition', () => {
+  const data = iter([0, 1, 2, 3, 4, 5]);
+
+  const [even, odd] = data.partition((x) => x % 2 === 0);
+
+  expect(even).toStrictEqual([0, 2, 4]);
+  expect(odd).toStrictEqual([1, 3, 5]);
+});
+
+test('some', () => {
+  const data = [0, 1, 2, 3];
+
+  expect(iter(data).some((x) => x < 5)).toBe(true);
+  expect(iter(data).some((x) => x > 2)).toBe(true);
+  expect(iter(data).some((x) => x < 0)).toBe(false);
 });
 
 test('range', () => {
@@ -249,66 +343,6 @@ test('range', () => {
   expectIsEmpty(range(10, 0));
   expectIsEmpty(range(0, 10, -1));
   expect(() => range(0, 10, 0)).toThrow("step can't be 0");
-});
-
-test('repeat', () => {
-  const data = Iter.repeat(2);
-
-  expectNextEquals(data, 2);
-  expectNextEquals(data, 2);
-  expectNextEquals(data, 2);
-  expectNextEquals(data, 2);
-  expectNextEquals(data, 2);
-});
-
-test('empty', () => {
-  expectIsEmpty(Iter.empty());
-});
-
-test('once', () => {
-  expectCollected(Iter.once(0), [0]);
-});
-
-test('consume', () => {
-  const data = iter([0, 1, 2, 3]);
-  const fn = jest.fn();
-
-  data.map(fn).consume();
-
-  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
-});
-
-test('forEach', () => {
-  const data = iter([0, 1, 2, 3]);
-  const fn = jest.fn();
-
-  data.forEach(fn);
-
-  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
-});
-
-test('inspect', () => {
-  const data = iter([0, 1, 2, 3]);
-  const fn = jest.fn();
-
-  expectCollected(data.inspect(fn), [0, 1, 2, 3]);
-
-  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
-});
-
-test('all', () => {
-  const data = [0, 1, 2, 3];
-
-  expect(iter(data).all((x) => x < 5)).toBe(true);
-  expect(iter(data).all((x) => x > 2)).toBe(false);
-});
-
-test('some', () => {
-  const data = [0, 1, 2, 3];
-
-  expect(iter(data).some((x) => x < 5)).toBe(true);
-  expect(iter(data).some((x) => x > 2)).toBe(true);
-  expect(iter(data).some((x) => x < 0)).toBe(false);
 });
 
 test('incomplete iterator protocol', () => {
@@ -335,6 +369,9 @@ test('incomplete iterator protocol', () => {
   iterator.advanceBy(2);
   expectCollected(iterator, [2, 3]);
 
+  iterator = iter(incompleteGenerator(4)).peekable();
+  expectCollected(iterator, [0, 1, 2, 3]);
+
   iterator = iter(incompleteGenerator(4)).skip(2);
   expectCollected(iterator, [2, 3]);
 
@@ -358,7 +395,7 @@ test('incomplete iterator protocol', () => {
 test('laziness', async () => {
   const data = iter([0, 1, 2, 3]);
 
-  const fn = jest.fn(x => x);
+  const fn = jest.fn((x) => x);
 
   const mapped = data.map(fn).take(2);
 

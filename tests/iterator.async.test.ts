@@ -37,6 +37,8 @@ test('fromSync', async () => {
 
   expect(data).toBeInstanceOf(AsyncIter);
 
+  await expectCollected(data, [0, 1, 2]);
+
   const data2 = fromSync([
     Promise.resolve(0),
     Promise.resolve(1),
@@ -46,18 +48,6 @@ test('fromSync', async () => {
   expect(data2).toBeInstanceOf(AsyncIter);
 
   await expectCollected(data2, [0, 1, 2]);
-});
-
-test('toSync', async () => {
-  const data = fromSync([0, 1, 2]);
-
-  expect(data).toBeInstanceOf(AsyncIter);
-
-  const sync = await data.toSync();
-
-  expect(sync).toBeInstanceOf(Iter);
-
-  expect(sync.collect()).toStrictEqual([0, 1, 2]);
 });
 
 test('next', async () => {
@@ -78,22 +68,100 @@ test('Symbol.toStringTag', async () => {
   expect(String(data)).toBe('[object AsyncIter]');
 });
 
+test('repeat', async () => {
+  const data = AsyncIter.repeat(2);
+
+  await expectNextEquals(data, 2);
+  await expectNextEquals(data, 2);
+  await expectNextEquals(data, 2);
+  await expectNextEquals(data, 2);
+  await expectNextEquals(data, 2);
+});
+
+test('empty', async () => {
+  await expectIsEmpty(AsyncIter.empty());
+});
+
+test('once', async () => {
+  await expectCollected(AsyncIter.once(0), [0]);
+});
+
+test('await', async () => {
+  const data = fromSync([0, 1, 2]);
+
+  const awaited = data.map(async (x) => x).await();
+
+  await expectCollected(awaited, [0, 1, 2]);
+
+  expect(String(awaited)).toBe('[object Await]');
+});
+
+test('chain', async () => {
+  const data = fromSync([0, 1]);
+  const data2 = fromSync([2, 3]);
+
+  const chained = data.chain(data2);
+
+  await expectCollected(chained, [0, 1, 2, 3]);
+
+  expect(String(chained)).toBe('[object Chain]');
+});
+
+test('enumerate', async () => {
+  const data = fromSync([2, 1, 0]);
+
+  const enumerated = data.enumerate();
+
+  await expectCollected(enumerated, [
+    [0, 2],
+    [1, 1],
+    [2, 0]
+  ]);
+
+  expect(String(enumerated)).toBe('[object Enumerate]');
+});
+
+test('filter', async () => {
+  const data = fromSync([0, 1, 2, 3, 4, 5]);
+
+  const filtered = data.filter((x) => x % 2 === 0);
+
+  await expectCollected(filtered, [0, 2, 4]);
+
+  expect(String(filtered)).toBe('[object Filter]');
+});
+
+test('inspect', async () => {
+  const data = fromSync([0, 1, 2, 3]);
+  const fn = jest.fn();
+
+  const inspected = data.inspect(fn);
+
+  await expectCollected(inspected, [0, 1, 2, 3]);
+
+  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
+
+  expect(String(inspected)).toBe('[object Inspect]');
+});
+
 test('map', async () => {
   const data = fromSync([0, 1, 2]);
 
-  await expectCollected(
-    data.map((x) => x + 1),
-    [1, 2, 3]
-  );
+  const mapped = data.map((x) => x + 1);
+
+  await expectCollected(mapped, [1, 2, 3]);
+
+  expect(String(mapped)).toBe('[object Map]');
 });
 
 test('mapAwait', async () => {
   const data = fromSync([0, 1, 2]);
 
-  await expectCollected(
-    data.mapAwait(async (x) => x + 1),
-    [1, 2, 3]
-  );
+  const mapped = data.mapAwait(async (x) => x + 1);
+
+  await expectCollected(mapped, [1, 2, 3]);
+
+  expect(String(mapped)).toBe('[object MapAwait]');
 });
 
 test('peek', async () => {
@@ -106,82 +174,86 @@ test('peek', async () => {
 
   expect(await data.peek()).toStrictEqual({ value: undefined, done: true });
   await expectIsEmpty(data);
+
+  expect(String(data)).toBe('[object Peekable]');
 });
 
-test('await', async () => {
-  const data = fromSync([0, 1, 2]);
+test('skip', async () => {
+  const data = [0, 1, 2, 3];
 
-  await expectCollected(
-    data.map(async (x) => x).await(),
-    [0, 1, 2]
-  );
+  const skipped = fromSync(data).skip(5);
+
+  await expectCollected(await fromSync(data).skip(2), [2, 3]);
+  await expectCollected(await fromSync(data).skip(0), [0, 1, 2, 3]);
+  await expectIsEmpty(await skipped);
+
+  expect(String(skipped)).toBe('[object Skip]');
+});
+
+test('skipWhile', async () => {
+  const data = [0, 2, 4, 5, 6, 7];
+
+  const skipped = fromSync(data).skipWhile((x) => x % 2 === 0);
+
+  await expectCollected(skipped, [5, 6, 7]);
+
+  await expectIsEmpty(fromSync(data).skipWhile((x) => x < 10));
+
+  expect(String(skipped)).toBe('[object SkipWhile]');
+});
+
+test('stepBy', async () => {
+  const data = fromSync([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+  const stepped = data.stepBy(3);
+
+  await expectCollected(stepped, [0, 3, 6, 9]);
+
+  expect(String(stepped)).toBe('[object StepBy]');
 });
 
 test('take', async () => {
   const data = [0, 1, 2, 3, 4, 5];
 
-  await expectCollected(fromSync(data).take(3), [0, 1, 2]);
+  const taken = fromSync(data).take(3);
+
+  await expectCollected(taken, [0, 1, 2]);
 
   await expectIsEmpty(fromSync(data).take(0));
   await expectIsEmpty(fromSync(data).take(-1));
+
+  expect(String(taken)).toBe('[object Take]');
 });
 
 test('takeWhile', async () => {
   const data = [0, 3, 6, 9, 12, 15];
 
-  await expectCollected(
-    fromSync(data).takeWhile((x) => x < 10),
-    [0, 3, 6, 9]
-  );
+  const taken = fromSync(data).takeWhile((x) => x < 10);
+
+  await expectCollected(taken, [0, 3, 6, 9]);
 
   await expectIsEmpty(fromSync(data).takeWhile((x) => x < 0));
+
+  expect(String(taken)).toBe('[object TakeWhile]');
 });
 
-test('filter', async () => {
-  const data = fromSync([0, 1, 2, 3, 4, 5]);
+test('zip', async () => {
+  const data = [0, 1];
 
-  await expectCollected(
-    data.filter((x) => x % 2 === 0),
-    [0, 2, 4]
-  );
-});
+  const data2 = fromSync([2, 3, 4]);
 
-test('enumerate', async () => {
-  const data = fromSync([2, 1, 0]);
+  const zipped = fromSync(data).zip(data2);
 
-  await expectCollected(data.enumerate(), [
+  await expectCollected(await zipped, [
     [0, 2],
-    [1, 1],
-    [2, 0]
+    [1, 3]
   ]);
-});
 
-test('fold', async () => {
-  const data = fromSync([0, 1, 2, 4, 5]);
+  const data3 = fromSync([2]);
 
-  const folded = await data.fold((total, current) => total + current, 0);
+  await expectCollected(await fromSync(data).zip(data3), [[0, 2]]);
 
-  expect(folded).toBe(12);
-});
-
-test('partition', async () => {
-  const data = fromSync([0, 1, 2, 3, 4, 5]);
-
-  const [even, odd] = await data.partition(x => x % 2 === 0);
-
-  expect(even).toStrictEqual([0, 2, 4]);
-  expect(odd).toStrictEqual([1, 3, 5]);
-});
-
-test('nth', async () => {
-  const data = [0, 1, 2];
-
-  expect(await fromSync(data).nth(0)).toBe(0);
-  expect(await fromSync(data).nth(2)).toBe(2);
-
-  expect(await fromSync(data).nth(3)).toBe(undefined);
-
-  expect(await fromSync(data).nth(-3)).toBe(0);
+  expect(String(zipped)).toBe('[object Zip]');
 });
 
 test('advanceBy', async () => {
@@ -212,96 +284,17 @@ test('advanceBy', async () => {
   await expectIsEmpty(iter);
 });
 
-test('skip', async () => {
+test('all', async () => {
   const data = [0, 1, 2, 3];
 
-  await expectCollected(await fromSync(data).skip(2), [2, 3]);
-  await expectCollected(await fromSync(data).skip(0), [0, 1, 2, 3]);
-  await expectIsEmpty(await fromSync(data).skip(5));
-});
-
-test('skipWhile', async () => {
-  const data = [0, 2, 4, 5, 6, 7];
-
-  await expectCollected(
-    fromSync(data).skipWhile((x) => x % 2 === 0),
-    [5, 6, 7]
-  );
-
-  await expectIsEmpty(fromSync(data).skipWhile((x) => x < 10));
-});
-
-test('stepBy', async () => {
-  const data = fromSync([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-
-  await expectCollected(data.stepBy(3), [0, 3, 6, 9]);
+  expect(await fromSync(data).all((x) => x < 5)).toBe(true);
+  expect(await fromSync(data).all((x) => x > 2)).toBe(false);
 });
 
 test('collect', async () => {
   const data = [0, 1, 2];
 
   expect(await fromSync(data).collect()).toStrictEqual(data);
-});
-
-test('chain', async () => {
-  const data = fromSync([0, 1]);
-  const data2 = fromSync([2, 3]);
-
-  await expectCollected(data.chain(data2), [0, 1, 2, 3]);
-});
-
-test('zip', async () => {
-  const data = [0, 1];
-
-  const data2 = fromSync([2, 3, 4]);
-
-  await expectCollected(await fromSync(data).zip(data2), [
-    [0, 2],
-    [1, 3]
-  ]);
-
-  const data3 = fromSync([2]);
-
-  await expectCollected(await fromSync(data).zip(data3), [[0, 2]]);
-});
-
-test('count', async () => {
-  const data = fromSync([0, 1, 2, 4, 5]);
-
-  expect(await data.count()).toBe(5);
-});
-
-test('last', async () => {
-  const data = fromSync([0, 1, 2, 4, 5]);
-
-  expect(await data.last()).toBe(5);
-});
-
-test('join', async () => {
-  const data = [0, 1, 2];
-
-  expect(await fromSync(data).join()).toBe('012');
-  expect(await fromSync(data).join(', ')).toBe('0, 1, 2');
-
-  expect(await fromSync([]).join(', ')).toBe('');
-});
-
-test('repeat', async () => {
-  const data = AsyncIter.repeat(2);
-
-  await expectNextEquals(data, 2);
-  await expectNextEquals(data, 2);
-  await expectNextEquals(data, 2);
-  await expectNextEquals(data, 2);
-  await expectNextEquals(data, 2);
-});
-
-test('empty', async () => {
-  await expectIsEmpty(AsyncIter.empty());
-});
-
-test('once', async () => {
-  await expectCollected(AsyncIter.once(0), [0]);
 });
 
 test('consume', async () => {
@@ -313,6 +306,20 @@ test('consume', async () => {
   expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
 });
 
+test('count', async () => {
+  const data = fromSync([0, 1, 2, 4, 5]);
+
+  expect(await data.count()).toBe(5);
+});
+
+test('fold', async () => {
+  const data = fromSync([0, 1, 2, 4, 5]);
+
+  const folded = await data.fold((total, current) => total + current, 0);
+
+  expect(folded).toBe(12);
+});
+
 test('forEach', async () => {
   const data = fromSync([0, 1, 2, 3]);
   const fn = jest.fn();
@@ -322,20 +329,39 @@ test('forEach', async () => {
   expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
 });
 
-test('inspect', async () => {
-  const data = fromSync([0, 1, 2, 3]);
-  const fn = jest.fn();
+test('join', async () => {
+  const data = [0, 1, 2];
 
-  await expectCollected(data.inspect(fn), [0, 1, 2, 3]);
+  expect(await fromSync(data).join()).toBe('012');
+  expect(await fromSync(data).join(', ')).toBe('0, 1, 2');
 
-  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
+  expect(await fromSync([]).join(', ')).toBe('');
 });
 
-test('all', async () => {
-  const data = [0, 1, 2, 3];
+test('last', async () => {
+  const data = fromSync([0, 1, 2, 4, 5]);
 
-  expect(await fromSync(data).all((x) => x < 5)).toBe(true);
-  expect(await fromSync(data).all((x) => x > 2)).toBe(false);
+  expect(await data.last()).toBe(5);
+});
+
+test('nth', async () => {
+  const data = [0, 1, 2];
+
+  expect(await fromSync(data).nth(0)).toBe(0);
+  expect(await fromSync(data).nth(2)).toBe(2);
+
+  expect(await fromSync(data).nth(3)).toBe(undefined);
+
+  expect(await fromSync(data).nth(-3)).toBe(0);
+});
+
+test('partition', async () => {
+  const data = fromSync([0, 1, 2, 3, 4, 5]);
+
+  const [even, odd] = await data.partition((x) => x % 2 === 0);
+
+  expect(even).toStrictEqual([0, 2, 4]);
+  expect(odd).toStrictEqual([1, 3, 5]);
 });
 
 test('some', async () => {
@@ -344,6 +370,18 @@ test('some', async () => {
   expect(await fromSync(data).some((x) => x < 5)).toBe(true);
   expect(await fromSync(data).some((x) => x > 2)).toBe(true);
   expect(await fromSync(data).some((x) => x < 0)).toBe(false);
+});
+
+test('toSync', async () => {
+  const data = fromSync([0, 1, 2]);
+
+  expect(data).toBeInstanceOf(AsyncIter);
+
+  const sync = await data.toSync();
+
+  expect(sync).toBeInstanceOf(Iter);
+
+  expect(sync.collect()).toStrictEqual([0, 1, 2]);
 });
 
 test('incomplete iterator protocol', async () => {
@@ -399,7 +437,7 @@ test('incomplete iterator protocol', async () => {
 test('laziness', async () => {
   const data = fromSync([0, 1, 2, 3]);
 
-  const fn = jest.fn(x => x);
+  const fn = jest.fn((x) => x);
 
   const mapped = data.map(fn).take(2);
 

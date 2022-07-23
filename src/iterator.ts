@@ -173,15 +173,18 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
   }
 
   partition (f: Predicate<T>): [T[], T[]] {
-    return this.fold<[T[], T[]]>(([left, right], value) => {
-      if (f(value)) {
-        left.push(value);
-      } else {
-        right.push(value);
-      }
+    return this.fold<[T[], T[]]>(
+      ([left, right], value) => {
+        if (f(value)) {
+          left.push(value);
+        } else {
+          right.push(value);
+        }
 
-      return [left, right];
-    }, [[], []]);
+        return [left, right];
+      },
+      [[], []]
+    );
   }
 
   some (f: Predicate<T>): boolean {
@@ -244,6 +247,23 @@ class Filter<T> extends Iter<T> {
   }
 }
 
+class Inspect<T> extends Iter<T> {
+  constructor (data: Iter<T>, f: (value: T) => void) {
+    function * generator (): Iterable<T> {
+      for (const value of data) {
+        f(value);
+        yield value;
+      }
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Inspect';
+  }
+}
+
 class Map<T, U> extends Iter<U> {
   constructor (data: Iter<T>, f: (value: T) => U) {
     function * generator (): Iterable<U> {
@@ -261,23 +281,29 @@ class Map<T, U> extends Iter<U> {
 // required to get around scoping and class initialization issues
 // as the generator has to be defined before the super call but
 // this.peeked can be assigned only after the super call
-class Peek<T> {
+class PeekHelper<T> {
+  iterator: Iterator<T>;
   peeked: IteratorResult<T> | undefined;
 
-  next (data: Iterator<T>): IteratorResult<T> {
+  constructor (iterator: Iterator<T>) {
+    this.iterator = iterator;
+    this.peeked = undefined;
+  }
+
+  next (): IteratorResult<T> {
     if (this.peeked !== undefined) {
       const next = this.peeked;
       this.peeked = undefined;
       return next;
     }
 
-    return data.next();
+    return this.iterator.next();
   }
 
-  peek (data: Iterator<T>): IteratorResult<T> {
-    if (this.peeked !== undefined) return this.peeked.value;
+  peek (): IteratorResult<T> {
+    if (this.peeked !== undefined) return this.peeked;
 
-    const next = data.next();
+    const next = this.iterator.next();
 
     this.peeked = next;
 
@@ -286,16 +312,16 @@ class Peek<T> {
 }
 
 class Peekable<T> extends Iter<T> {
-  peeked: Peek<T>;
+  peeked: PeekHelper<T>;
 
   constructor (data: Iter<T>) {
-    const peeked = new Peek<T>();
+    const peeked = new PeekHelper<T>(data);
 
     function * generator (): Iterable<T> {
       while (true) {
-        const { done, value } = peeked.next(data);
+        const { done, value } = peeked.next();
 
-        if (done ?? true) break;
+        if (done ?? false) break;
 
         yield value;
       }
@@ -307,7 +333,11 @@ class Peekable<T> extends Iter<T> {
   }
 
   peek (): IteratorResult<T> {
-    return this.peeked.peek(this.iterator);
+    return this.peeked.peek();
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Peekable';
   }
 }
 
@@ -329,7 +359,7 @@ class Skip<T> extends Iter<T> {
       }
     }
 
-    super((n <= 0) ? data : generator());
+    super(generator());
   }
 
   get [Symbol.toStringTag] (): string {
@@ -441,23 +471,6 @@ class Zip<T, U> extends Iter<Zipped<T, U>> {
 
   get [Symbol.toStringTag] (): string {
     return 'Zip';
-  }
-}
-
-class Inspect<T> extends Iter<T> {
-  constructor (data: Iter<T>, f: (value: T) => void) {
-    function * generator (): Iterable<T> {
-      for (const value of data) {
-        f(value);
-        yield value;
-      }
-    }
-
-    super(generator());
-  }
-
-  get [Symbol.toStringTag] (): string {
-    return 'Inspect';
   }
 }
 

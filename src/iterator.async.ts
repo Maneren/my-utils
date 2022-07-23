@@ -85,8 +85,8 @@ export class AsyncIter<T> implements AsyncIterable<T>, AsyncIterator<T> {
     return new Map(this, f);
   }
 
-  mapAwait<U>(f: (value: T) => Promise<U>): AsyncIter<U> {
-    return new Map(this, f).await();
+  mapAwait<U>(f: (value: T) => Promise<U>): MapAwait<T, U> {
+    return new MapAwait(this, f);
   }
 
   peekable (): Peekable<T> {
@@ -201,15 +201,18 @@ export class AsyncIter<T> implements AsyncIterable<T>, AsyncIterator<T> {
   }
 
   async partition (f: Predicate<T>): Promise<[T[], T[]]> {
-    return await this.fold<[T[], T[]]>(([left, right], value) => {
-      if (f(value)) {
-        left.push(value);
-      } else {
-        right.push(value);
-      }
+    return await this.fold<[T[], T[]]>(
+      ([left, right], value) => {
+        if (f(value)) {
+          left.push(value);
+        } else {
+          right.push(value);
+        }
 
-      return [left, right];
-    }, [[], []]);
+        return [left, right];
+      },
+      [[], []]
+    );
   }
 
   async toSync (): Promise<Iter<T>> {
@@ -304,26 +307,63 @@ class Map<T, U> extends AsyncIter<U> {
   }
 }
 
+class MapAwait<T, U> extends AsyncIter<U> {
+  constructor (data: AsyncIter<T>, f: (value: T) => Promise<U>) {
+    async function * generator (): AsyncIterable<U> {
+      for await (const value of data) yield await f(value);
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'MapAwait';
+  }
+}
+
+class Inspect<T> extends AsyncIter<T> {
+  constructor (data: AsyncIter<T>, f: (value: T) => void) {
+    async function * generator (): AsyncIterable<T> {
+      for await (const value of data) {
+        f(value);
+        yield value;
+      }
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Inspect';
+  }
+}
+
 // required to get around scoping and class initialization issues
 // as the generator has to be defined before the super call but
 // this.peeked can be assigned only after the super call
-class Peek<T> {
+class PeekHelper<T> {
+  iterator: AsyncIterator<T>;
   peeked: IteratorResult<T> | undefined;
 
-  async next (data: AsyncIterator<T>): Promise<IteratorResult<T>> {
+  constructor (iterator: AsyncIterator<T>) {
+    this.iterator = iterator;
+    this.peeked = undefined;
+  }
+
+  async next (): Promise<IteratorResult<T>> {
     if (this.peeked !== undefined) {
       const next = this.peeked;
       this.peeked = undefined;
       return next;
     }
 
-    return await data.next();
+    return await this.iterator.next();
   }
 
-  async peek (data: AsyncIterator<T>): Promise<IteratorResult<T>> {
-    if (this.peeked !== undefined) return this.peeked.value;
+  async peek (): Promise<IteratorResult<T>> {
+    if (this.peeked !== undefined) return this.peeked;
 
-    const next = await data.next();
+    const next = await this.iterator.next();
 
     this.peeked = next;
 
@@ -332,16 +372,16 @@ class Peek<T> {
 }
 
 class Peekable<T> extends AsyncIter<T> {
-  peeked: Peek<T>;
+  peeked: PeekHelper<T>;
 
   constructor (data: AsyncIter<T>) {
-    const peeked = new Peek<T>();
+    const peeked = new PeekHelper<T>(data);
 
     async function * generator (): AsyncIterable<T> {
       while (true) {
-        const { done, value } = await peeked.next(data);
+        const { done, value } = await peeked.next();
 
-        if (done ?? true) break;
+        if (done ?? false) break;
 
         yield value;
       }
@@ -353,7 +393,11 @@ class Peekable<T> extends AsyncIter<T> {
   }
 
   async peek (): Promise<IteratorResult<T>> {
-    return await this.peeked.peek(this.iterator);
+    return await this.peeked.peek();
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Peekable';
   }
 }
 
@@ -375,7 +419,7 @@ class Skip<T> extends AsyncIter<T> {
       }
     }
 
-    super((n <= 0) ? data : generator());
+    super(generator());
   }
 
   get [Symbol.toStringTag] (): string {
@@ -487,22 +531,5 @@ class Zip<T, U> extends AsyncIter<Zipped<T, U>> {
 
   get [Symbol.toStringTag] (): string {
     return 'Zip';
-  }
-}
-
-class Inspect<T> extends AsyncIter<T> {
-  constructor (data: AsyncIter<T>, f: (value: T) => void) {
-    async function * generator (): AsyncIterable<T> {
-      for await (const value of data) {
-        f(value);
-        yield value;
-      }
-    }
-
-    super(generator());
-  }
-
-  get [Symbol.toStringTag] (): string {
-    return 'Inspect';
   }
 }
