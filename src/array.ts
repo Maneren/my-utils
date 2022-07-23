@@ -54,7 +54,10 @@ export function randomIndex (array: any[]): number {
  * @param callback value or function which returns value of every element
  */
 export function generate<T> (length: number, fillValue: T): T[];
-export function generate<T> (length: number, callback: (index: number) => T): T[];
+export function generate<T> (
+  length: number,
+  callback: (index: number) => T
+): T[];
 export function generate<T> (
   length: number,
   callback: T | ((index: number) => T)
