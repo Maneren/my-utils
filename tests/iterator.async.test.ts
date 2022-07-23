@@ -165,12 +165,15 @@ test('mapAwait', async () => {
 });
 
 test('peek', async () => {
-  const data = fromSync([0, 1]).peekable();
+  const data = fromSync([0, 1, 2]).peekable();
 
+  expect(await data.peek()).toStrictEqual({ value: 0, done: false });
+  // second peek has to return the same thing
   expect(await data.peek()).toStrictEqual({ value: 0, done: false });
   await expectNextEquals(data, 0);
   expect(await data.peek()).toStrictEqual({ value: 1, done: false });
   await expectNextEquals(data, 1);
+  await expectNextEquals(data, 2);
 
   expect(await data.peek()).toStrictEqual({ value: undefined, done: true });
   await expectIsEmpty(data);
@@ -407,6 +410,9 @@ test('incomplete iterator protocol', async () => {
   iterator = asyncIter(incompleteGenerator(4));
   await iterator.advanceBy(2);
   await expectCollected(iterator, [2, 3]);
+
+  iterator = asyncIter(incompleteGenerator(4)).peekable();
+  await expectCollected(iterator, [0, 1, 2, 3]);
 
   iterator = asyncIter(incompleteGenerator(4)).skip(2);
   await expectCollected(iterator, [2, 3]);

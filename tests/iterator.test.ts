@@ -119,7 +119,7 @@ test('map', () => {
 });
 
 test('peek', () => {
-  const data = iter([0, 1]).peekable();
+  const data = iter([0, 1, 2]).peekable();
 
   expect(data.peek()).toStrictEqual({ value: 0, done: false });
   // second peek has to return the same thing
@@ -127,6 +127,7 @@ test('peek', () => {
   expectNextEquals(data, 0);
   expect(data.peek()).toStrictEqual({ value: 1, done: false });
   expectNextEquals(data, 1);
+  expectNextEquals(data, 2);
 
   expect(data.peek()).toStrictEqual({ value: undefined, done: true });
   expectIsEmpty(data);
