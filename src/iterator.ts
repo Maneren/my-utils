@@ -24,6 +24,14 @@ export function repeat<T> (value: T): Iter<T> {
   return iter(generator());
 }
 
+export function from<T> (f: () => T): Iter<T> {
+  function * generator (): Iterable<T> {
+    while (true) yield f();
+  }
+
+  return iter(generator());
+}
+
 export type Predicate<T> = (value: T) => boolean;
 export type Enumerated<T> = [number, T];
 export type Zipped<T, U> = [T, U];

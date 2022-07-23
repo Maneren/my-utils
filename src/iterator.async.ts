@@ -26,6 +26,14 @@ export function repeat<T> (value: T): AsyncIter<T> {
   return asyncIter(generator());
 }
 
+export function from<T> (f: () => T): AsyncIter<T> {
+  async function * generator (): AsyncIterable<T> {
+    while (true) yield f();
+  }
+
+  return asyncIter(generator());
+}
+
 export class AsyncIter<T> implements AsyncIterable<T>, AsyncIterator<T> {
   iterator: AsyncIterator<T, undefined>;
 

@@ -1,4 +1,4 @@
-import { empty, Iter, iter, once, range, repeat } from '../src/iterator';
+import { empty, from, Iter, iter, once, range, repeat } from '../src/iterator';
 
 function expectNextEquals<T> (iter: Iter<T>, value: T): void {
   expect(iter.next()).toStrictEqual({
@@ -58,6 +58,17 @@ test('empty', () => {
 
 test('once', () => {
   expectCollected(once(0), [0]);
+});
+
+test('from', () => {
+  let x = 0;
+  const data = from(() => x++);
+
+  expectNextEquals(data, 0);
+  expectNextEquals(data, 1);
+  expectNextEquals(data, 2);
+  expectNextEquals(data, 3);
+  expectNextEquals(data, 4);
 });
 
 test('chain', () => {

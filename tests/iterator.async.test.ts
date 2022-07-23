@@ -3,6 +3,7 @@ import {
   asyncIter,
   AsyncIter,
   empty,
+  from,
   once,
   repeat
 } from '../src/iterator.async';
@@ -90,6 +91,17 @@ test('empty', async () => {
 
 test('once', async () => {
   await expectCollected(once(0), [0]);
+});
+
+test('from', async () => {
+  let x = 0;
+  const data = from(() => x++);
+
+  await expectNextEquals(data, 0);
+  await expectNextEquals(data, 1);
+  await expectNextEquals(data, 2);
+  await expectNextEquals(data, 3);
+  await expectNextEquals(data, 4);
 });
 
 test('await', async () => {
