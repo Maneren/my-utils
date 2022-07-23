@@ -1,5 +1,11 @@
 import { Iter } from '../src/iterator';
-import { asyncIter, AsyncIter } from '../src/iterator.async';
+import {
+  asyncIter,
+  AsyncIter,
+  empty,
+  once,
+  repeat
+} from '../src/iterator.async';
 const { fromSync } = AsyncIter;
 
 async function expectNextEquals<T> (
@@ -69,7 +75,7 @@ test('Symbol.toStringTag', async () => {
 });
 
 test('repeat', async () => {
-  const data = AsyncIter.repeat(2);
+  const data = repeat(2);
 
   await expectNextEquals(data, 2);
   await expectNextEquals(data, 2);
@@ -79,11 +85,11 @@ test('repeat', async () => {
 });
 
 test('empty', async () => {
-  await expectIsEmpty(AsyncIter.empty());
+  await expectIsEmpty(empty());
 });
 
 test('once', async () => {
-  await expectCollected(AsyncIter.once(0), [0]);
+  await expectCollected(once(0), [0]);
 });
 
 test('await', async () => {

@@ -4,33 +4,33 @@ export function asyncIter<T> (data: AsyncIterable<T>): AsyncIter<T> {
   return new AsyncIter(data);
 }
 
+export function empty<T> (): AsyncIter<T> {
+  async function * generator (): AsyncIterable<T> {}
+
+  return asyncIter(generator());
+}
+
+export function once<T> (value: T): AsyncIter<T> {
+  async function * generator (): AsyncIterable<T> {
+    yield Promise.resolve(value);
+  }
+
+  return asyncIter(generator());
+}
+
+export function repeat<T> (value: T): AsyncIter<T> {
+  async function * generator (): AsyncIterable<T> {
+    while (true) yield value;
+  }
+
+  return asyncIter(generator());
+}
+
 export class AsyncIter<T> implements AsyncIterable<T>, AsyncIterator<T> {
   iterator: AsyncIterator<T, undefined>;
 
   constructor (data: AsyncIterable<T>) {
     this.iterator = data[Symbol.asyncIterator]();
-  }
-
-  static empty<T>(): AsyncIter<T> {
-    async function * generator (): AsyncIterable<T> {}
-
-    return asyncIter(generator());
-  }
-
-  static once<T>(value: T): AsyncIter<T> {
-    async function * generator (): AsyncIterable<T> {
-      yield Promise.resolve(value);
-    }
-
-    return asyncIter(generator());
-  }
-
-  static repeat<T>(value: T): AsyncIter<T> {
-    async function * generator (): AsyncIterable<T> {
-      while (true) yield value;
-    }
-
-    return asyncIter(generator());
   }
 
   static fromSync<T>(data: Iterable<Promise<T>> | Iterable<T>): AsyncIter<T> {
@@ -473,7 +473,7 @@ class StepBy<T> extends AsyncIter<T> {
 
 class Take<T> extends AsyncIter<T> {
   constructor (data: AsyncIter<T>, limit: number) {
-    if (limit <= 0) return AsyncIter.empty();
+    if (limit <= 0) return empty();
 
     async function * generator (): AsyncIterable<T> {
       let count = 0;

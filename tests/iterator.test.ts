@@ -1,4 +1,4 @@
-import { Iter, iter, range } from '../src/iterator';
+import { empty, Iter, iter, once, range, repeat } from '../src/iterator';
 
 function expectNextEquals<T> (iter: Iter<T>, value: T): void {
   expect(iter.next()).toStrictEqual({
@@ -43,7 +43,7 @@ test('Symbol.toStringTag', () => {
 });
 
 test('repeat', () => {
-  const data = Iter.repeat(2);
+  const data = repeat(2);
 
   expectNextEquals(data, 2);
   expectNextEquals(data, 2);
@@ -53,11 +53,11 @@ test('repeat', () => {
 });
 
 test('empty', () => {
-  expectIsEmpty(Iter.empty());
+  expectIsEmpty(empty());
 });
 
 test('once', () => {
-  expectCollected(Iter.once(0), [0]);
+  expectCollected(once(0), [0]);
 });
 
 test('chain', () => {

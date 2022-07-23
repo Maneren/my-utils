@@ -2,6 +2,28 @@ export function iter<T> (data: Iterable<T>): Iter<T> {
   return new Iter(data);
 }
 
+export function empty<T> (): Iter<T> {
+  function * generator (): Iterable<T> {}
+
+  return iter(generator());
+}
+
+export function once<T> (value: T): Iter<T> {
+  function * generator (): Iterable<T> {
+    yield value;
+  }
+
+  return iter(generator());
+}
+
+export function repeat<T> (value: T): Iter<T> {
+  function * generator (): Iterable<T> {
+    while (true) yield value;
+  }
+
+  return iter(generator());
+}
+
 export type Predicate<T> = (value: T) => boolean;
 export type Enumerated<T> = [number, T];
 export type Zipped<T, U> = [T, U];
@@ -11,28 +33,6 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
 
   constructor (data: Iterable<T>) {
     this.iterator = data[Symbol.iterator]();
-  }
-
-  static empty<T>(): Iter<T> {
-    function * generator (): Iterable<T> {}
-
-    return iter(generator());
-  }
-
-  static once<T>(value: T): Iter<T> {
-    function * generator (): Iterable<T> {
-      yield value;
-    }
-
-    return iter(generator());
-  }
-
-  static repeat<T>(value: T): Iter<T> {
-    function * generator (): Iterable<T> {
-      while (true) yield value;
-    }
-
-    return iter(generator());
   }
 
   next (): IteratorResult<T> {
@@ -413,7 +413,7 @@ class StepBy<T> extends Iter<T> {
 
 class Take<T> extends Iter<T> {
   constructor (data: Iter<T>, limit: number) {
-    if (limit <= 0) return Iter.empty();
+    if (limit <= 0) return empty();
 
     function * generator (): Iterable<T> {
       let count = 0;
