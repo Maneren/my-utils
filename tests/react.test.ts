@@ -79,6 +79,18 @@ describe('importAll', () => {
     expect(imported).toStrictEqual(expected);
   });
 
+  it('preserves the extension and the path', () => {
+    const data = {
+      './path/to/file.js': './static/file.abc.js'
+    };
+
+    const imported = importAll(context(data), true, true);
+    const expected = {
+      './path/to/file.js': './static/file.abc.js'
+    };
+    expect(imported).toStrictEqual(expected);
+  });
+
   it('preserves the extension for hidden file', () => {
     const data = {
       './path/to/.file.js': './static/.file.abc.js'
@@ -91,7 +103,7 @@ describe('importAll', () => {
     expect(imported).toStrictEqual(expected);
   });
 
-  it('"preserves the extension" for file without an extension', () => {
+  it('preserves the extension for file without an extension', () => {
     const data = {
       './path/to/file': './static/file.abc'
     };
@@ -103,7 +115,7 @@ describe('importAll', () => {
     expect(imported).toStrictEqual(expected);
   });
 
-  it('"preserves the extension" for hidden file without an extension', () => {
+  it('preserves the extension for hidden file without an extension', () => {
     const data = {
       './path/to/.file': './static/.file.abc'
     };
@@ -115,6 +127,18 @@ describe('importAll', () => {
     expect(imported).toStrictEqual(expected);
   });
 
+  it('preserves the extension and the path for hidden file without an extension', () => {
+    const data = {
+      './path/to/.file': './static/.file.abc'
+    };
+
+    const imported = importAll(context(data), true, true);
+    const expected = {
+      './path/to/.file': './static/.file.abc'
+    };
+    expect(imported).toStrictEqual(expected);
+  });
+
   it('handles weird input', () => {
     const data = {
       '': './static/.file.abc',
@@ -122,10 +146,10 @@ describe('importAll', () => {
       '...js': './static/.file.abc'
     };
 
-    const imported = importAll(context(data), true);
+    const imported = importAll(context(data), true, true);
     const expected = {
       '': './static/.file.abc',
-      $$: './static/.file.abc',
+      '$$/$$': './static/.file.abc',
       '...js': './static/.file.abc'
     };
     expect(imported).toStrictEqual(expected);

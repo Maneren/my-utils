@@ -10,26 +10,34 @@ interface Modules {
 }
 
 /**
+ * **compatible only with webpack**
+ *
  * imports all files from `require.context` and returns mapping to resulting bundle files
- * @param requireContext `require.context` call
+ * @param requireContext `require.context(directory: string, useSubdirectories: boolean, regExp: RegExp, mode: string)`
  * @param preserveExtensions if the original file extensions should be preserved
- * @returns object mapping old filenames to bundled filepaths, eg. `{ "file": "./static/file.abcvzjh.jpg" }`
+ * @param preservePath if the original file paths should be preserved, othereise only the filename is used
+ * @returns object mapping project files to bundled files, eg. `{ "../assets/file": "./static/file.abcvzjh.jpg" }`
  */
 export function importAll (
   requireContext: RequireContext,
-  preserveExtensions = false
+  preserveExtensions = false,
+  preservePath = false
 ): Modules {
   const modules: Modules = {};
 
   for (const pathToFile of requireContext.keys()) {
-    let basename = path.basename(pathToFile);
+    let key = pathToFile;
+
+    if (!preservePath) {
+      key = path.basename(key);
+    }
 
     if (!preserveExtensions) {
       const extension = path.extname(pathToFile);
-      basename = basename.replace(extension, '');
+      key = key.replace(new RegExp(`${extension}$`), '');
     }
 
-    modules[basename] = requireContext(pathToFile);
+    modules[key] = requireContext(pathToFile);
   }
 
   return modules;
