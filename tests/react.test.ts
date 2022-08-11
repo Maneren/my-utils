@@ -7,150 +7,152 @@ describe('importAll', () => {
     return context;
   };
 
+  const STATIC_FILE = './static/file.abc.js';
+
   it('imports a file', () => {
     const data = {
-      './file.js': './static/file.abc.js'
+      './file.js': STATIC_FILE
     };
 
     const imported = importAll(context(data));
     const expected = {
-      file: './static/file.abc.js'
+      file: STATIC_FILE
     };
     expect(imported).toStrictEqual(expected);
   });
 
   it('imports a file with longer path', () => {
     const data = {
-      './path/to/file.js': './static/file.abc.js'
+      './path/to/file.js': STATIC_FILE
     };
 
     const imported = importAll(context(data));
     const expected = {
-      file: './static/file.abc.js'
+      file: STATIC_FILE
     };
     expect(imported).toStrictEqual(expected);
   });
 
   it('imports a file without an extension', () => {
     const data = {
-      './path/to/file': './static/file.abc'
+      './path/to/file': STATIC_FILE
     };
 
     const imported = importAll(context(data));
     const expected = {
-      file: './static/file.abc'
+      file: STATIC_FILE
     };
     expect(imported).toStrictEqual(expected);
   });
 
   it('imports a hidden file', () => {
     const data = {
-      './path/to/.file.js': './static/file.abc.js'
+      './path/to/.file.js': STATIC_FILE
     };
 
     const imported = importAll(context(data));
     const expected = {
-      '.file': './static/file.abc.js'
+      '.file': STATIC_FILE
     };
     expect(imported).toStrictEqual(expected);
   });
 
   it('imports a hidden file without an extension', () => {
     const data = {
-      './path/to/.file': './static/file.abc'
+      './path/to/.file': STATIC_FILE
     };
 
     const imported = importAll(context(data));
     const expected = {
-      '.file': './static/file.abc'
+      '.file': STATIC_FILE
     };
     expect(imported).toStrictEqual(expected);
   });
 
   it('preserves the extension', () => {
     const data = {
-      './path/to/file.js': './static/file.abc.js'
+      './path/to/file.js': STATIC_FILE
     };
 
     const imported = importAll(context(data), true);
     const expected = {
-      'file.js': './static/file.abc.js'
+      'file.js': STATIC_FILE
     };
     expect(imported).toStrictEqual(expected);
   });
 
   it('preserves the extension and the path', () => {
     const data = {
-      './path/to/file.js': './static/file.abc.js'
+      './path/to/file.js': STATIC_FILE
     };
 
     const imported = importAll(context(data), true, true);
     const expected = {
-      './path/to/file.js': './static/file.abc.js'
+      './path/to/file.js': STATIC_FILE
     };
     expect(imported).toStrictEqual(expected);
   });
 
   it('preserves the extension for hidden file', () => {
     const data = {
-      './path/to/.file.js': './static/.file.abc.js'
+      './path/to/.file.js': STATIC_FILE
     };
 
     const imported = importAll(context(data), true);
     const expected = {
-      '.file.js': './static/.file.abc.js'
+      '.file.js': STATIC_FILE
     };
     expect(imported).toStrictEqual(expected);
   });
 
   it('preserves the extension for file without an extension', () => {
     const data = {
-      './path/to/file': './static/file.abc'
+      './path/to/file': STATIC_FILE
     };
 
     const imported = importAll(context(data), true);
     const expected = {
-      file: './static/file.abc'
+      file: STATIC_FILE
     };
     expect(imported).toStrictEqual(expected);
   });
 
   it('preserves the extension for hidden file without an extension', () => {
     const data = {
-      './path/to/.file': './static/.file.abc'
+      './path/to/.file': STATIC_FILE
     };
 
     const imported = importAll(context(data), true);
     const expected = {
-      '.file': './static/.file.abc'
+      '.file': STATIC_FILE
     };
     expect(imported).toStrictEqual(expected);
   });
 
   it('preserves the extension and the path for hidden file without an extension', () => {
     const data = {
-      './path/to/.file': './static/.file.abc'
+      './path/to/.file': STATIC_FILE
     };
 
     const imported = importAll(context(data), true, true);
     const expected = {
-      './path/to/.file': './static/.file.abc'
+      './path/to/.file': STATIC_FILE
     };
     expect(imported).toStrictEqual(expected);
   });
 
   it('handles weird input', () => {
     const data = {
-      '': './static/.file.abc',
-      '$$/$$': './static/.file.abc',
-      '...js': './static/.file.abc'
+      '': STATIC_FILE,
+      '$$/$$': STATIC_FILE,
+      '...js': STATIC_FILE
     };
 
     const imported = importAll(context(data), true, true);
     const expected = {
-      '': './static/.file.abc',
-      '$$/$$': './static/.file.abc',
-      '...js': './static/.file.abc'
+      '': STATIC_FILE,
+      '$$/$$': STATIC_FILE,
+      '...js': STATIC_FILE
     };
     expect(imported).toStrictEqual(expected);
   });
