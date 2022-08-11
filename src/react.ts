@@ -1,5 +1,3 @@
-import path from 'path-browserify';
-
 interface RequireContext {
   keys: () => string[]
   (file: string): string
@@ -7,6 +5,28 @@ interface RequireContext {
 
 interface Modules {
   [index: string]: string
+}
+
+/**
+ * Return last segment of path
+ */
+const basename = (path: string): string => path.split('/').pop() as string;
+
+/**
+ * Return file name without extension
+ */
+function withoutExtension (path: string): string {
+  const filename = basename(path);
+
+  const splitted = filename.split('.');
+
+  const expectedLength = filename.startsWith('.') ? 2 : 1;
+
+  if (splitted.length > expectedLength) {
+    splitted.pop();
+  }
+
+  return splitted.join('.');
 }
 
 /**
@@ -29,12 +49,11 @@ export function importAll (
     let key = pathToFile;
 
     if (!preservePath) {
-      key = path.basename(key);
+      key = basename(key);
     }
 
     if (!preserveExtensions) {
-      const extension = path.extname(pathToFile);
-      key = key.replace(new RegExp(`${extension}$`), '');
+      key = withoutExtension(key);
     }
 
     modules[key] = requireContext(pathToFile);
