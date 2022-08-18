@@ -27,6 +27,7 @@
     "format": "prettier --write \"{src,tests}/*.ts\" && eslint --fix src tests"
   },
   "exports": {
+    ".": "./dist/src/index.js",
     "./array": "./dist/src/array.js",
     "./general": "./dist/src/general.js",
     "./iterator": "./dist/src/iterator.js",
