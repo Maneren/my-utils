@@ -417,7 +417,7 @@ test('incomplete iterator protocol', () => {
   expect(iterator.join()).toBe('0');
 });
 
-test('laziness', async () => {
+test('laziness', () => {
   const data = iter([0, 1, 2, 3]);
 
   const fn = jest.fn((x) => x);

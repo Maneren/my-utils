@@ -254,25 +254,6 @@ class Await<T> extends AsyncIter<Awaited<T>> {
   }
 }
 
-class Enumerate<T> extends AsyncIter<Enumerated<T>> {
-  constructor (data: AsyncIter<T>) {
-    async function * generator (): AsyncIterable<Enumerated<T>> {
-      let index = 0;
-
-      for await (const value of data) {
-        yield [index, value];
-        index++;
-      }
-    }
-
-    super(generator());
-  }
-
-  get [Symbol.toStringTag] (): string {
-    return 'Enumerate';
-  }
-}
-
 class Chain<T> extends AsyncIter<T> {
   constructor (data: AsyncIter<T>, extension: AsyncIterable<T>) {
     async function * generator (): AsyncIterable<T> {
@@ -321,6 +302,42 @@ class FilterMap<T, U> extends AsyncIter<U> {
   }
 }
 
+class Enumerate<T> extends AsyncIter<Enumerated<T>> {
+  constructor (data: AsyncIter<T>) {
+    async function * generator (): AsyncIterable<Enumerated<T>> {
+      let index = 0;
+
+      for await (const value of data) {
+        yield [index, value];
+        index++;
+      }
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Enumerate';
+  }
+}
+
+class Inspect<T> extends AsyncIter<T> {
+  constructor (data: AsyncIter<T>, f: (value: T) => void) {
+    async function * generator (): AsyncIterable<T> {
+      for await (const value of data) {
+        f(value);
+        yield value;
+      }
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Inspect';
+  }
+}
+
 class Map<T, U> extends AsyncIter<U> {
   constructor (data: AsyncIter<T>, f: (value: T) => U) {
     async function * generator (): AsyncIterable<U> {
@@ -346,23 +363,6 @@ class MapAwait<T, U> extends AsyncIter<U> {
 
   get [Symbol.toStringTag] (): string {
     return 'MapAwait';
-  }
-}
-
-class Inspect<T> extends AsyncIter<T> {
-  constructor (data: AsyncIter<T>, f: (value: T) => void) {
-    async function * generator (): AsyncIterable<T> {
-      for await (const value of data) {
-        f(value);
-        yield value;
-      }
-    }
-
-    super(generator());
-  }
-
-  get [Symbol.toStringTag] (): string {
-    return 'Inspect';
   }
 }
 
