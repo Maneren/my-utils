@@ -85,6 +85,10 @@ export class AsyncIter<T> implements AsyncIterable<T>, AsyncIterator<T> {
     return new Filter(this, f);
   }
 
+  filterMap<U>(p: Predicate<T>, f: (value: T) => U): FilterMap<T, U> {
+    return new FilterMap(this, p, f);
+  }
+
   inspect (f: (value: any) => void): Inspect<T> {
     return new Inspect(this, f);
   }
@@ -298,6 +302,22 @@ class Filter<T> extends AsyncIter<T> {
 
   get [Symbol.toStringTag] (): string {
     return 'Filter';
+  }
+}
+
+class FilterMap<T, U> extends AsyncIter<U> {
+  constructor (data: AsyncIter<T>, p: Predicate<T>, f: (value: T) => U) {
+    async function * generator (): AsyncIterable<U> {
+      for await (const value of data) {
+        if (p(value)) yield f(value);
+      }
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'FilterMap';
   }
 }
 

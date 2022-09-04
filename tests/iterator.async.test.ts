@@ -149,6 +149,19 @@ test('filter', async () => {
   expect(String(filtered)).toBe('[object Filter]');
 });
 
+test('filterMap', async () => {
+  const data = fromSync([0, 1, 2, 3, 4, 5]);
+
+  const filtered = data.filterMap(
+    (x) => x % 2 === 0,
+    (x) => x * 2
+  );
+
+  await expectCollected(filtered, [0, 4, 8]);
+
+  expect(String(filtered)).toBe('[object FilterMap]');
+});
+
 test('inspect', async () => {
   const data = fromSync([0, 1, 2, 3]);
   const fn = jest.fn();

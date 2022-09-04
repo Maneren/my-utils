@@ -67,6 +67,10 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
     return new Filter(this, f);
   }
 
+  filterMap<U>(p: Predicate<T>, f: (value: T) => U): FilterMap<T, U> {
+    return new FilterMap(this, p, f);
+  }
+
   inspect (f: (value: any) => void): Inspect<T> {
     return new Inspect(this, f);
   }
@@ -252,6 +256,22 @@ class Filter<T> extends Iter<T> {
 
   get [Symbol.toStringTag] (): string {
     return 'Filter';
+  }
+}
+
+class FilterMap<T, U> extends Iter<U> {
+  constructor (data: Iter<T>, p: Predicate<T>, f: (value: T) => U) {
+    function * generator (): Iterable<U> {
+      for (const value of data) {
+        if (p(value)) yield f(value);
+      }
+    }
+
+    super(generator());
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'FilterMap';
   }
 }
 
