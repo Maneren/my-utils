@@ -84,7 +84,7 @@ export function classListBuilder (styles: Styles): Builder {
   function builder (classNames: string | string[]): string {
     if (!Array.isArray(classNames)) classNames = classNames.split(' ');
 
-    return classNames.map((x) => styles[x] ?? x).join(' ');
+    return classNames.map(x => styles[x] ?? x).join(' ');
   }
 
   return builder;

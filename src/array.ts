@@ -67,7 +67,7 @@ export function generate<T> (
   const isFunction = callback instanceof Function;
 
   const array = range(length)
-    .map((i) => (isFunction ? callback(i) : callback))
+    .map(i => (isFunction ? callback(i) : callback))
     .collect();
 
   return array;

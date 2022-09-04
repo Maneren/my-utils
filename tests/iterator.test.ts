@@ -99,7 +99,7 @@ test('enumerate', () => {
 test('filter', () => {
   const data = iter([0, 1, 2, 3, 4, 5]);
 
-  const filtered = data.filter((x) => x % 2 === 0);
+  const filtered = data.filter(x => x % 2 === 0);
 
   expectCollected(filtered, [0, 2, 4]);
 
@@ -110,8 +110,8 @@ test('filterMap', () => {
   const data = iter([0, 1, 2, 3, 4, 5]);
 
   const filtered = data.filterMap(
-    (x) => x % 2 === 0,
-    (x) => x * 2
+    x => x % 2 === 0,
+    x => x * 2
   );
 
   expectCollected(filtered, [0, 4, 8]);
@@ -135,7 +135,7 @@ test('inspect', () => {
 test('map', () => {
   const data = iter([0, 1, 2]);
 
-  const mapped = data.map((x) => x + 1);
+  const mapped = data.map(x => x + 1);
 
   expectCollected(mapped, [1, 2, 3]);
 
@@ -180,11 +180,11 @@ test('skip', () => {
 test('skipWhile', () => {
   const data = [0, 2, 4, 5, 6, 7];
 
-  const skipped = iter(data).skipWhile((x) => x % 2 === 0);
+  const skipped = iter(data).skipWhile(x => x % 2 === 0);
 
   expectCollected(skipped, [5, 6, 7]);
 
-  expectIsEmpty(iter(data).skipWhile((x) => x < 10));
+  expectIsEmpty(iter(data).skipWhile(x => x < 10));
 
   expect(String(skipped)).toBe('[object SkipWhile]');
 });
@@ -215,11 +215,11 @@ test('take', () => {
 test('takeWhile', () => {
   const data = [0, 3, 6, 9, 12, 15];
 
-  const taken = iter(data).takeWhile((x) => x < 10);
+  const taken = iter(data).takeWhile(x => x < 10);
 
   expectCollected(taken, [0, 3, 6, 9]);
 
-  expectIsEmpty(iter(data).takeWhile((x) => x < 0));
+  expectIsEmpty(iter(data).takeWhile(x => x < 0));
 
   expect(String(taken)).toBe('[object TakeWhile]');
 });
@@ -273,8 +273,8 @@ test('advanceBy', () => {
 test('all', () => {
   const data = [0, 1, 2, 3];
 
-  expect(iter(data).all((x) => x < 5)).toBe(true);
-  expect(iter(data).all((x) => x > 2)).toBe(false);
+  expect(iter(data).all(x => x < 5)).toBe(true);
+  expect(iter(data).all(x => x > 2)).toBe(false);
 });
 
 test('collect', () => {
@@ -344,7 +344,7 @@ test('nth', () => {
 test('partition', () => {
   const data = iter([0, 1, 2, 3, 4, 5]);
 
-  const [even, odd] = data.partition((x) => x % 2 === 0);
+  const [even, odd] = data.partition(x => x % 2 === 0);
 
   expect(even).toStrictEqual([0, 2, 4]);
   expect(odd).toStrictEqual([1, 3, 5]);
@@ -353,9 +353,9 @@ test('partition', () => {
 test('some', () => {
   const data = [0, 1, 2, 3];
 
-  expect(iter(data).some((x) => x < 5)).toBe(true);
-  expect(iter(data).some((x) => x > 2)).toBe(true);
-  expect(iter(data).some((x) => x < 0)).toBe(false);
+  expect(iter(data).some(x => x < 5)).toBe(true);
+  expect(iter(data).some(x => x > 2)).toBe(true);
+  expect(iter(data).some(x => x < 0)).toBe(false);
 });
 
 test('range', () => {
@@ -400,7 +400,7 @@ test('incomplete iterator protocol', () => {
   iterator = iter(incompleteGenerator(4)).skip(2);
   expectCollected(iterator, [2, 3]);
 
-  iterator = iter(incompleteGenerator(4)).skipWhile((x) => x < 2);
+  iterator = iter(incompleteGenerator(4)).skipWhile(x => x < 2);
   expectCollected(iterator, [2, 3]);
 
   iterator = iter(incompleteGenerator(5)).stepBy(2);
@@ -420,7 +420,7 @@ test('incomplete iterator protocol', () => {
 test('laziness', () => {
   const data = iter([0, 1, 2, 3]);
 
-  const fn = jest.fn((x) => x);
+  const fn = jest.fn(x => x);
 
   const mapped = data.map(fn).take(2);
 

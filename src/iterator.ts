@@ -136,7 +136,7 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
   }
 
   count (): number {
-    return this.fold((count) => count + 1, 0);
+    return this.fold(count => count + 1, 0);
   }
 
   fold<U>(f: (total: U, current: T) => U, start: U): U {
@@ -164,7 +164,7 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
 
     let result = String(first.value);
 
-    for (const v of this.map((value) => String(value))) {
+    for (const v of this.map(value => String(value))) {
       result += separator;
       result += v;
     }

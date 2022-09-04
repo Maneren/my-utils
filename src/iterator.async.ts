@@ -164,7 +164,7 @@ export class AsyncIter<T> implements AsyncIterable<T>, AsyncIterator<T> {
   }
 
   async count (): Promise<number> {
-    return await this.fold((count) => count + 1, 0);
+    return await this.fold(count => count + 1, 0);
   }
 
   async fold<U>(f: (total: U, current: T) => U, start: U): Promise<U> {
@@ -192,7 +192,7 @@ export class AsyncIter<T> implements AsyncIterable<T>, AsyncIterator<T> {
 
     let result = String(value);
 
-    for await (const v of this.map((value) => String(value))) {
+    for await (const v of this.map(value => String(value))) {
       result += separator;
       result += v;
     }

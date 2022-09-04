@@ -107,7 +107,7 @@ test('from', async () => {
 test('await', async () => {
   const data = fromSync([0, 1, 2]);
 
-  const awaited = data.map(async (x) => x).await();
+  const awaited = data.map(async x => x).await();
 
   await expectCollected(awaited, [0, 1, 2]);
 
@@ -142,7 +142,7 @@ test('enumerate', async () => {
 test('filter', async () => {
   const data = fromSync([0, 1, 2, 3, 4, 5]);
 
-  const filtered = data.filter((x) => x % 2 === 0);
+  const filtered = data.filter(x => x % 2 === 0);
 
   await expectCollected(filtered, [0, 2, 4]);
 
@@ -153,8 +153,8 @@ test('filterMap', async () => {
   const data = fromSync([0, 1, 2, 3, 4, 5]);
 
   const filtered = data.filterMap(
-    (x) => x % 2 === 0,
-    (x) => x * 2
+    x => x % 2 === 0,
+    x => x * 2
   );
 
   await expectCollected(filtered, [0, 4, 8]);
@@ -178,7 +178,7 @@ test('inspect', async () => {
 test('map', async () => {
   const data = fromSync([0, 1, 2]);
 
-  const mapped = data.map((x) => x + 1);
+  const mapped = data.map(x => x + 1);
 
   await expectCollected(mapped, [1, 2, 3]);
 
@@ -188,7 +188,7 @@ test('map', async () => {
 test('mapAwait', async () => {
   const data = fromSync([0, 1, 2]);
 
-  const mapped = data.mapAwait(async (x) => x + 1);
+  const mapped = data.mapAwait(async x => x + 1);
 
   await expectCollected(mapped, [1, 2, 3]);
 
@@ -227,11 +227,11 @@ test('skip', async () => {
 test('skipWhile', async () => {
   const data = [0, 2, 4, 5, 6, 7];
 
-  const skipped = fromSync(data).skipWhile((x) => x % 2 === 0);
+  const skipped = fromSync(data).skipWhile(x => x % 2 === 0);
 
   await expectCollected(skipped, [5, 6, 7]);
 
-  await expectIsEmpty(fromSync(data).skipWhile((x) => x < 10));
+  await expectIsEmpty(fromSync(data).skipWhile(x => x < 10));
 
   expect(String(skipped)).toBe('[object SkipWhile]');
 });
@@ -262,11 +262,11 @@ test('take', async () => {
 test('takeWhile', async () => {
   const data = [0, 3, 6, 9, 12, 15];
 
-  const taken = fromSync(data).takeWhile((x) => x < 10);
+  const taken = fromSync(data).takeWhile(x => x < 10);
 
   await expectCollected(taken, [0, 3, 6, 9]);
 
-  await expectIsEmpty(fromSync(data).takeWhile((x) => x < 0));
+  await expectIsEmpty(fromSync(data).takeWhile(x => x < 0));
 
   expect(String(taken)).toBe('[object TakeWhile]');
 });
@@ -321,8 +321,8 @@ test('advanceBy', async () => {
 test('all', async () => {
   const data = [0, 1, 2, 3];
 
-  expect(await fromSync(data).all((x) => x < 5)).toBe(true);
-  expect(await fromSync(data).all((x) => x > 2)).toBe(false);
+  expect(await fromSync(data).all(x => x < 5)).toBe(true);
+  expect(await fromSync(data).all(x => x > 2)).toBe(false);
 });
 
 test('collect', async () => {
@@ -332,7 +332,7 @@ test('collect', async () => {
 });
 
 test('consume', async () => {
-  const fn = jest.fn((x) => x);
+  const fn = jest.fn(x => x);
   const data = fromSync([0, 1, 2, 3]).map(fn);
 
   await data.consume();
@@ -392,7 +392,7 @@ test('nth', async () => {
 test('partition', async () => {
   const data = fromSync([0, 1, 2, 3, 4, 5]);
 
-  const [even, odd] = await data.partition((x) => x % 2 === 0);
+  const [even, odd] = await data.partition(x => x % 2 === 0);
 
   expect(even).toStrictEqual([0, 2, 4]);
   expect(odd).toStrictEqual([1, 3, 5]);
@@ -401,9 +401,9 @@ test('partition', async () => {
 test('some', async () => {
   const data = [0, 1, 2, 3];
 
-  expect(await fromSync(data).some((x) => x < 5)).toBe(true);
-  expect(await fromSync(data).some((x) => x > 2)).toBe(true);
-  expect(await fromSync(data).some((x) => x < 0)).toBe(false);
+  expect(await fromSync(data).some(x => x < 5)).toBe(true);
+  expect(await fromSync(data).some(x => x > 2)).toBe(true);
+  expect(await fromSync(data).some(x => x < 0)).toBe(false);
 });
 
 test('toSync', async () => {
@@ -448,7 +448,7 @@ test('incomplete iterator protocol', async () => {
   iterator = asyncIter(incompleteGenerator(4)).skip(2);
   await expectCollected(iterator, [2, 3]);
 
-  iterator = asyncIter(incompleteGenerator(4)).skipWhile((x) => x < 2);
+  iterator = asyncIter(incompleteGenerator(4)).skipWhile(x => x < 2);
   await expectCollected(iterator, [2, 3]);
 
   iterator = asyncIter(incompleteGenerator(5)).stepBy(2);
@@ -474,7 +474,7 @@ test('incomplete iterator protocol', async () => {
 test('laziness', async () => {
   const data = fromSync([0, 1, 2, 3]);
 
-  const fn = jest.fn((x) => x);
+  const fn = jest.fn(x => x);
 
   const mapped = data.map(fn).take(2);
 
