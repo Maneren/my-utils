@@ -66,26 +66,19 @@ interface Styles {
   [index: string]: string
 }
 
-type Builder = (classNames: string | string[]) => string;
-
 /**
  * helper function factory for working with CSS modules
  * @param styles imported styles object
  * @returns function that substitues plain CSS classes with their bundled names
  */
-export function classListBuilder (styles: Styles): Builder {
+export const classListBuilder =
+  (styles: Styles) =>
   /**
    * function that substitues plain CSS classes with their bundled names
-   * @param classNames CSS classes either as a String or Array<String>
+   * @param classNames CSS classes either as `string[]` or `string`, which will be splitted on spaces
    * @returns string with CSS class names from the bundle
    */
-  function builder (classNames: string): string;
-  function builder (classNames: string[]): string;
-  function builder (classNames: string | string[]): string {
-    if (!Array.isArray(classNames)) classNames = classNames.split(' ');
-
-    return classNames.map(x => styles[x] ?? x).join(' ');
-  }
-
-  return builder;
-}
+    (classNames: string | string[]): string =>
+      (Array.isArray(classNames) ? classNames : classNames.split(' '))
+        .map(x => styles[x] ?? x)
+        .join(' ');
