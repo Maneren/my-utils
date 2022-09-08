@@ -306,48 +306,29 @@ class Map<T, U> extends Iter<U> {
   }
 }
 
-// required to get around scoping and class initialization issues
-// as the generator has to be defined before the super call but
-// this.peeked can be assigned only after the super call
-class PeekHelper<T> {
-  iterator: Iterator<T>;
-  peeked: IteratorResult<T> | undefined;
-
-  constructor (iterator: Iterator<T>) {
-    this.iterator = iterator;
-    this.peeked = undefined;
-  }
-
-  next (): IteratorResult<T> {
-    if (this.peeked !== undefined) {
-      const next = this.peeked;
-      this.peeked = undefined;
-      return next;
-    }
-
-    return this.iterator.next();
-  }
-
-  peek (): IteratorResult<T> {
-    if (this.peeked !== undefined) return this.peeked;
-
-    const next = this.iterator.next();
-
-    this.peeked = next;
-
-    return next;
-  }
-}
+type Peek<T> = IteratorResult<T> | undefined;
 
 class Peekable<T> extends Iter<T> {
-  peeked: PeekHelper<T>;
+  _helper: { peek: Peek<T> };
 
   constructor (data: Iter<T>) {
-    const peeked = new PeekHelper<T>(data);
+    // has to be wrapped in object to keep the reference
+    // both in the generator function and in the class
+    // otherwise it would get passed as a value and desync
+    const helper = { peek: undefined as Peek<T> };
 
     function * generator (): Iterable<T> {
       while (true) {
-        const { done, value } = peeked.next();
+        let current: IteratorResult<T>;
+
+        if (helper.peek !== undefined) {
+          current = helper.peek;
+          helper.peek = undefined;
+        } else {
+          current = data.next();
+        }
+
+        const { done, value } = current;
 
         if (done ?? false) break;
 
@@ -357,11 +338,15 @@ class Peekable<T> extends Iter<T> {
 
     super(generator());
 
-    this.peeked = peeked;
+    this._helper = helper;
   }
 
   peek (): IteratorResult<T> {
-    return this.peeked.peek();
+    if (this._helper.peek !== undefined) return this._helper.peek;
+
+    const peek = this.iterator.next();
+    this._helper.peek = peek;
+    return peek;
   }
 
   get [Symbol.toStringTag] (): string {
