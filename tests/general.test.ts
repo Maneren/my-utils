@@ -17,7 +17,7 @@ test('sleep', async () => {
 
   jest.runAllTimers();
 
-  expect(await result).toBe(null);
+  expect(await result).toBe(undefined);
 });
 
 test('randfloat', () => {

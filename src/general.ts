@@ -1,10 +1,10 @@
 /**
- * returns Promise, which resolves to `null`
- * after at least the specified number of miliseconds
+ * returns Promise, which resolves after at least
+ * the specified number of miliseconds
+ * @param milis miliseconds to wait
  */
-export async function sleep (milis: number): Promise<null> {
-  return await new Promise(resolve => setTimeout(() => resolve(null), milis));
-}
+export const sleep = async (milis: number): Promise<void> =>
+  await new Promise(resolve => setTimeout(resolve, milis));
 
 /**
  * returns random float from min to max.
