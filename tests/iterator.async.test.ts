@@ -422,13 +422,9 @@ test('incomplete iterator protocol', async () => {
   function incompleteGenerator (n: number): AsyncIterable<number> {
     let i = 0;
     return {
-      [Symbol.asyncIterator]: (): AsyncIterator<number> => ({
-        next: async function (): Promise<IteratorResult<number>> {
-          if (i >= n) return { done: true, value: undefined };
-          return {
-            value: i++
-          };
-        }
+      [Symbol.asyncIterator]: () => ({
+        next: async () =>
+          i >= n ? { done: true, value: undefined } : { value: i++ }
       })
     };
   }
