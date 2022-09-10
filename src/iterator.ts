@@ -2,6 +2,12 @@ export function iter<T> (data: Iterable<T>): Iter<T> {
   return new Iter(data);
 }
 
+export function wrapIter<T> (iterator: Iterator<T>): Iter<T> {
+  return new Iter({
+    [Symbol.iterator]: () => iterator
+  });
+}
+
 export function empty<T> (): Iter<T> {
   function * generator (): Iterable<T> {}
 
