@@ -374,13 +374,8 @@ test('incomplete iterator protocol', () => {
   function incompleteGenerator (n: number): Iterable<number> {
     let i = 0;
     return {
-      [Symbol.iterator]: (): Iterator<number> => ({
-        next: function (): IteratorResult<number> {
-          if (i >= n) return { done: true, value: undefined };
-          return {
-            value: i++
-          };
-        }
+      [Symbol.iterator]: () => ({
+        next: () => (i >= n ? { done: true, value: undefined } : { value: i++ })
       })
     };
   }
