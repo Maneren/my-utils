@@ -173,6 +173,16 @@ export class AsyncIter<T> implements AsyncIterable<T>, AsyncIterator<T> {
     return await this.fold(count => count + 1, 0);
   }
 
+  async find (f: Predicate<T>): Promise<T | undefined> {
+    while (true) {
+      const { done, value } = await this.next();
+
+      if (done ?? false) return undefined;
+
+      if (f(value)) return value;
+    }
+  }
+
   async fold<U>(f: (total: U, current: T) => U, start: U): Promise<U> {
     let total = start;
 

@@ -346,6 +346,18 @@ test('count', async () => {
   expect(await data.count()).toBe(5);
 });
 
+test('find', async () => {
+  const data = fromSync([0, 1, 2, 4, 5]);
+
+  const found = await data.find(x => x > 2 && x % 2 === 0);
+
+  expect(found).toBe(4);
+
+  const found2 = await data.find(x => x % 2 === 0);
+
+  expect(found2).toBe(undefined);
+});
+
 test('fold', async () => {
   const data = fromSync([0, 1, 2, 4, 5]);
 
@@ -465,6 +477,9 @@ test('incomplete iterator protocol', async () => {
   const arr = [];
   for await (const value of iterator) arr.push(value);
   expect(arr).toStrictEqual([0, 1, 2]);
+
+  iterator = asyncIter(incompleteGenerator(4));
+  expect(await iterator.find(x => x > 2)).toBe(3);
 });
 
 test('laziness', async () => {
