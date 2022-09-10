@@ -145,6 +145,16 @@ export class Iter<T> implements Iterable<T>, Iterator<T, undefined> {
     return this.fold(count => count + 1, 0);
   }
 
+  find (f: Predicate<T>): T | undefined {
+    while (true) {
+      const { done, value } = this.next();
+
+      if (done ?? false) return undefined;
+
+      if (f(value)) return value;
+    }
+  }
+
   fold<U>(f: (total: U, current: T) => U, start: U): U {
     let total = start;
 

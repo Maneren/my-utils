@@ -298,6 +298,18 @@ test('count', () => {
   expect(data.count()).toBe(5);
 });
 
+test('find', () => {
+  const data = iter([0, 1, 2, 4, 5]);
+
+  const found = data.find(x => x > 2 && x % 2 === 0);
+
+  expect(found).toBe(4);
+
+  const found2 = data.find(x => x % 2 === 0);
+
+  expect(found2).toBe(undefined);
+});
+
 test('fold', () => {
   const data = iter([0, 1, 2, 4, 5]);
 
@@ -410,6 +422,9 @@ test('incomplete iterator protocol', () => {
 
   iterator = iter(incompleteGenerator(1));
   expect(iterator.join()).toBe('0');
+
+  iterator = iter(incompleteGenerator(4));
+  expect(iterator.find(x => x > 2)).toBe(3);
 });
 
 test('laziness', () => {
