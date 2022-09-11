@@ -5,10 +5,9 @@
 
 module.exports = {
   verbose: true,
-  testEnvironment: 'jest-environment-node',
-  transform: {
-    '.tsx?': 'ts-jest'
-  },
   moduleFileExtensions: ['ts', 'tsx', 'js'],
-  modulePathIgnorePatterns: ['<rootDir>/dist/', '<rootDir>/[.].*']
+  modulePathIgnorePatterns: ['<rootDir>/dist/', '<rootDir>/[.].*'],
+  clearMocks: true,
+  collectCoverage: true,
+  coverageDirectory: 'coverage'
 };
