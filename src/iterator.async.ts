@@ -1,235 +1,159 @@
-import { Predicate, Enumerated, iter, Iter, range, Zipped } from './iterator';
+import {
+  Enumerated,
+  iter,
+  Iter,
+  range,
+  Zipped,
+  Option,
+  Result,
+  mapResult,
+  toResult
+} from './iterator';
 
 export const asyncIter = <T>(data: AsyncIterable<T>): AsyncIter<T> =>
-  new AsyncIter(data);
+  new AsyncIter(data[Symbol.asyncIterator]());
 
 export const wrapAsyncIter = <T>(iterator: AsyncIterator<T>): AsyncIter<T> =>
-  new AsyncIter({
-    [Symbol.asyncIterator]: () => iterator
-  });
+  new AsyncIter(iterator);
 
-export function empty<T> (): AsyncIter<T> {
-  async function * generator (): AsyncIterable<T> {}
+type AsyncPredicate<T> = (value: T) => boolean | Promise<boolean>;
 
-  return asyncIter(generator());
-}
+export const empty = <T>(): Empty<T> => new Empty();
 
-export function once<T> (value: T): AsyncIter<T> {
-  async function * generator (): AsyncIterable<T> {
-    yield Promise.resolve(value);
+export const once = <T>(value: T): Once<T> => new Once(value);
+
+export const repeat = <T>(value: T): Repeat<T> => new Repeat(value);
+
+export const from = <T>(f: () => T): From<T> => new From(f);
+
+export const mapAwaitResult = async <T, U>(
+  { done, value }: Result<T>,
+  f: (value: T) => U
+): Promise<Result<Awaited<U>>> =>
+  done ?? false
+    ? { done: true, value: undefined }
+    : { done: false, value: await f(value) };
+
+export const doneResult = <T>(): Result<T> => ({
+  done: true,
+  value: undefined
+});
+
+export abstract class AsyncBaseIter<T>
+implements AsyncIterable<T>, AsyncIterator<T> {
+  abstract next (): Promise<Result<T>>;
+
+  [Symbol.asyncIterator] (): AsyncIterableIterator<T> {
+    return this;
   }
 
-  return asyncIter(generator());
-}
+  abstract get [Symbol.toStringTag] (): string;
 
-export function repeat<T> (value: T): AsyncIter<T> {
-  async function * generator (): AsyncIterable<T> {
-    while (true) yield value;
-  }
+  await = (): Await<T> => new Await(this);
 
-  return asyncIter(generator());
-}
+  chain = (extension: AsyncIterable<T>): Chain<T> =>
+    new Chain(this, extension[Symbol.asyncIterator]());
 
-export function from<T> (f: () => T): AsyncIter<T> {
-  async function * generator (): AsyncIterable<T> {
-    while (true) yield f();
-  }
+  enumerate = (): Enumerate<T> => new Enumerate(this);
 
-  return asyncIter(generator());
-}
+  filter = (f: AsyncPredicate<T>): Filter<T> => new Filter(this, f);
 
-export class AsyncIter<T> implements AsyncIterable<T>, AsyncIterator<T> {
-  iterator: AsyncIterator<T, undefined>;
+  filterMap = <U>(p: AsyncPredicate<T>, f: (value: T) => U): FilterMap<T, U> =>
+    new FilterMap(this, p, f);
 
-  constructor (data: AsyncIterable<T>) {
-    this.iterator = data[Symbol.asyncIterator]();
-  }
+  inspect = (f: (value: any) => void): Inspect<T> => new Inspect(this, f);
 
-  static fromSync<T>(data: Iterable<Promise<T>> | Iterable<T>): AsyncIter<T> {
-    async function * generator (): AsyncIterable<T> {
-      for (const value of data) {
-        yield await value;
-      }
-    }
+  map = <U>(f: (value: T) => U): Map<T, U> => new Map(this, f);
 
-    return asyncIter(generator());
-  }
+  mapAwait = <U>(f: (value: T) => Promise<U>): MapAwait<T, U> =>
+    new MapAwait(this, f);
 
-  async next (): Promise<IteratorResult<T>> {
-    return await this.iterator.next();
-  }
+  peekable = (): Peekable<T> => new Peekable(this);
 
-  async * [Symbol.asyncIterator] (): AsyncIterator<T, undefined> {
-    while (true) {
-      const { done, value } = await this.iterator.next();
-      if (done ?? false) break;
-      yield value;
-    }
+  skip = (n: number): Skip<T> => new Skip(this, n);
 
-    return undefined;
-  }
+  skipWhile = (f: AsyncPredicate<T>): SkipWhile<T> => new SkipWhile(this, f);
 
-  get [Symbol.toStringTag] (): string {
-    return 'AsyncIter';
-  }
+  stepBy = (n: number): StepBy<T> => new StepBy(this, n);
 
-  await (): Await<T> {
-    return new Await(this);
-  }
+  take = (limit: number): Take<T> => new Take(this, limit);
 
-  chain (extension: AsyncIterable<T>): Chain<T> {
-    return new Chain(this, extension);
-  }
+  takeWhile = (f: AsyncPredicate<T>): TakeWhile<T> => new TakeWhile(this, f);
 
-  enumerate (): Enumerate<T> {
-    return new Enumerate(this);
-  }
+  zip = <U>(other: AsyncIterable<U>): Zip<T, U> =>
+    new Zip(this, other[Symbol.asyncIterator]());
 
-  filter (f: Predicate<T>): Filter<T> {
-    return new Filter(this, f);
-  }
+  advanceBy = async (n: number): Promise<boolean> =>
+    await asyncRange(n).all(async _ => !((await this.next()).done ?? false));
 
-  filterMap<U>(p: Predicate<T>, f: (value: T) => U): FilterMap<T, U> {
-    return new FilterMap(this, p, f);
-  }
-
-  inspect (f: (value: any) => void): Inspect<T> {
-    return new Inspect(this, f);
-  }
-
-  map<U>(f: (value: T) => U): Map<T, U> {
-    return new Map(this, f);
-  }
-
-  mapAwait<U>(f: (value: T) => Promise<U>): MapAwait<T, U> {
-    return new MapAwait(this, f);
-  }
-
-  peekable (): Peekable<T> {
-    return new Peekable(this);
-  }
-
-  skip (n: number): Skip<T> {
-    return new Skip(this, n);
-  }
-
-  skipWhile (f: Predicate<T>): SkipWhile<T> {
-    return new SkipWhile(this, f);
-  }
-
-  stepBy (n: number): StepBy<T> {
-    return new StepBy(this, n);
-  }
-
-  take (limit: number): Take<T> {
-    return new Take(this, limit);
-  }
-
-  takeWhile (f: Predicate<T>): TakeWhile<T> {
-    return new TakeWhile(this, f);
-  }
-
-  zip<U>(other: AsyncIterable<U>): Zip<T, U> {
-    return new Zip(this, other);
-  }
-
-  async all (f: Predicate<T>): Promise<boolean> {
+  async all (f: AsyncPredicate<T>): Promise<boolean> {
     for await (const value of this) {
-      if (!f(value)) return false;
+      if (!(await f(value))) return false;
     }
 
     return true;
   }
 
-  async advanceBy (n: number): Promise<void> {
-    for (const _ of range(n)) {
-      const { done } = await this.next();
-      if (done ?? false) break;
-    }
-  }
-
   /**
-   * creates new array from the values of the iterator
+   * creates new array from the values of the AsyncIterator
    */
-  async collect (): Promise<T[]> {
-    const results = [];
+  collect = async (): Promise<T[]> =>
+    await this.fold((acc, value) => [...acc, value], [] as T[]);
 
-    for await (const el of this) {
-      results.push(el);
+  consume = async (): Promise<void> => await this.forEach(_ => {});
+
+  count = async (): Promise<number> => await this.fold(count => count + 1, 0);
+
+  async find (f: AsyncPredicate<T>): Promise<Option<T>> {
+    for await (const value of this) {
+      if (await f(value)) return value;
     }
 
-    return results;
+    return undefined;
   }
 
-  async consume (): Promise<void> {
-    for await (const _ of this) {
-      // pass
-    }
-  }
-
-  async count (): Promise<number> {
-    return await this.fold(count => count + 1, 0);
-  }
-
-  async find (f: Predicate<T>): Promise<T | undefined> {
-    while (true) {
-      const { done, value } = await this.next();
-
-      if (done ?? false) return undefined;
-
-      if (f(value)) return value;
-    }
-  }
-
-  async fold<U>(f: (total: U, current: T) => U, start: U): Promise<U> {
-    let total = start;
+  async fold<U>(
+    f: (acc: U, current: T) => U | Promise<U>,
+    start: U
+  ): Promise<U> {
+    let acc = start;
 
     for await (const value of this) {
-      total = f(total, value);
+      acc = await f(acc, value);
     }
 
-    return total;
+    return acc;
   }
 
   async forEach (f: (value: T) => void): Promise<void> {
-    for await (const el of this) {
-      f(el);
-    }
+    for await (const value of this) await f(value);
   }
 
   async join (separator = ''): Promise<string> {
-    const { done, value } = await this.iterator.next();
+    const iter = this.map(value => String(value));
+
+    const { done, value } = await iter.next();
 
     if (done ?? false) {
       return '';
     }
 
-    let result = String(value);
-
-    for await (const v of this.map(value => String(value))) {
-      result += separator;
-      result += v;
-    }
-
-    return result;
+    return await iter.fold(
+      (result, value) => result + separator + value,
+      value
+    );
   }
 
-  async last (): Promise<T | undefined> {
-    let element;
+  last = async (): Promise<Option<T>> =>
+    await this.fold<Option<T>>((_, x) => x, undefined);
 
-    for await (const current of this) element = current;
+  nth = async (n: number): Promise<Option<T>> =>
+    (await this.advanceBy(n)) ? (await this.next()).value : undefined;
 
-    return element;
-  }
-
-  async nth (n: number): Promise<T | undefined> {
-    return (await this.skip(n).next()).value;
-  }
-
-  async partition (f: Predicate<T>): Promise<[T[], T[]]> {
-    return await this.fold<[T[], T[]]>(
-      ([left, right], value) => {
-        if (f(value)) {
+  partition = async (f: AsyncPredicate<T>): Promise<[T[], T[]]> =>
+    await this.fold<[T[], T[]]>(
+      async ([left, right], value) => {
+        if (await f(value)) {
           left.push(value);
         } else {
           right.push(value);
@@ -239,44 +163,162 @@ export class AsyncIter<T> implements AsyncIterable<T>, AsyncIterator<T> {
       },
       [[], []]
     );
-  }
 
-  async toSync (): Promise<Iter<T>> {
-    return iter(await this.collect());
-  }
-
-  async some (f: Predicate<T>): Promise<boolean> {
+  async some (f: AsyncPredicate<T>): Promise<boolean> {
     for await (const value of this) {
-      if (f(value)) return true;
+      if (await f(value)) return true;
     }
 
     return false;
   }
+
+  toSync = async (): Promise<Iter<T>> => iter(await this.collect());
 }
 
-class Await<T> extends AsyncIter<Awaited<T>> {
-  constructor (data: AsyncIterable<T>) {
-    async function * generator (): AsyncIterable<Awaited<T>> {
-      for await (const value of data) yield await value;
+export class AsyncIter<T> extends AsyncBaseIter<T> {
+  data: AsyncIterator<T>;
+
+  static fromSync<T>(data: Iterable<Promise<T>> | Iterable<T>): AsyncIter<T> {
+    async function * generator (): AsyncIterable<T> {
+      for (const value of data) {
+        yield await value;
+      }
     }
 
-    super(generator());
+    return new AsyncIter(generator()[Symbol.asyncIterator]());
   }
+
+  constructor (data: AsyncIterator<T>) {
+    super();
+    this.data = data;
+  }
+
+  next = async (): Promise<Result<T>> => await this.data.next();
+
+  get [Symbol.toStringTag] (): string {
+    return 'AsyncIter';
+  }
+}
+
+class Empty<T> extends AsyncBaseIter<T> {
+  next = async (): Promise<Result<T>> => doneResult();
+
+  get [Symbol.toStringTag] (): string {
+    return 'Empty';
+  }
+}
+
+class Once<T> extends AsyncBaseIter<T> {
+  item: T;
+
+  done = false;
+
+  constructor (item: T) {
+    super();
+    this.item = item;
+  }
+
+  async next (): Promise<Result<T>> {
+    if (this.done) return doneResult();
+
+    this.done = true;
+
+    return { done: false, value: this.item };
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Once';
+  }
+}
+
+class Repeat<T> extends AsyncBaseIter<T> {
+  item: T;
+
+  constructor (item: T) {
+    super();
+    this.item = item;
+  }
+
+  next = async (): Promise<Result<T>> => ({ done: false, value: this.item });
+
+  get [Symbol.toStringTag] (): string {
+    return 'Repeat';
+  }
+}
+
+class From<T> extends AsyncBaseIter<T> {
+  f: () => T;
+
+  constructor (f: () => T) {
+    super();
+    this.f = f;
+  }
+
+  next = async (): Promise<Result<T>> => ({ done: false, value: this.f() });
+
+  get [Symbol.toStringTag] (): string {
+    return 'From';
+  }
+}
+
+class Await<T> extends AsyncBaseIter<Awaited<T>> {
+  data: AsyncIterator<T>;
+
+  constructor (data: AsyncIterator<T>) {
+    super();
+
+    this.data = data;
+  }
+
+  next = async (): Promise<Result<Awaited<T>>> =>
+    await mapAwaitResult(await this.data.next(), value => value);
 
   get [Symbol.toStringTag] (): string {
     return 'Await';
   }
 }
 
-class Chain<T> extends AsyncIter<T> {
-  constructor (data: AsyncIter<T>, extension: AsyncIterable<T>) {
-    async function * generator (): AsyncIterable<T> {
-      for await (const value of data) yield value;
+class Enumerate<T> extends AsyncBaseIter<Enumerated<T>> {
+  data: AsyncIterator<T>;
 
-      for await (const value of extension) yield value;
+  i = 0;
+
+  constructor (data: AsyncIterator<T>) {
+    super();
+
+    this.data = data;
+  }
+
+  next = async (): Promise<Result<Enumerated<T>>> =>
+    mapResult(
+      await this.data.next(),
+      value => [this.i++, value] as Enumerated<T>
+    );
+
+  get [Symbol.toStringTag] (): string {
+    return 'Enumerate';
+  }
+}
+
+class Chain<T> extends AsyncBaseIter<T> {
+  a: AsyncIterator<T>;
+  b: AsyncIterator<T>;
+
+  constructor (data: AsyncIterator<T>, extension: AsyncIterator<T>) {
+    super();
+
+    this.a = data;
+    this.b = extension;
+  }
+
+  async next (): Promise<Result<T>> {
+    const { done, value } = await this.a.next();
+
+    if (done ?? false) {
+      return await this.b.next();
     }
 
-    super(generator());
+    return { done, value };
   }
 
   get [Symbol.toStringTag] (): string {
@@ -284,67 +326,70 @@ class Chain<T> extends AsyncIter<T> {
   }
 }
 
-class Filter<T> extends AsyncIter<T> {
-  constructor (data: AsyncIter<T>, f: Predicate<T>) {
-    async function * generator (): AsyncIterable<T> {
-      for await (const value of data) {
-        if (f(value)) yield value;
-      }
-    }
+class Filter<T> extends AsyncBaseIter<T> {
+  data: AsyncBaseIter<T>;
+  predicate: AsyncPredicate<T>;
 
-    super(generator());
+  constructor (data: AsyncBaseIter<T>, f: AsyncPredicate<T>) {
+    super();
+
+    this.data = data;
+    this.predicate = f;
   }
+
+  next = async (): Promise<Result<T>> =>
+    toResult(await this.data.find(this.predicate));
 
   get [Symbol.toStringTag] (): string {
     return 'Filter';
   }
 }
 
-class FilterMap<T, U> extends AsyncIter<U> {
-  constructor (data: AsyncIter<T>, p: Predicate<T>, f: (value: T) => U) {
-    async function * generator (): AsyncIterable<U> {
-      for await (const value of data) {
-        if (p(value)) yield f(value);
-      }
-    }
+class FilterMap<T, U> extends AsyncBaseIter<U> {
+  data: AsyncBaseIter<T>;
+  predicate: AsyncPredicate<T>;
+  f: (value: T) => U;
 
-    super(generator());
+  constructor (
+    data: AsyncBaseIter<T>,
+    p: AsyncPredicate<T>,
+    f: (value: T) => U
+  ) {
+    super();
+
+    this.data = data;
+    this.predicate = p;
+    this.f = f;
   }
+
+  next = async (): Promise<Result<U>> =>
+    mapResult(toResult(await this.data.find(this.predicate)), this.f);
 
   get [Symbol.toStringTag] (): string {
     return 'FilterMap';
   }
 }
 
-class Enumerate<T> extends AsyncIter<Enumerated<T>> {
-  constructor (data: AsyncIter<T>) {
-    async function * generator (): AsyncIterable<Enumerated<T>> {
-      let index = 0;
+class Inspect<T> extends AsyncBaseIter<T> {
+  data: AsyncIterator<T>;
+  f: (value: T) => void;
 
-      for await (const value of data) {
-        yield [index, value];
-        index++;
-      }
-    }
+  constructor (data: AsyncIterator<T>, f: (value: T) => void) {
+    super();
 
-    super(generator());
+    this.data = data;
+    this.f = f;
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Enumerate';
-  }
-}
+  async next (): Promise<Result<T>> {
+    const { done, value } = await this.data.next();
 
-class Inspect<T> extends AsyncIter<T> {
-  constructor (data: AsyncIter<T>, f: (value: T) => void) {
-    async function * generator (): AsyncIterable<T> {
-      for await (const value of data) {
-        f(value);
-        yield value;
-      }
+    if (done ?? false) {
+      return { done: true, value: undefined };
+    } else {
+      this.f(value);
+      return { done, value };
     }
-
-    super(generator());
   }
 
   get [Symbol.toStringTag] (): string {
@@ -352,74 +397,78 @@ class Inspect<T> extends AsyncIter<T> {
   }
 }
 
-class Map<T, U> extends AsyncIter<U> {
-  constructor (data: AsyncIter<T>, f: (value: T) => U) {
-    async function * generator (): AsyncIterable<U> {
-      for await (const value of data) yield f(value);
-    }
+class Map<T, U> extends AsyncBaseIter<U> {
+  data: AsyncIterator<T>;
+  f: (value: T) => U;
 
-    super(generator());
+  constructor (data: AsyncIterator<T>, f: (value: T) => U) {
+    super();
+
+    this.data = data;
+    this.f = f;
   }
+
+  next = async (): Promise<Result<U>> =>
+    mapResult(await this.data.next(), this.f);
 
   get [Symbol.toStringTag] (): string {
     return 'Map';
   }
 }
 
-class MapAwait<T, U> extends AsyncIter<U> {
-  constructor (data: AsyncIter<T>, f: (value: T) => Promise<U>) {
-    async function * generator (): AsyncIterable<U> {
-      for await (const value of data) yield await f(value);
-    }
+class MapAwait<T, U> extends AsyncBaseIter<U> {
+  data: AsyncIterator<T>;
+  f: (value: T) => Promise<U>;
 
-    super(generator());
+  constructor (data: AsyncIterator<T>, f: (value: T) => Promise<U>) {
+    super();
+
+    this.data = data;
+    this.f = f;
   }
+
+  next = async (): Promise<Result<U>> => {
+    const { done, value } = await this.data.next();
+
+    return done ?? false
+      ? { done: true, value: undefined }
+      : { done: false, value: await this.f(value) };
+  };
 
   get [Symbol.toStringTag] (): string {
     return 'MapAwait';
   }
 }
 
-type Peek<T> = IteratorResult<T> | undefined;
+class Peekable<T> extends AsyncBaseIter<T> {
+  data: AsyncIterator<T>;
+  peeked: Result<T> | undefined;
 
-class Peekable<T> extends AsyncIter<T> {
-  _helper: { peek: Peek<T> };
+  constructor (data: AsyncIterator<T>) {
+    super();
 
-  constructor (data: AsyncIter<T>) {
-    // has to be wrapped in object to keep the reference
-    // both in the generator function and in the class
-    // otherwise it would get passed as a value and desync
-    const helper = { peek: undefined as Peek<T> };
-
-    async function * generator (): AsyncIterable<T> {
-      while (true) {
-        let current: IteratorResult<T>;
-
-        if (helper.peek !== undefined) {
-          current = helper.peek;
-          helper.peek = undefined;
-        } else {
-          current = await data.next();
-        }
-
-        const { done, value } = current;
-
-        if (done ?? false) break;
-
-        yield value;
-      }
-    }
-
-    super(generator());
-
-    this._helper = helper;
+    this.data = data;
+    this.peeked = undefined;
   }
 
-  async peek (): Promise<IteratorResult<T>> {
-    if (this._helper.peek !== undefined) return this._helper.peek;
+  async next (): Promise<Result<T>> {
+    let current: Result<T>;
 
-    const peek = await this.iterator.next();
-    this._helper.peek = peek;
+    if (this.peeked !== undefined) {
+      current = this.peeked;
+      this.peeked = undefined;
+    } else {
+      current = await this.data.next();
+    }
+
+    return current;
+  }
+
+  async peek (): Promise<Result<T>> {
+    if (this.peeked !== undefined) return this.peeked;
+
+    const peek = await this.data.next();
+    this.peeked = peek;
     return peek;
   }
 
@@ -428,25 +477,26 @@ class Peekable<T> extends AsyncIter<T> {
   }
 }
 
-class Skip<T> extends AsyncIter<T> {
-  constructor (data: AsyncIter<T>, n: number) {
-    let count = 0;
+class Skip<T> extends AsyncBaseIter<T> {
+  data: AsyncBaseIter<T>;
+  target: number;
 
-    async function * generator (): AsyncIterable<T> {
-      while (true) {
-        const { done, value } = await data.next();
-        if (done ?? false) break;
+  skipped = false;
 
-        if (count < n) {
-          count++;
-          continue;
-        }
+  constructor (data: AsyncBaseIter<T>, n: number) {
+    super();
 
-        yield value;
-      }
+    this.data = data;
+    this.target = n;
+  }
+
+  async next (): Promise<Result<T>> {
+    if (!this.skipped) {
+      this.skipped = true;
+      return toResult(await this.data.nth(this.target));
     }
 
-    super(generator());
+    return await this.data.next();
   }
 
   get [Symbol.toStringTag] (): string {
@@ -454,22 +504,27 @@ class Skip<T> extends AsyncIter<T> {
   }
 }
 
-class SkipWhile<T> extends AsyncIter<T> {
-  constructor (data: AsyncIter<T>, f: Predicate<T>) {
-    let skip = true;
+class SkipWhile<T> extends AsyncBaseIter<T> {
+  data: AsyncBaseIter<T>;
+  predicate: AsyncPredicate<T>;
 
-    async function * generator (): AsyncIterable<T> {
-      for await (const value of data) {
-        if (skip && f(value)) {
-          continue;
-        }
+  skipped = false;
 
-        skip = false;
-        yield value;
-      }
+  constructor (data: AsyncBaseIter<T>, f: AsyncPredicate<T>) {
+    super();
+    this.data = data;
+    this.predicate = f;
+  }
+
+  async next (): Promise<Result<T>> {
+    if (!this.skipped) {
+      this.skipped = true;
+      return toResult(
+        await this.data.find(async x => !(await this.predicate(x)))
+      );
     }
 
-    super(generator());
+    return await this.data.next();
   }
 
   get [Symbol.toStringTag] (): string {
@@ -477,20 +532,26 @@ class SkipWhile<T> extends AsyncIter<T> {
   }
 }
 
-class StepBy<T> extends AsyncIter<T> {
-  constructor (data: AsyncIter<T>, step: number) {
-    async function * generator (): AsyncIterable<T> {
-      while (true) {
-        const { done, value } = await data.next();
-        if (done ?? false) break;
+class StepBy<T> extends AsyncBaseIter<T> {
+  data: AsyncBaseIter<T>;
+  step: number;
 
-        yield value;
+  first = true;
 
-        await data.advanceBy(step - 1);
-      }
+  constructor (data: AsyncBaseIter<T>, step: number) {
+    super();
+
+    this.data = data;
+    this.step = step;
+  }
+
+  async next (): Promise<Result<T>> {
+    if (this.first) {
+      this.first = false;
+      return await this.data.next();
     }
 
-    super(generator());
+    return toResult(await this.data.nth(this.step - 1));
   }
 
   get [Symbol.toStringTag] (): string {
@@ -498,65 +559,86 @@ class StepBy<T> extends AsyncIter<T> {
   }
 }
 
-class Take<T> extends AsyncIter<T> {
-  constructor (data: AsyncIter<T>, limit: number) {
-    if (limit <= 0) return empty();
+class Take<T> extends AsyncBaseIter<T> {
+  data: AsyncIterator<T>;
+  limit: number;
 
-    async function * generator (): AsyncIterable<T> {
-      let count = 0;
+  index = 0;
 
-      for await (const value of data) {
-        yield value;
-        count++;
-        if (count >= limit) break;
-      }
-    }
+  constructor (data: AsyncIterator<T>, limit: number) {
+    super();
 
-    super(generator());
+    this.data = data;
+    this.limit = limit;
   }
+
+  next = async (): Promise<Result<T>> =>
+    this.index++ < this.limit ? await this.data.next() : doneResult();
 
   get [Symbol.toStringTag] (): string {
     return 'Take';
   }
 }
 
-class TakeWhile<T> extends AsyncIter<T> {
-  constructor (data: AsyncIter<T>, f: Predicate<T>) {
-    async function * generator (): AsyncIterable<T> {
-      for await (const value of data) {
-        if (!f(value)) break;
-        yield value;
-      }
+class TakeWhile<T> extends AsyncBaseIter<T> {
+  data: AsyncIterator<T>;
+  predicate: AsyncPredicate<T>;
+
+  done = false;
+
+  constructor (data: AsyncIterator<T>, f: AsyncPredicate<T>) {
+    super();
+
+    this.data = data;
+    this.predicate = f;
+  }
+
+  next = async (): Promise<Result<T>> => {
+    if (this.done) {
+      return doneResult();
     }
 
-    super(generator());
-  }
+    const { done, value } = await this.data.next();
+
+    if (!(done ?? false) && (await this.predicate(value))) {
+      return { value };
+    }
+
+    this.done = true;
+    return doneResult();
+  };
 
   get [Symbol.toStringTag] (): string {
     return 'TakeWhile';
   }
 }
 
-class Zip<T, U> extends AsyncIter<Zipped<T, U>> {
-  constructor (data: AsyncIter<T>, zipped: AsyncIterable<U>) {
-    const data2 = zipped[Symbol.asyncIterator]();
+class Zip<T, U> extends AsyncBaseIter<Zipped<T, U>> {
+  a: AsyncIterator<T>;
+  b: AsyncIterator<U>;
 
-    async function * generator (): AsyncIterable<Zipped<T, U>> {
-      while (true) {
-        const next1 = await data.next();
-        const next2 = await data2.next();
+  constructor (data: AsyncIterator<T>, zipped: AsyncIterator<U>) {
+    super();
 
-        if (next1.done ?? false) break;
-        if (next2.done ?? false) break;
+    this.a = data;
+    this.b = zipped;
+  }
 
-        yield [next1.value, next2.value];
-      }
+  async next (): Promise<Result<Zipped<T, U>>> {
+    const nextA = await this.a.next();
+    const nextB = await this.b.next();
+
+    if ((nextA.done ?? false) || (nextB.done ?? false)) {
+      return doneResult();
     }
 
-    super(generator());
+    return { done: false, value: [nextA.value, nextB.value] as Zipped<T, U> };
   }
 
   get [Symbol.toStringTag] (): string {
     return 'Zip';
   }
 }
+
+const asyncRange = (n: number): AsyncIter<number> =>
+  AsyncIter.fromSync(range(n));

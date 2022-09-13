@@ -1,20 +1,33 @@
-import { empty, from, Iter, iter, once, range, repeat } from '../src/iterator';
+import {
+  empty,
+  from,
+  Iter,
+  BaseIter,
+  iter,
+  once,
+  range,
+  repeat,
+  wrapIter,
+  mapResult,
+  Result,
+  toResult
+} from '../src/iterator';
 
-function expectNextEquals<T> (iter: Iter<T>, value: T): void {
+function expectNextEquals<T> (iter: BaseIter<T>, value: T): void {
   expect(iter.next()).toStrictEqual({
     value,
     done: false
   });
 }
 
-function expectIsEmpty<T> (iter: Iter<T>): void {
+function expectIsEmpty<T> (iter: BaseIter<T>): void {
   expect(iter.next()).toStrictEqual({
     value: undefined,
     done: true
   });
 }
 
-function expectCollected<T> (iter: Iter<T>, array: T[]): void {
+function expectCollected<T> (iter: BaseIter<T>, array: T[]): void {
   expect(iter.collect()).toStrictEqual(array);
 }
 
@@ -22,6 +35,55 @@ test('iter', () => {
   const data = iter([0, 1, 2]);
 
   expect(data).toBeInstanceOf(Iter);
+});
+
+test('wrapIter', () => {
+  const data = wrapIter([0, 1, 2][Symbol.iterator]());
+
+  expect(data).toBeInstanceOf(Iter);
+});
+
+test('mapResult', () => {
+  const result: Result<number> = {
+    done: true,
+    value: undefined
+  };
+
+  expect(mapResult(result as Result<number>, x => x * 2)).toStrictEqual({
+    done: true,
+    value: undefined
+  });
+
+  const result2: Result<number> = {
+    done: false,
+    value: 2
+  };
+
+  expect(mapResult(result2, x => x * 2)).toStrictEqual({
+    done: false,
+    value: 4
+  });
+
+  const result3: Result<number> = {
+    value: 2
+  };
+
+  expect(mapResult(result3, x => x * 2)).toStrictEqual({
+    done: false,
+    value: 4
+  });
+});
+
+test('toResult', () => {
+  expect(toResult(2)).toStrictEqual({
+    done: false,
+    value: 2
+  });
+
+  expect(toResult(undefined)).toStrictEqual({
+    done: true,
+    value: undefined
+  });
 });
 
 test('next', () => {
@@ -45,6 +107,8 @@ test('Symbol.toStringTag', () => {
 test('repeat', () => {
   const data = repeat(2);
 
+  expect(String(data)).toBe('[object Repeat]');
+
   expectNextEquals(data, 2);
   expectNextEquals(data, 2);
   expectNextEquals(data, 2);
@@ -54,15 +118,20 @@ test('repeat', () => {
 
 test('empty', () => {
   expectIsEmpty(empty());
+  expect(String(empty())).toBe('[object Empty]');
 });
 
 test('once', () => {
-  expectCollected(once(0), [0]);
+  const data = once(0);
+  expect(String(data)).toBe('[object Once]');
+  expectCollected(data, [0]);
 });
 
 test('from', () => {
   let x = 0;
   const data = from(() => x++);
+
+  expect(String(data)).toBe('[object From]');
 
   expectNextEquals(data, 0);
   expectNextEquals(data, 1);
@@ -117,6 +186,16 @@ test('filterMap', () => {
   expectCollected(filtered, [0, 4, 8]);
 
   expect(String(filtered)).toBe('[object FilterMap]');
+});
+
+test('flatten', () => {
+  const data = iter([0, [1, 2], [[3, 4], 5]]);
+
+  const flattened = data.flatten();
+
+  expectCollected(flattened, [0, 1, 2, [3, 4], 5]);
+
+  expect(String(flattened)).toBe('[object Flatten]');
 });
 
 test('inspect', () => {
@@ -215,9 +294,16 @@ test('take', () => {
 test('takeWhile', () => {
   const data = [0, 3, 6, 9, 12, 15];
 
-  const taken = iter(data).takeWhile(x => x < 10);
+  const iterator = iter(data);
 
+  const taken = iterator.takeWhile(x => x < 10);
   expectCollected(taken, [0, 3, 6, 9]);
+
+  const spy = jest.spyOn(iterator, 'next');
+  expectIsEmpty(taken);
+  expect(spy).toHaveBeenCalledTimes(0);
+
+  expectIsEmpty(taken);
 
   expectIsEmpty(iter(data).takeWhile(x => x < 0));
 
@@ -380,6 +466,8 @@ test('range', () => {
   expectIsEmpty(range(10, 0));
   expectIsEmpty(range(0, 10, -1));
   expect(() => range(0, 10, 0)).toThrow("step can't be 0");
+
+  expect(String(range(5))).toBe('[object Range]');
 });
 
 test('incomplete iterator protocol', () => {
@@ -401,6 +489,22 @@ test('incomplete iterator protocol', () => {
   iterator.advanceBy(2);
   expectCollected(iterator, [2, 3]);
 
+  iterator = iter(incompleteGenerator(2)).chain(incompleteGenerator(2));
+  expectCollected(iterator, [0, 1, 0, 1]);
+
+  iterator = iter([incompleteGenerator(5)]).flatten();
+  expectCollected(iterator, [0, 1, 2, 3, 4]);
+
+  iterator = iter(incompleteGenerator(5))
+    .map(x => [[x]])
+    .flatten();
+  expectCollected(iterator, [[0], [1], [2], [3], [4]]);
+
+  const fn = jest.fn();
+  iterator = iter(incompleteGenerator(4)).inspect(fn);
+  expectCollected(iterator, [0, 1, 2, 3]);
+  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
+
   iterator = iter(incompleteGenerator(4)).peekable();
   expectCollected(iterator, [0, 1, 2, 3]);
 
@@ -413,9 +517,11 @@ test('incomplete iterator protocol', () => {
   iterator = iter(incompleteGenerator(5)).stepBy(2);
   expectCollected(iterator, [0, 2, 4]);
 
-  iterator = iter(incompleteGenerator(3));
-  const iterator2 = incompleteGenerator(2);
-  expectCollected(iterator.zip(iterator2), [
+  iterator = iter(incompleteGenerator(4)).takeWhile(x => x < 2);
+  expectCollected(iterator, [0, 1]);
+
+  iterator = iter(incompleteGenerator(2)).zip(incompleteGenerator(2));
+  expectCollected(iterator, [
     [0, 0],
     [1, 1]
   ]);

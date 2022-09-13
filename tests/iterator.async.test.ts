@@ -1,16 +1,19 @@
-import { Iter } from '../src/iterator';
+import { Iter, Result } from '../src/iterator';
 import {
+  AsyncBaseIter,
   asyncIter,
   AsyncIter,
   empty,
   from,
+  mapAwaitResult,
   once,
-  repeat
+  repeat,
+  wrapAsyncIter
 } from '../src/iterator.async';
 const { fromSync } = AsyncIter;
 
 async function expectNextEquals<T> (
-  iter: AsyncIter<T>,
+  iter: AsyncBaseIter<T>,
   value: T
 ): Promise<void> {
   expect(await iter.next()).toStrictEqual({
@@ -19,7 +22,7 @@ async function expectNextEquals<T> (
   });
 }
 
-async function expectIsEmpty<T> (iter: AsyncIter<T>): Promise<void> {
+async function expectIsEmpty<T> (iter: AsyncBaseIter<T>): Promise<void> {
   expect(await iter.next()).toStrictEqual({
     value: undefined,
     done: true
@@ -27,7 +30,7 @@ async function expectIsEmpty<T> (iter: AsyncIter<T>): Promise<void> {
 }
 
 async function expectCollected<T> (
-  iter: AsyncIter<T>,
+  iter: AsyncBaseIter<T>,
   array: T[]
 ): Promise<void> {
   expect(await iter.collect()).toStrictEqual(array);
@@ -37,6 +40,60 @@ test('asyncIter', async () => {
   const data = asyncIter((async function * () {})());
 
   expect(data).toBeInstanceOf(AsyncIter);
+});
+
+test('wrapAsyncIter', () => {
+  let i = 0;
+  const data = wrapAsyncIter({
+    next: async () => ({
+      value: i++
+    })
+  });
+
+  expect(data).toBeInstanceOf(AsyncIter);
+});
+
+test('mapAwaitResult', async () => {
+  const result: Result<number> = {
+    done: true,
+    value: undefined
+  };
+
+  expect(
+    await mapAwaitResult(result as Result<number>, x => x * 2)
+  ).toStrictEqual({
+    done: true,
+    value: undefined
+  });
+
+  const result2: Result<number> = {
+    done: false,
+    value: 2
+  };
+
+  expect(await mapAwaitResult(result2, x => x * 2)).toStrictEqual({
+    done: false,
+    value: 4
+  });
+
+  const result3: Result<number> = {
+    value: 2
+  };
+
+  expect(await mapAwaitResult(result3, x => x * 2)).toStrictEqual({
+    done: false,
+    value: 4
+  });
+
+  const result4: Result<number> = {
+    done: false,
+    value: 2
+  };
+
+  expect(await mapAwaitResult(result4, async x => x * 2)).toStrictEqual({
+    done: false,
+    value: 4
+  });
 });
 
 test('fromSync', async () => {
@@ -78,6 +135,8 @@ test('Symbol.toStringTag', async () => {
 test('repeat', async () => {
   const data = repeat(2);
 
+  expect(String(data)).toBe('[object Repeat]');
+
   await expectNextEquals(data, 2);
   await expectNextEquals(data, 2);
   await expectNextEquals(data, 2);
@@ -87,15 +146,20 @@ test('repeat', async () => {
 
 test('empty', async () => {
   await expectIsEmpty(empty());
+  expect(String(empty())).toBe('[object Empty]');
 });
 
 test('once', async () => {
-  await expectCollected(once(0), [0]);
+  const data = once(0);
+  expect(String(data)).toBe('[object Once]');
+  await expectCollected(data, [0]);
 });
 
 test('from', async () => {
   let x = 0;
   const data = from(() => x++);
+
+  expect(String(data)).toBe('[object From]');
 
   await expectNextEquals(data, 0);
   await expectNextEquals(data, 1);
@@ -262,9 +326,16 @@ test('take', async () => {
 test('takeWhile', async () => {
   const data = [0, 3, 6, 9, 12, 15];
 
-  const taken = fromSync(data).takeWhile(x => x < 10);
+  const iterator = fromSync(data);
 
+  const taken = iterator.takeWhile(x => x < 10);
   await expectCollected(taken, [0, 3, 6, 9]);
+
+  const spy = jest.spyOn(iterator, 'next');
+  await expectIsEmpty(taken);
+  expect(spy).toHaveBeenCalledTimes(0);
+
+  await expectIsEmpty(taken);
 
   await expectIsEmpty(fromSync(data).takeWhile(x => x < 0));
 
