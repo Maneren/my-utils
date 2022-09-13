@@ -1,14 +1,12 @@
 import { Predicate, Enumerated, iter, Iter, range, Zipped } from './iterator';
 
-export function asyncIter<T> (data: AsyncIterable<T>): AsyncIter<T> {
-  return new AsyncIter(data);
-}
+export const asyncIter = <T>(data: AsyncIterable<T>): AsyncIter<T> =>
+  new AsyncIter(data);
 
-export function wrapAsyncIter<T> (iterator: AsyncIterator<T>): AsyncIter<T> {
-  return new AsyncIter({
+export const wrapAsyncIter = <T>(iterator: AsyncIterator<T>): AsyncIter<T> =>
+  new AsyncIter({
     [Symbol.asyncIterator]: () => iterator
   });
-}
 
 export function empty<T> (): AsyncIter<T> {
   async function * generator (): AsyncIterable<T> {}

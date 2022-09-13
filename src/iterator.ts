@@ -1,12 +1,8 @@
-export function iter<T> (data: Iterable<T>): Iter<T> {
-  return new Iter(data);
-}
+export const iter = <T>(data: Iterable<T>): Iter<T> =>
+  new Iter(data[Symbol.iterator]());
 
-export function wrapIter<T> (iterator: Iterator<T>): Iter<T> {
-  return new Iter({
-    [Symbol.iterator]: () => iterator
-  });
-}
+export const wrapIter = <T>(iterator: Iterator<T>): Iter<T> =>
+  new Iter(iterator);
 
 export function empty<T> (): Iter<T> {
   function * generator (): Iterable<T> {}
