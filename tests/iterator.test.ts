@@ -480,6 +480,20 @@ test('incomplete iterator protocol', () => {
     };
   }
 
+  function generatorOfIcompleteGenerators (
+    n: number
+  ): Iterable<Iterable<number>> {
+    let i = 0;
+    return {
+      [Symbol.iterator]: () => ({
+        next: () =>
+          i >= n
+            ? { done: true, value: undefined }
+            : { value: incompleteGenerator(++i) }
+      })
+    };
+  }
+
   let iterator;
 
   iterator = iter(incompleteGenerator(4));
@@ -495,10 +509,8 @@ test('incomplete iterator protocol', () => {
   iterator = iter([incompleteGenerator(5)]).flatten();
   expectCollected(iterator, [0, 1, 2, 3, 4]);
 
-  iterator = iter(incompleteGenerator(5))
-    .map(x => [[x]])
-    .flatten();
-  expectCollected(iterator, [[0], [1], [2], [3], [4]]);
+  iterator = iter(generatorOfIcompleteGenerators(3)).flatten();
+  expectCollected(iterator, [0, 0, 1, 0, 1, 2]);
 
   const fn = jest.fn();
   iterator = iter(incompleteGenerator(4)).inspect(fn);
@@ -517,8 +529,8 @@ test('incomplete iterator protocol', () => {
   iterator = iter(incompleteGenerator(5)).stepBy(2);
   expectCollected(iterator, [0, 2, 4]);
 
-  iterator = iter(incompleteGenerator(4)).takeWhile(x => x < 2);
-  expectCollected(iterator, [0, 1]);
+  iterator = iter(incompleteGenerator(4)).takeWhile(x => x < 6);
+  expectCollected(iterator, [0, 1, 2, 3]);
 
   iterator = iter(incompleteGenerator(2)).zip(incompleteGenerator(2));
   expectCollected(iterator, [
@@ -526,8 +538,8 @@ test('incomplete iterator protocol', () => {
     [1, 1]
   ]);
 
-  iterator = iter(incompleteGenerator(1));
-  expect(iterator.join()).toBe('0');
+  iterator = iter(incompleteGenerator(3));
+  expect(iterator.join()).toBe('012');
 
   iterator = iter(incompleteGenerator(4));
   expect(iterator.find(x => x > 2)).toBe(3);
