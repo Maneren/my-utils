@@ -134,14 +134,9 @@ implements AsyncIterable<T>, AsyncIterator<T> {
 
     const { done, value } = await iter.next();
 
-    if (done ?? false) {
-      return '';
-    }
-
-    return await iter.fold(
-      (result, value) => result + separator + value,
-      value
-    );
+    return done
+      ? ''
+      : await iter.fold((result, value) => result + separator + value, value);
   }
 
   last = async (): Promise<Option<T>> =>

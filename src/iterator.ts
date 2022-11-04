@@ -125,11 +125,9 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
 
     const { done, value } = iter.next();
 
-    if (done ?? false) {
-      return '';
-    }
-
-    return iter.fold((result, value) => result + separator + value, value);
+    return done
+      ? ''
+      : iter.fold((result, value) => result + separator + value, value);
   }
 
   last = (): Option<T> => this.fold<Option<T>>((_, x) => x, undefined);
