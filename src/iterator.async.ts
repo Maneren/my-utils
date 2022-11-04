@@ -62,6 +62,8 @@ implements AsyncIterable<T>, AsyncIterator<T> {
   filterMap = <U>(p: AsyncPredicate<T>, f: (value: T) => U): FilterMap<T, U> =>
     new FilterMap(this, p, f);
 
+  flatten = (): Flatten<T> => new Flatten(this);
+
   inspect = (f: (value: any) => void): Inspect<T> => new Inspect(this, f);
 
   map = <U>(f: (value: T) => U): Map<T, U> => new Map(this, f);
@@ -369,6 +371,58 @@ class FilterMap<T, U> extends AsyncBaseIter<U> {
 
   get [Symbol.toStringTag] (): string {
     return 'FilterMap';
+  }
+}
+
+type Flattened<T> = T extends Iterable<infer F> ? F : never;
+
+class Flatten<T> extends AsyncBaseIter<Flattened<T>> {
+  data: AsyncIterator<T>;
+  current: AsyncIterator<Flattened<T>> = new Empty();
+
+  done = false;
+
+  private static readonly toIterator = <U>(
+    value: U | AsyncIterable<U>
+  ): AsyncIterator<Flattened<U>> =>
+    Flatten.isIterable(value)
+      ? (value[Symbol.asyncIterator]() as AsyncIterator<Flattened<U>>)
+      : once(value as Flattened<U>);
+
+  private static readonly isIterable = <U>(
+    value: U | AsyncIterable<U>
+  ): value is AsyncIterable<U> =>
+    Symbol.asyncIterator in (Object(value) as AsyncIterable<U>);
+
+  constructor (data: AsyncIterator<T>) {
+    super();
+
+    this.data = data;
+  }
+
+  private async nextIter (): Promise<void> {
+    const { done, value } = await this.data.next();
+
+    if (done ?? false) this.done = true;
+    else this.current = Flatten.toIterator(value);
+  }
+
+  async next (): Promise<CheckedResult<Flattened<T>>> {
+    if (this.done) return doneResult();
+
+    const { done, value } = await this.current.next();
+
+    if (done ?? false) {
+      await this.nextIter();
+
+      return await this.next();
+    }
+
+    return { done: false, value };
+  }
+
+  get [Symbol.toStringTag] (): string {
+    return 'Flatten';
   }
 }
 

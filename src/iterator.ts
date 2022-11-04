@@ -325,7 +325,7 @@ type Flattened<T> = T extends Iterable<infer F> ? F : never;
 
 class Flatten<T> extends BaseIter<Flattened<T>> {
   data: Iterator<T>;
-  current: Iterator<Flattened<T>>;
+  current: Iterator<Flattened<T>> = new Empty();
 
   done = false;
 
@@ -340,12 +340,10 @@ class Flatten<T> extends BaseIter<Flattened<T>> {
     value: U | Iterable<U>
   ): value is Iterable<U> => Symbol.iterator in (Object(value) as Iterable<U>);
 
-  constructor (data: Iterable<T>) {
+  constructor (data: Iterator<T>) {
     super();
 
-    this.data = data[Symbol.iterator]();
-
-    this.nextIter();
+    this.data = data;
   }
 
   private nextIter (): void {
