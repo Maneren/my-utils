@@ -508,14 +508,9 @@ class Peekable<T> extends AsyncBaseIter<T> {
   }
 
   async next (): Promise<Result<T>> {
-    let current: Result<T>;
+    const current = this.peeked ?? (await this.data.next());
 
-    if (this.peeked !== undefined) {
-      current = this.peeked;
-      this.peeked = undefined;
-    } else {
-      current = await this.data.next();
-    }
+    this.peeked = undefined;
 
     return current;
   }

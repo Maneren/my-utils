@@ -429,14 +429,9 @@ class Peekable<T> extends BaseIter<T> {
   }
 
   next (): Result<T> {
-    let current: Result<T>;
+    const current = this.peeked ?? this.data.next();
 
-    if (this.peeked !== undefined) {
-      current = this.peeked;
-      this.peeked = undefined;
-    } else {
-      current = this.data.next();
-    }
+    this.peeked = undefined;
 
     return current;
   }
@@ -615,6 +610,9 @@ class Zip<T, U> extends BaseIter<Zipped<T, U>> {
   }
 }
 
+export function range (end: number): Range;
+export function range (start: number, end: number): Range;
+export function range (start: number, end: number, step: number): Range;
 /**
  * returns generator, which yields numbers from min to max with defined step
  * if only min is specified, it yields numbers from 0 to min
@@ -623,9 +621,6 @@ class Zip<T, U> extends BaseIter<Zipped<T, U>> {
  * @param {number} step
  * @returns {Range}
  */
-export function range (end: number): Range;
-export function range (start: number, end: number): Range;
-export function range (start: number, end: number, step: number): Range;
 export function range (start: number, end?: number, step?: number): Range {
   return new Range(start, end, step);
 }
