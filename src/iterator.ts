@@ -17,23 +17,26 @@ export type Enumerated<T> = readonly [number, T];
 export type Zipped<T, U> = readonly [T, U];
 
 export type Result<T> = IteratorResult<T, undefined>;
+export type CheckedResult<T> =
+  | { done: true, value: undefined }
+  | { done: false, value: T };
 
 export type Option<T> = T | undefined;
 
 export const mapResult = <T, U>(
   { done, value }: Result<T>,
   f: (value: T) => U
-): Result<U> =>
+): CheckedResult<U> =>
     done ?? false
       ? { done: true, value: undefined }
       : { done: false, value: f(value) };
 
-export const toResult = <T>(value: Option<T>): Result<T> =>
+export const toResult = <T>(value: Option<T>): CheckedResult<T> =>
   value === undefined
     ? { done: true, value: undefined }
     : { done: false, value };
 
-export const doneResult = <T>(): Result<T> => ({
+export const doneResult = <T>(): CheckedResult<T> => ({
   done: true,
   value: undefined
 });
@@ -174,7 +177,7 @@ export class Iter<T> extends BaseIter<T> {
 }
 
 class Empty<T> extends BaseIter<T> {
-  next = (): Result<T> => doneResult();
+  next = (): CheckedResult<T> => doneResult();
 
   get [Symbol.toStringTag] (): string {
     return 'Empty';
@@ -191,7 +194,7 @@ class Once<T> extends BaseIter<T> {
     this.item = item;
   }
 
-  next (): Result<T> {
+  next (): CheckedResult<T> {
     if (this.done) return doneResult();
 
     this.done = true;
@@ -212,7 +215,7 @@ class Repeat<T> extends BaseIter<T> {
     this.item = item;
   }
 
-  next = (): Result<T> => ({ done: false, value: this.item });
+  next = (): CheckedResult<T> => ({ done: false, value: this.item });
 
   get [Symbol.toStringTag] (): string {
     return 'Repeat';
@@ -227,7 +230,7 @@ class From<T> extends BaseIter<T> {
     this.f = f;
   }
 
-  next = (): Result<T> => ({ done: false, value: this.f() });
+  next = (): CheckedResult<T> => ({ done: false, value: this.f() });
 
   get [Symbol.toStringTag] (): string {
     return 'From';
@@ -245,7 +248,7 @@ class Enumerate<T> extends BaseIter<Enumerated<T>> {
     this.data = data;
   }
 
-  next = (): Result<Enumerated<T>> =>
+  next = (): CheckedResult<Enumerated<T>> =>
     mapResult(this.data.next(), value => [this.i++, value] as Enumerated<T>);
 
   get [Symbol.toStringTag] (): string {
@@ -290,7 +293,7 @@ class Filter<T> extends BaseIter<T> {
     this.predicate = f;
   }
 
-  next = (): Result<T> => toResult(this.data.find(this.predicate));
+  next = (): CheckedResult<T> => toResult(this.data.find(this.predicate));
 
   get [Symbol.toStringTag] (): string {
     return 'Filter';
@@ -310,7 +313,7 @@ class FilterMap<T, U> extends BaseIter<U> {
     this.f = f;
   }
 
-  next = (): Result<U> =>
+  next = (): CheckedResult<U> =>
     mapResult(toResult(this.data.find(this.predicate)), this.f);
 
   get [Symbol.toStringTag] (): string {
@@ -382,14 +385,14 @@ class Inspect<T> extends BaseIter<T> {
     this.f = f;
   }
 
-  next (): Result<T> {
+  next (): CheckedResult<T> {
     const { done, value } = this.data.next();
 
     if (done ?? false) {
       return { done: true, value: undefined };
     } else {
       this.f(value);
-      return { done, value };
+      return { done: false, value };
     }
   }
 
@@ -409,7 +412,7 @@ class Map<T, U> extends BaseIter<U> {
     this.f = f;
   }
 
-  next = (): Result<U> => mapResult(this.data.next(), this.f);
+  next = (): CheckedResult<U> => mapResult(this.data.next(), this.f);
 
   get [Symbol.toStringTag] (): string {
     return 'Map';
@@ -567,7 +570,7 @@ class TakeWhile<T> extends BaseIter<T> {
     this.predicate = f;
   }
 
-  next = (): Result<T> => {
+  next = (): CheckedResult<T> => {
     if (this.done) {
       return doneResult();
     }
@@ -575,7 +578,7 @@ class TakeWhile<T> extends BaseIter<T> {
     const { done, value } = this.data.next();
 
     if (!(done ?? false) && this.predicate(value)) {
-      return { value };
+      return { done: false, value };
     }
 
     this.done = true;
@@ -598,7 +601,7 @@ class Zip<T, U> extends BaseIter<Zipped<T, U>> {
     this.b = zipped;
   }
 
-  next (): Result<Zipped<T, U>> {
+  next (): CheckedResult<Zipped<T, U>> {
     const nextA = this.a.next();
     const nextB = this.b.next();
 

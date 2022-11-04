@@ -6,6 +6,7 @@ import {
   Zipped,
   Option,
   Result,
+  CheckedResult,
   mapResult,
   toResult
 } from './iterator';
@@ -29,12 +30,12 @@ export const from = <T>(f: () => T): From<T> => new From(f);
 export const mapAwaitResult = async <T, U>(
   { done, value }: Result<T>,
   f: (value: T) => U
-): Promise<Result<Awaited<U>>> =>
+): Promise<CheckedResult<Awaited<U>>> =>
   done ?? false
     ? { done: true, value: undefined }
     : { done: false, value: await f(value) };
 
-export const doneResult = <T>(): Result<T> => ({
+export const doneResult = <T>(): CheckedResult<T> => ({
   done: true,
   value: undefined
 });
@@ -196,7 +197,7 @@ export class AsyncIter<T> extends AsyncBaseIter<T> {
 }
 
 class Empty<T> extends AsyncBaseIter<T> {
-  next = async (): Promise<Result<T>> => doneResult();
+  next = async (): Promise<CheckedResult<T>> => doneResult();
 
   get [Symbol.toStringTag] (): string {
     return 'Empty';
@@ -213,7 +214,7 @@ class Once<T> extends AsyncBaseIter<T> {
     this.item = item;
   }
 
-  async next (): Promise<Result<T>> {
+  async next (): Promise<CheckedResult<T>> {
     if (this.done) return doneResult();
 
     this.done = true;
@@ -234,7 +235,10 @@ class Repeat<T> extends AsyncBaseIter<T> {
     this.item = item;
   }
 
-  next = async (): Promise<Result<T>> => ({ done: false, value: this.item });
+  next = async (): Promise<CheckedResult<T>> => ({
+    done: false,
+    value: this.item
+  });
 
   get [Symbol.toStringTag] (): string {
     return 'Repeat';
@@ -249,7 +253,10 @@ class From<T> extends AsyncBaseIter<T> {
     this.f = f;
   }
 
-  next = async (): Promise<Result<T>> => ({ done: false, value: this.f() });
+  next = async (): Promise<CheckedResult<T>> => ({
+    done: false,
+    value: this.f()
+  });
 
   get [Symbol.toStringTag] (): string {
     return 'From';
@@ -265,7 +272,7 @@ class Await<T> extends AsyncBaseIter<Awaited<T>> {
     this.data = data;
   }
 
-  next = async (): Promise<Result<Awaited<T>>> =>
+  next = async (): Promise<CheckedResult<Awaited<T>>> =>
     await mapAwaitResult(await this.data.next(), value => value);
 
   get [Symbol.toStringTag] (): string {
@@ -284,7 +291,7 @@ class Enumerate<T> extends AsyncBaseIter<Enumerated<T>> {
     this.data = data;
   }
 
-  next = async (): Promise<Result<Enumerated<T>>> =>
+  next = async (): Promise<CheckedResult<Enumerated<T>>> =>
     mapResult(
       await this.data.next(),
       value => [this.i++, value] as Enumerated<T>
@@ -332,7 +339,7 @@ class Filter<T> extends AsyncBaseIter<T> {
     this.predicate = f;
   }
 
-  next = async (): Promise<Result<T>> =>
+  next = async (): Promise<CheckedResult<T>> =>
     toResult(await this.data.find(this.predicate));
 
   get [Symbol.toStringTag] (): string {
@@ -357,7 +364,7 @@ class FilterMap<T, U> extends AsyncBaseIter<U> {
     this.f = f;
   }
 
-  next = async (): Promise<Result<U>> =>
+  next = async (): Promise<CheckedResult<U>> =>
     mapResult(toResult(await this.data.find(this.predicate)), this.f);
 
   get [Symbol.toStringTag] (): string {
@@ -376,14 +383,14 @@ class Inspect<T> extends AsyncBaseIter<T> {
     this.f = f;
   }
 
-  async next (): Promise<Result<T>> {
+  async next (): Promise<CheckedResult<T>> {
     const { done, value } = await this.data.next();
 
     if (done ?? false) {
       return { done: true, value: undefined };
     } else {
       this.f(value);
-      return { done, value };
+      return { done: false, value };
     }
   }
 
@@ -403,7 +410,7 @@ class Map<T, U> extends AsyncBaseIter<U> {
     this.f = f;
   }
 
-  next = async (): Promise<Result<U>> =>
+  next = async (): Promise<CheckedResult<U>> =>
     mapResult(await this.data.next(), this.f);
 
   get [Symbol.toStringTag] (): string {
@@ -422,7 +429,7 @@ class MapAwait<T, U> extends AsyncBaseIter<U> {
     this.f = f;
   }
 
-  next = async (): Promise<Result<U>> => {
+  next = async (): Promise<CheckedResult<U>> => {
     const { done, value } = await this.data.next();
 
     return done ?? false
@@ -619,7 +626,7 @@ class Zip<T, U> extends AsyncBaseIter<Zipped<T, U>> {
     this.b = zipped;
   }
 
-  async next (): Promise<Result<Zipped<T, U>>> {
+  async next (): Promise<CheckedResult<Zipped<T, U>>> {
     const nextA = await this.a.next();
     const nextB = await this.b.next();
 
