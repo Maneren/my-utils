@@ -374,7 +374,11 @@ class FilterMap<T, U> extends AsyncBaseIter<U> {
   }
 }
 
-type Flattened<T> = T extends Iterable<infer F> ? F : never;
+type Flattened<T> = T extends Iterable<infer F>
+  ? F
+  : T extends AsyncIterable<infer F>
+    ? F
+    : never;
 
 class Flatten<T> extends AsyncBaseIter<Flattened<T>> {
   data: AsyncIterator<T>;
@@ -383,16 +387,25 @@ class Flatten<T> extends AsyncBaseIter<Flattened<T>> {
   done = false;
 
   private static readonly toIterator = <U>(
-    value: U | AsyncIterable<U>
-  ): AsyncIterator<Flattened<U>> =>
-    Flatten.isIterable(value)
-      ? (value[Symbol.asyncIterator]() as AsyncIterator<Flattened<U>>)
-      : once(value as Flattened<U>);
+    value: U | Iterable<U> | AsyncIterable<U>
+  ): AsyncIterator<Flattened<U>> => {
+    if (Flatten.isIterable(value)) {
+      return AsyncIter.fromSync(value) as AsyncIterator<Flattened<U>>;
+    } else if (Flatten.isAsyncIterable(value)) {
+      return value[Symbol.asyncIterator]() as AsyncIterator<Flattened<U>>;
+    } else {
+      return once(value as Flattened<U>);
+    }
+  };
 
-  private static readonly isIterable = <U>(
+  private static readonly isAsyncIterable = <U>(
     value: U | AsyncIterable<U>
   ): value is AsyncIterable<U> =>
     Symbol.asyncIterator in (Object(value) as AsyncIterable<U>);
+
+  private static readonly isIterable = <U>(
+    value: U | Iterable<U>
+  ): value is Iterable<U> => Symbol.iterator in (Object(value) as Iterable<U>);
 
   constructor (data: AsyncIterator<T>) {
     super();
@@ -403,12 +416,17 @@ class Flatten<T> extends AsyncBaseIter<Flattened<T>> {
   private async nextIter (): Promise<void> {
     const { done, value } = await this.data.next();
 
-    if (done ?? false) this.done = true;
-    else this.current = Flatten.toIterator(value);
+    if (done ?? false) {
+      this.done = true;
+    } else {
+      this.current = Flatten.toIterator(value);
+    }
   }
 
   async next (): Promise<CheckedResult<Flattened<T>>> {
-    if (this.done) return doneResult();
+    if (this.done) {
+      return doneResult();
+    }
 
     const { done, value } = await this.current.next();
 

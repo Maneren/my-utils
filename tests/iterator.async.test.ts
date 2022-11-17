@@ -226,6 +226,16 @@ test('filterMap', async () => {
   expect(String(filtered)).toBe('[object FilterMap]');
 });
 
+test('flatten', async () => {
+  const data = fromSync([0, [1, 2, [3, 4]], 5]);
+
+  const flattened = data.flatten();
+
+  await expectCollected(flattened, [0, 1, 2, [3, 4], 5]);
+
+  expect(String(flattened)).toBe('[object Flatten]');
+});
+
 test('inspect', async () => {
   const data = fromSync([0, 1, 2, 3]);
   const fn = jest.fn();
