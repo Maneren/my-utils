@@ -5,9 +5,9 @@
 
 module.exports = {
   verbose: true,
-  moduleFileExtensions: ['ts', 'tsx', 'js'],
-  modulePathIgnorePatterns: ['<rootDir>/dist/', '<rootDir>/[.].*'],
+  moduleFileExtensions: ["ts", "tsx", "js"],
+  modulePathIgnorePatterns: ["<rootDir>/dist/", "<rootDir>/[.].*"],
   clearMocks: true,
   collectCoverage: true,
-  coverageDirectory: 'coverage'
+  coverageDirectory: "coverage",
 };

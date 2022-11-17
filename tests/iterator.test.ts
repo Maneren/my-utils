@@ -10,83 +10,83 @@ import {
   wrapIter,
   mapResult,
   Result,
-  toResult
-} from '../src/iterator';
+  toResult,
+} from "../src/iterator";
 
-function expectNextEquals<T> (iter: BaseIter<T>, value: T): void {
+function expectNextEquals<T>(iter: BaseIter<T>, value: T): void {
   expect(iter.next()).toStrictEqual({
     value,
-    done: false
+    done: false,
   });
 }
 
-function expectIsEmpty<T> (iter: BaseIter<T>): void {
+function expectIsEmpty<T>(iter: BaseIter<T>): void {
   expect(iter.next()).toStrictEqual({
     value: undefined,
-    done: true
+    done: true,
   });
 }
 
-function expectCollected<T> (iter: BaseIter<T>, array: T[]): void {
+function expectCollected<T>(iter: BaseIter<T>, array: T[]): void {
   expect(iter.collect()).toStrictEqual(array);
 }
 
-test('iter', () => {
+test("iter", () => {
   const data = iter([0, 1, 2]);
 
   expect(data).toBeInstanceOf(Iter);
 });
 
-test('wrapIter', () => {
+test("wrapIter", () => {
   const data = wrapIter([0, 1, 2][Symbol.iterator]());
 
   expect(data).toBeInstanceOf(Iter);
 });
 
-test('mapResult', () => {
+test("mapResult", () => {
   const result: Result<number> = {
     done: true,
-    value: undefined
+    value: undefined,
   };
 
-  expect(mapResult(result as Result<number>, x => x * 2)).toStrictEqual({
+  expect(mapResult(result as Result<number>, (x) => x * 2)).toStrictEqual({
     done: true,
-    value: undefined
+    value: undefined,
   });
 
   const result2: Result<number> = {
     done: false,
-    value: 2
+    value: 2,
   };
 
-  expect(mapResult(result2, x => x * 2)).toStrictEqual({
+  expect(mapResult(result2, (x) => x * 2)).toStrictEqual({
     done: false,
-    value: 4
+    value: 4,
   });
 
   const result3: Result<number> = {
-    value: 2
+    value: 2,
   };
 
-  expect(mapResult(result3, x => x * 2)).toStrictEqual({
+  expect(mapResult(result3, (x) => x * 2)).toStrictEqual({
     done: false,
-    value: 4
+    value: 4,
   });
 });
 
-test('toResult', () => {
+test("toResult", () => {
   expect(toResult(2)).toStrictEqual({
     done: false,
-    value: 2
+    value: 2,
   });
 
   expect(toResult(undefined)).toStrictEqual({
     done: true,
-    value: undefined
+    value: undefined,
   });
 });
 
-test('next', () => {
+test("next", () => {
   const data = iter([0, 1, 2]);
 
   expectNextEquals(data, 0);
@@ -98,16 +98,16 @@ test('next', () => {
   expectIsEmpty(data);
 });
 
-test('Symbol.toStringTag', () => {
+test("Symbol.toStringTag", () => {
   const data = iter([]);
 
-  expect(String(data)).toBe('[object Iter]');
+  expect(String(data)).toBe("[object Iter]");
 });
 
-test('repeat', () => {
+test("repeat", () => {
   const data = repeat(2);
 
-  expect(String(data)).toBe('[object Repeat]');
+  expect(String(data)).toBe("[object Repeat]");
 
   expectNextEquals(data, 2);
   expectNextEquals(data, 2);
@@ -116,22 +116,22 @@ test('repeat', () => {
   expectNextEquals(data, 2);
 });
 
-test('empty', () => {
+test("empty", () => {
   expectIsEmpty(empty());
-  expect(String(empty())).toBe('[object Empty]');
+  expect(String(empty())).toBe("[object Empty]");
 });
 
-test('once', () => {
+test("once", () => {
   const data = once(0);
-  expect(String(data)).toBe('[object Once]');
+  expect(String(data)).toBe("[object Once]");
   expectCollected(data, [0]);
 });
 
-test('from', () => {
+test("from", () => {
   let x = 0;
   const data = from(() => x++);
 
-  expect(String(data)).toBe('[object From]');
+  expect(String(data)).toBe("[object From]");
 
   expectNextEquals(data, 0);
   expectNextEquals(data, 1);
@@ -140,7 +140,7 @@ test('from', () => {
   expectNextEquals(data, 4);
 });
 
-test('chain', () => {
+test("chain", () => {
   const data = iter([0, 1]);
   const data2 = iter([2, 3]);
 
@@ -148,10 +148,10 @@ test('chain', () => {
 
   expectCollected(chained, [0, 1, 2, 3]);
 
-  expect(String(chained)).toBe('[object Chain]');
+  expect(String(chained)).toBe("[object Chain]");
 });
 
-test('enumerate', () => {
+test("enumerate", () => {
   const data = iter([2, 1, 0]);
 
   const enumerated = data.enumerate();
@@ -159,46 +159,46 @@ test('enumerate', () => {
   expectCollected(enumerated, [
     [0, 2],
     [1, 1],
-    [2, 0]
+    [2, 0],
   ]);
 
-  expect(String(enumerated)).toBe('[object Enumerate]');
+  expect(String(enumerated)).toBe("[object Enumerate]");
 });
 
-test('filter', () => {
+test("filter", () => {
   const data = iter([0, 1, 2, 3, 4, 5]);
 
-  const filtered = data.filter(x => x % 2 === 0);
+  const filtered = data.filter((x) => x % 2 === 0);
 
   expectCollected(filtered, [0, 2, 4]);
 
-  expect(String(filtered)).toBe('[object Filter]');
+  expect(String(filtered)).toBe("[object Filter]");
 });
 
-test('filterMap', () => {
+test("filterMap", () => {
   const data = iter([0, 1, 2, 3, 4, 5]);
 
   const filtered = data.filterMap(
-    x => x % 2 === 0,
-    x => x * 2
+    (x) => x % 2 === 0,
+    (x) => x * 2,
   );
 
   expectCollected(filtered, [0, 4, 8]);
 
-  expect(String(filtered)).toBe('[object FilterMap]');
+  expect(String(filtered)).toBe("[object FilterMap]");
 });
 
-test('flatten', () => {
+test("flatten", () => {
   const data = iter([0, [1, 2], [[3, 4], 5]]);
 
   const flattened = data.flatten();
 
   expectCollected(flattened, [0, 1, 2, [3, 4], 5]);
 
-  expect(String(flattened)).toBe('[object Flatten]');
+  expect(String(flattened)).toBe("[object Flatten]");
 });
 
-test('inspect', () => {
+test("inspect", () => {
   const data = iter([0, 1, 2, 3]);
   const fn = jest.fn();
 
@@ -208,20 +208,20 @@ test('inspect', () => {
 
   expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
 
-  expect(String(inspected)).toBe('[object Inspect]');
+  expect(String(inspected)).toBe("[object Inspect]");
 });
 
-test('map', () => {
+test("map", () => {
   const data = iter([0, 1, 2]);
 
-  const mapped = data.map(x => x + 1);
+  const mapped = data.map((x) => x + 1);
 
   expectCollected(mapped, [1, 2, 3]);
 
-  expect(String(mapped)).toBe('[object Map]');
+  expect(String(mapped)).toBe("[object Map]");
 });
 
-test('peek', () => {
+test("peek", () => {
   const data = iter([0, 1, 2]).peekable();
 
   expect(data.peek()).toStrictEqual({ value: 0, done: false });
@@ -235,10 +235,10 @@ test('peek', () => {
   expect(data.peek()).toStrictEqual({ value: undefined, done: true });
   expectIsEmpty(data);
 
-  expect(String(data)).toBe('[object Peekable]');
+  expect(String(data)).toBe("[object Peekable]");
 });
 
-test('skip', () => {
+test("skip", () => {
   const data = [0, 1, 2, 3];
 
   const skipped = iter(data).skip(5);
@@ -249,36 +249,36 @@ test('skip', () => {
 
   // check short-circuiting
   const iterator = iter(data);
-  const spy = jest.spyOn(iterator, 'next');
+  const spy = jest.spyOn(iterator, "next");
   iterator.skip(10).consume();
   expect(spy).toHaveBeenCalledTimes(5);
 
-  expect(String(skipped)).toBe('[object Skip]');
+  expect(String(skipped)).toBe("[object Skip]");
 });
 
-test('skipWhile', () => {
+test("skipWhile", () => {
   const data = [0, 2, 4, 5, 6, 7];
 
-  const skipped = iter(data).skipWhile(x => x % 2 === 0);
+  const skipped = iter(data).skipWhile((x) => x % 2 === 0);
 
   expectCollected(skipped, [5, 6, 7]);
 
-  expectIsEmpty(iter(data).skipWhile(x => x < 10));
+  expectIsEmpty(iter(data).skipWhile((x) => x < 10));
 
-  expect(String(skipped)).toBe('[object SkipWhile]');
+  expect(String(skipped)).toBe("[object SkipWhile]");
 });
 
-test('stepBy', () => {
+test("stepBy", () => {
   const data = iter([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
   const stepped = data.stepBy(3);
 
   expectCollected(stepped, [0, 3, 6, 9]);
 
-  expect(String(stepped)).toBe('[object StepBy]');
+  expect(String(stepped)).toBe("[object StepBy]");
 });
 
-test('take', () => {
+test("take", () => {
   const data = [0, 1, 2, 3, 4, 5];
 
   const taken = iter(data).take(3);
@@ -288,46 +288,46 @@ test('take', () => {
   expectIsEmpty(iter(data).take(0));
   expectIsEmpty(iter(data).take(-1));
 
-  expect(String(taken)).toBe('[object Take]');
+  expect(String(taken)).toBe("[object Take]");
 });
 
-test('takeWhile', () => {
+test("takeWhile", () => {
   const data = [0, 3, 6, 9, 12, 15];
 
   const iterator = iter(data);
 
-  const taken = iterator.takeWhile(x => x < 10);
+  const taken = iterator.takeWhile((x) => x < 10);
   expectCollected(taken, [0, 3, 6, 9]);
 
-  const spy = jest.spyOn(iterator, 'next');
+  const spy = jest.spyOn(iterator, "next");
   expectIsEmpty(taken);
   expect(spy).toHaveBeenCalledTimes(0);
 
   expectIsEmpty(taken);
 
-  expectIsEmpty(iter(data).takeWhile(x => x < 0));
+  expectIsEmpty(iter(data).takeWhile((x) => x < 0));
 
-  expect(String(taken)).toBe('[object TakeWhile]');
+  expect(String(taken)).toBe("[object TakeWhile]");
 });
 
-test('zip', () => {
+test("zip", () => {
   const data = [0, 1];
 
   const data2 = iter([2, 3, 4]);
 
   expectCollected(iter(data).zip(data2), [
     [0, 2],
-    [1, 3]
+    [1, 3],
   ]);
 
   const data3 = iter([2]);
 
   expectCollected(iter(data).zip(data3), [[0, 2]]);
 
-  expect(String(iter(data).zip(data2))).toBe('[object Zip]');
+  expect(String(iter(data).zip(data2))).toBe("[object Zip]");
 });
 
-test('advanceBy', () => {
+test("advanceBy", () => {
   const data = [0, 1, 2];
 
   let iterator;
@@ -350,26 +350,26 @@ test('advanceBy', () => {
 
   // check short-circuiting
   iterator = iter(data);
-  const spy = jest.spyOn(iterator, 'next');
+  const spy = jest.spyOn(iterator, "next");
   iterator.advanceBy(10);
   expect(spy).toHaveBeenCalledTimes(4);
   expectIsEmpty(iterator);
 });
 
-test('all', () => {
+test("all", () => {
   const data = [0, 1, 2, 3];
 
-  expect(iter(data).all(x => x < 5)).toBe(true);
-  expect(iter(data).all(x => x > 2)).toBe(false);
+  expect(iter(data).all((x) => x < 5)).toBe(true);
+  expect(iter(data).all((x) => x > 2)).toBe(false);
 });
 
-test('collect', () => {
+test("collect", () => {
   const data = [0, 1, 2];
 
   expect(iter(data).collect()).toStrictEqual(data);
 });
 
-test('consume', () => {
+test("consume", () => {
   const data = iter([0, 1, 2, 3]);
   const fn = jest.fn();
 
@@ -378,25 +378,25 @@ test('consume', () => {
   expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
 });
 
-test('count', () => {
+test("count", () => {
   const data = iter([0, 1, 2, 4, 5]);
 
   expect(data.count()).toBe(5);
 });
 
-test('find', () => {
+test("find", () => {
   const data = iter([0, 1, 2, 4, 5]);
 
-  const found = data.find(x => x > 2 && x % 2 === 0);
+  const found = data.find((x) => x > 2 && x % 2 === 0);
 
   expect(found).toBe(4);
 
-  const found2 = data.find(x => x % 2 === 0);
+  const found2 = data.find((x) => x % 2 === 0);
 
   expect(found2).toBe(undefined);
 });
 
-test('fold', () => {
+test("fold", () => {
   const data = iter([0, 1, 2, 4, 5]);
 
   const folded = data.fold((total, current) => total + current, 0);
@@ -404,7 +404,7 @@ test('fold', () => {
   expect(folded).toBe(12);
 });
 
-test('forEach', () => {
+test("forEach", () => {
   const data = iter([0, 1, 2, 3]);
   const fn = jest.fn();
 
@@ -413,22 +413,22 @@ test('forEach', () => {
   expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
 });
 
-test('join', () => {
+test("join", () => {
   const data = [0, 1, 2];
 
-  expect(iter(data).join()).toBe('012');
-  expect(iter(data).join(', ')).toBe('0, 1, 2');
+  expect(iter(data).join()).toBe("012");
+  expect(iter(data).join(", ")).toBe("0, 1, 2");
 
-  expect(iter([]).join()).toBe('');
+  expect(iter([]).join()).toBe("");
 });
 
-test('last', () => {
+test("last", () => {
   const data = iter([0, 1, 2, 4, 5]);
 
   expect(data.last()).toBe(5);
 });
 
-test('nth', () => {
+test("nth", () => {
   const data = [0, 1, 2];
 
   expect(iter(data).nth(0)).toBe(0);
@@ -439,24 +439,24 @@ test('nth', () => {
   expect(iter(data).nth(-3)).toBe(0);
 });
 
-test('partition', () => {
+test("partition", () => {
   const data = iter([0, 1, 2, 3, 4, 5]);
 
-  const [even, odd] = data.partition(x => x % 2 === 0);
+  const [even, odd] = data.partition((x) => x % 2 === 0);
 
   expect(even).toStrictEqual([0, 2, 4]);
   expect(odd).toStrictEqual([1, 3, 5]);
 });
 
-test('some', () => {
+test("some", () => {
   const data = [0, 1, 2, 3];
 
-  expect(iter(data).some(x => x < 5)).toBe(true);
-  expect(iter(data).some(x => x > 2)).toBe(true);
-  expect(iter(data).some(x => x < 0)).toBe(false);
+  expect(iter(data).some((x) => x < 5)).toBe(true);
+  expect(iter(data).some((x) => x > 2)).toBe(true);
+  expect(iter(data).some((x) => x < 0)).toBe(false);
 });
 
-test('range', () => {
+test("range", () => {
   expectCollected(range(3), [0, 1, 2]);
   expectCollected(range(3, 6), [3, 4, 5]);
   expectCollected(range(3, 3), []);
@@ -467,21 +467,22 @@ test('range', () => {
   expectIsEmpty(range(0, 10, -1));
   expect(() => range(0, 10, 0)).toThrow("step can't be 0");
 
-  expect(String(range(5))).toBe('[object Range]');
+  expect(String(range(5))).toBe("[object Range]");
 });
 
-test('incomplete iterator protocol', () => {
-  function incompleteGenerator (n: number): Iterable<number> {
+test("incomplete iterator protocol", () => {
+  function incompleteGenerator(n: number): Iterable<number> {
     let i = 0;
     return {
       [Symbol.iterator]: () => ({
-        next: () => (i >= n ? { done: true, value: undefined } : { value: i++ })
-      })
+        next: () =>
+          i >= n ? { done: true, value: undefined } : { value: i++ },
+      }),
     };
   }
 
-  function generatorOfIcompleteGenerators (
-    n: number
+  function generatorOfIcompleteGenerators(
+    n: number,
   ): Iterable<Iterable<number>> {
     let i = 0;
     return {
@@ -489,8 +490,8 @@ test('incomplete iterator protocol', () => {
         next: () =>
           i >= n
             ? { done: true, value: undefined }
-            : { value: incompleteGenerator(++i) }
-      })
+            : { value: incompleteGenerator(++i) },
+      }),
     };
   }
 
@@ -523,32 +524,32 @@ test('incomplete iterator protocol', () => {
   iterator = iter(incompleteGenerator(4)).skip(2);
   expectCollected(iterator, [2, 3]);
 
-  iterator = iter(incompleteGenerator(4)).skipWhile(x => x < 2);
+  iterator = iter(incompleteGenerator(4)).skipWhile((x) => x < 2);
   expectCollected(iterator, [2, 3]);
 
   iterator = iter(incompleteGenerator(5)).stepBy(2);
   expectCollected(iterator, [0, 2, 4]);
 
-  iterator = iter(incompleteGenerator(4)).takeWhile(x => x < 6);
+  iterator = iter(incompleteGenerator(4)).takeWhile((x) => x < 6);
   expectCollected(iterator, [0, 1, 2, 3]);
 
   iterator = iter(incompleteGenerator(2)).zip(incompleteGenerator(2));
   expectCollected(iterator, [
     [0, 0],
-    [1, 1]
+    [1, 1],
   ]);
 
   iterator = iter(incompleteGenerator(3));
-  expect(iterator.join()).toBe('012');
+  expect(iterator.join()).toBe("012");
 
   iterator = iter(incompleteGenerator(4));
-  expect(iterator.find(x => x > 2)).toBe(3);
+  expect(iterator.find((x) => x > 2)).toBe(3);
 });
 
-test('laziness', () => {
+test("laziness", () => {
   const data = iter([0, 1, 2, 3]);
 
-  const fn = jest.fn(x => x);
+  const fn = jest.fn((x) => x);
 
   const mapped = data.map(fn).take(2);
 

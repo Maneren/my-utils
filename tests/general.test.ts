@@ -1,14 +1,14 @@
-import { sleep, randint, randfloat } from '../src/general';
-import { mockRandom, resetMockRandom } from 'jest-mock-random';
+import { sleep, randint, randfloat } from "../src/general";
+import { mockRandom, resetMockRandom } from "jest-mock-random";
 
 afterEach(() => {
   jest.useRealTimers();
   resetMockRandom();
 });
 
-test('sleep', async () => {
+test("sleep", async () => {
   jest.useFakeTimers();
-  jest.spyOn(globalThis, 'setTimeout');
+  jest.spyOn(globalThis, "setTimeout");
 
   const result = sleep(500);
 
@@ -20,7 +20,7 @@ test('sleep', async () => {
   expect(await result).toBe(undefined);
 });
 
-test('randfloat', () => {
+test("randfloat", () => {
   mockRandom([0.0, 0.255, 0.5189, 0.7564]);
 
   expect(randfloat(100)).toBe(0);
@@ -29,11 +29,11 @@ test('randfloat', () => {
   expect(randint(10, 10)).toBe(10);
   expect(randfloat(-10, 0)).toBe(-2.436);
   expect(() => randfloat(10, 0)).toThrow(
-    'lower bound must be smaller than upper bound'
+    "lower bound must be smaller than upper bound",
   );
 });
 
-test('randint', () => {
+test("randint", () => {
   mockRandom([0.0, 0.255, 0.5189, 0.7564]);
 
   expect(randint(100)).toBe(0);
@@ -42,6 +42,6 @@ test('randint', () => {
   expect(randint(10, 10)).toBe(10);
   expect(randint(-10, 0)).toBe(-3);
   expect(() => randint(10, 0)).toThrow(
-    'lower bound must be smaller than upper bound'
+    "lower bound must be smaller than upper bound",
   );
 });

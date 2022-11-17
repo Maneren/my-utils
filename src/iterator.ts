@@ -18,18 +18,18 @@ export type Zipped<T, U> = readonly [T, U];
 
 export type Result<T> = IteratorResult<T, undefined>;
 export type CheckedResult<T> =
-  | { done: true, value: undefined }
-  | { done: false, value: T };
+  | { done: true; value: undefined }
+  | { done: false; value: T };
 
 export type Option<T> = T | undefined;
 
 export const mapResult = <T, U>(
   { done, value }: Result<T>,
-  f: (value: T) => U
+  f: (value: T) => U,
 ): CheckedResult<U> =>
-    done ?? false
-      ? { done: true, value: undefined }
-      : { done: false, value: f(value) };
+  done ?? false
+    ? { done: true, value: undefined }
+    : { done: false, value: f(value) };
 
 export const toResult = <T>(value: Option<T>): CheckedResult<T> =>
   value === undefined
@@ -38,17 +38,17 @@ export const toResult = <T>(value: Option<T>): CheckedResult<T> =>
 
 export const doneResult = <T>(): CheckedResult<T> => ({
   done: true,
-  value: undefined
+  value: undefined,
 });
 
 export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
-  abstract next (): Result<T>;
+  abstract next(): Result<T>;
 
-  [Symbol.iterator] (): IterableIterator<T> {
+  [Symbol.iterator](): IterableIterator<T> {
     return this;
   }
 
-  abstract get [Symbol.toStringTag] (): string;
+  abstract get [Symbol.toStringTag](): string;
 
   chain = (extension: Iterable<T>): Chain<T> =>
     new Chain(this, extension[Symbol.iterator]());
@@ -82,11 +82,13 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
     new Zip(this, other[Symbol.iterator]());
 
   advanceBy = (n: number): boolean =>
-    range(n).all(_ => !(this.next().done ?? false));
+    range(n).all((_) => !(this.next().done ?? false));
 
-  all (f: Predicate<T>): boolean {
+  all(f: Predicate<T>): boolean {
     for (const value of this) {
-      if (!f(value)) return false;
+      if (!f(value)) {
+        return false;
+      }
     }
 
     return true;
@@ -97,13 +99,15 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
    */
   collect = (): T[] => [...this];
 
-  consume = (): void => this.forEach(_ => {});
+  consume = (): void => this.forEach((_) => {});
 
-  count = (): number => this.fold(count => count + 1, 0);
+  count = (): number => this.fold((count) => count + 1, 0);
 
-  find (f: Predicate<T>): Option<T> {
+  find(f: Predicate<T>): Option<T> {
     for (const value of this) {
-      if (f(value)) return value;
+      if (f(value)) {
+        return value;
+      }
     }
 
     return undefined;
@@ -119,17 +123,19 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
     return acc;
   }
 
-  forEach (f: (value: T) => void): void {
-    for (const value of this) f(value);
+  forEach(f: (value: T) => void): void {
+    for (const value of this) {
+      f(value);
+    }
   }
 
-  join (separator = ''): string {
-    const iter = this.map(value => String(value));
+  join(separator = ""): string {
+    const iter = this.map((value) => String(value));
 
     const { done, value } = iter.next();
 
     return done
-      ? ''
+      ? ""
       : iter.fold((result, value) => result + separator + value, value);
   }
 
@@ -149,12 +155,14 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
 
         return [left, right];
       },
-      [[], []]
+      [[], []],
     );
 
-  some (f: Predicate<T>): boolean {
+  some(f: Predicate<T>): boolean {
     for (const value of this) {
-      if (f(value)) return true;
+      if (f(value)) {
+        return true;
+      }
     }
 
     return false;
@@ -164,23 +172,23 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
 export class Iter<T> extends BaseIter<T> {
   data: Iterator<T>;
 
-  constructor (data: Iterator<T>) {
+  constructor(data: Iterator<T>) {
     super();
     this.data = data;
   }
 
   next = (): Result<T> => this.data.next();
 
-  get [Symbol.toStringTag] (): string {
-    return 'Iter';
+  get [Symbol.toStringTag](): string {
+    return "Iter";
   }
 }
 
 class Empty<T> extends BaseIter<T> {
   next = (): CheckedResult<T> => doneResult();
 
-  get [Symbol.toStringTag] (): string {
-    return 'Empty';
+  get [Symbol.toStringTag](): string {
+    return "Empty";
   }
 }
 
@@ -189,51 +197,53 @@ class Once<T> extends BaseIter<T> {
 
   done = false;
 
-  constructor (item: T) {
+  constructor(item: T) {
     super();
     this.item = item;
   }
 
-  next (): CheckedResult<T> {
-    if (this.done) return doneResult();
+  next(): CheckedResult<T> {
+    if (this.done) {
+      return doneResult();
+    }
 
     this.done = true;
 
     return { done: false, value: this.item };
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Once';
+  get [Symbol.toStringTag](): string {
+    return "Once";
   }
 }
 
 class Repeat<T> extends BaseIter<T> {
   item: T;
 
-  constructor (item: T) {
+  constructor(item: T) {
     super();
     this.item = item;
   }
 
   next = (): CheckedResult<T> => ({ done: false, value: this.item });
 
-  get [Symbol.toStringTag] (): string {
-    return 'Repeat';
+  get [Symbol.toStringTag](): string {
+    return "Repeat";
   }
 }
 
 class From<T> extends BaseIter<T> {
   f: () => T;
 
-  constructor (f: () => T) {
+  constructor(f: () => T) {
     super();
     this.f = f;
   }
 
   next = (): CheckedResult<T> => ({ done: false, value: this.f() });
 
-  get [Symbol.toStringTag] (): string {
-    return 'From';
+  get [Symbol.toStringTag](): string {
+    return "From";
   }
 }
 
@@ -242,17 +252,17 @@ class Enumerate<T> extends BaseIter<Enumerated<T>> {
 
   i = 0;
 
-  constructor (data: Iterator<T>) {
+  constructor(data: Iterator<T>) {
     super();
 
     this.data = data;
   }
 
   next = (): CheckedResult<Enumerated<T>> =>
-    mapResult(this.data.next(), value => [this.i++, value] as Enumerated<T>);
+    mapResult(this.data.next(), (value) => [this.i++, value] as Enumerated<T>);
 
-  get [Symbol.toStringTag] (): string {
-    return 'Enumerate';
+  get [Symbol.toStringTag](): string {
+    return "Enumerate";
   }
 }
 
@@ -260,14 +270,14 @@ class Chain<T> extends BaseIter<T> {
   a: Iterator<T>;
   b: Iterator<T>;
 
-  constructor (data: Iterator<T>, extension: Iterator<T>) {
+  constructor(data: Iterator<T>, extension: Iterator<T>) {
     super();
 
     this.a = data;
     this.b = extension;
   }
 
-  next (): Result<T> {
+  next(): Result<T> {
     const { done, value } = this.a.next();
 
     if (done ?? false) {
@@ -277,8 +287,8 @@ class Chain<T> extends BaseIter<T> {
     return { done, value };
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Chain';
+  get [Symbol.toStringTag](): string {
+    return "Chain";
   }
 }
 
@@ -286,7 +296,7 @@ class Filter<T> extends BaseIter<T> {
   data: BaseIter<T>;
   predicate: Predicate<T>;
 
-  constructor (data: BaseIter<T>, f: Predicate<T>) {
+  constructor(data: BaseIter<T>, f: Predicate<T>) {
     super();
 
     this.data = data;
@@ -295,8 +305,8 @@ class Filter<T> extends BaseIter<T> {
 
   next = (): CheckedResult<T> => toResult(this.data.find(this.predicate));
 
-  get [Symbol.toStringTag] (): string {
-    return 'Filter';
+  get [Symbol.toStringTag](): string {
+    return "Filter";
   }
 }
 
@@ -305,7 +315,7 @@ class FilterMap<T, U> extends BaseIter<U> {
   predicate: Predicate<T>;
   f: (value: T) => U;
 
-  constructor (data: BaseIter<T>, p: Predicate<T>, f: (value: T) => U) {
+  constructor(data: BaseIter<T>, p: Predicate<T>, f: (value: T) => U) {
     super();
 
     this.data = data;
@@ -316,8 +326,8 @@ class FilterMap<T, U> extends BaseIter<U> {
   next = (): CheckedResult<U> =>
     mapResult(toResult(this.data.find(this.predicate)), this.f);
 
-  get [Symbol.toStringTag] (): string {
-    return 'FilterMap';
+  get [Symbol.toStringTag](): string {
+    return "FilterMap";
   }
 }
 
@@ -330,31 +340,36 @@ class Flatten<T> extends BaseIter<Flattened<T>> {
   done = false;
 
   private static readonly toIterator = <U>(
-    value: U | Iterable<U>
+    value: U | Iterable<U>,
   ): Iterator<Flattened<U>> =>
     Flatten.isIterable(value)
       ? (value[Symbol.iterator]() as Iterator<Flattened<U>>)
       : once(value as Flattened<U>);
 
   private static readonly isIterable = <U>(
-    value: U | Iterable<U>
+    value: U | Iterable<U>,
   ): value is Iterable<U> => Symbol.iterator in (Object(value) as Iterable<U>);
 
-  constructor (data: Iterator<T>) {
+  constructor(data: Iterator<T>) {
     super();
 
     this.data = data;
   }
 
-  private nextIter (): void {
+  private nextIter(): void {
     const { done, value } = this.data.next();
 
-    if (done ?? false) this.done = true;
-    else this.current = Flatten.toIterator(value);
+    if (done ?? false) {
+      this.done = true;
+    } else {
+      this.current = Flatten.toIterator(value);
+    }
   }
 
-  next (): Result<Flattened<T>> {
-    if (this.done) return doneResult();
+  next(): Result<Flattened<T>> {
+    if (this.done) {
+      return doneResult();
+    }
 
     const { done, value } = this.current.next();
 
@@ -367,8 +382,8 @@ class Flatten<T> extends BaseIter<Flattened<T>> {
     return { value };
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Flatten';
+  get [Symbol.toStringTag](): string {
+    return "Flatten";
   }
 }
 
@@ -376,14 +391,14 @@ class Inspect<T> extends BaseIter<T> {
   data: Iterator<T>;
   f: (value: T) => void;
 
-  constructor (data: Iterator<T>, f: (value: T) => void) {
+  constructor(data: Iterator<T>, f: (value: T) => void) {
     super();
 
     this.data = data;
     this.f = f;
   }
 
-  next (): CheckedResult<T> {
+  next(): CheckedResult<T> {
     const { done, value } = this.data.next();
 
     if (done ?? false) {
@@ -394,16 +409,17 @@ class Inspect<T> extends BaseIter<T> {
     }
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Inspect';
+  get [Symbol.toStringTag](): string {
+    return "Inspect";
   }
 }
 
+// rome-ignore lint: builtin Map is quite uncommon
 class Map<T, U> extends BaseIter<U> {
   data: Iterator<T>;
   f: (value: T) => U;
 
-  constructor (data: Iterator<T>, f: (value: T) => U) {
+  constructor(data: Iterator<T>, f: (value: T) => U) {
     super();
 
     this.data = data;
@@ -412,8 +428,8 @@ class Map<T, U> extends BaseIter<U> {
 
   next = (): CheckedResult<U> => mapResult(this.data.next(), this.f);
 
-  get [Symbol.toStringTag] (): string {
-    return 'Map';
+  get [Symbol.toStringTag](): string {
+    return "Map";
   }
 }
 
@@ -421,14 +437,14 @@ class Peekable<T> extends BaseIter<T> {
   data: Iterator<T>;
   peeked: Result<T> | undefined;
 
-  constructor (data: Iterator<T>) {
+  constructor(data: Iterator<T>) {
     super();
 
     this.data = data;
     this.peeked = undefined;
   }
 
-  next (): Result<T> {
+  next(): Result<T> {
     const current = this.peeked ?? this.data.next();
 
     this.peeked = undefined;
@@ -436,16 +452,18 @@ class Peekable<T> extends BaseIter<T> {
     return current;
   }
 
-  peek (): Result<T> {
-    if (this.peeked !== undefined) return this.peeked;
+  peek(): Result<T> {
+    if (this.peeked !== undefined) {
+      return this.peeked;
+    }
 
     const peek = this.data.next();
     this.peeked = peek;
     return peek;
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Peekable';
+  get [Symbol.toStringTag](): string {
+    return "Peekable";
   }
 }
 
@@ -455,14 +473,14 @@ class Skip<T> extends BaseIter<T> {
 
   skipped = false;
 
-  constructor (data: BaseIter<T>, n: number) {
+  constructor(data: BaseIter<T>, n: number) {
     super();
 
     this.data = data;
     this.target = n;
   }
 
-  next (): Result<T> {
+  next(): Result<T> {
     if (!this.skipped) {
       this.skipped = true;
       return toResult(this.data.nth(this.target));
@@ -471,8 +489,8 @@ class Skip<T> extends BaseIter<T> {
     return this.data.next();
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Skip';
+  get [Symbol.toStringTag](): string {
+    return "Skip";
   }
 }
 
@@ -482,23 +500,23 @@ class SkipWhile<T> extends BaseIter<T> {
 
   skipped = false;
 
-  constructor (data: BaseIter<T>, f: Predicate<T>) {
+  constructor(data: BaseIter<T>, f: Predicate<T>) {
     super();
     this.data = data;
     this.predicate = f;
   }
 
-  next (): Result<T> {
+  next(): Result<T> {
     if (!this.skipped) {
       this.skipped = true;
-      return toResult(this.data.find(x => !this.predicate(x)));
+      return toResult(this.data.find((x) => !this.predicate(x)));
     }
 
     return this.data.next();
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'SkipWhile';
+  get [Symbol.toStringTag](): string {
+    return "SkipWhile";
   }
 }
 
@@ -508,14 +526,14 @@ class StepBy<T> extends BaseIter<T> {
 
   first = true;
 
-  constructor (data: BaseIter<T>, step: number) {
+  constructor(data: BaseIter<T>, step: number) {
     super();
 
     this.data = data;
     this.step = step;
   }
 
-  next (): Result<T> {
+  next(): Result<T> {
     if (this.first) {
       this.first = false;
       return this.data.next();
@@ -524,8 +542,8 @@ class StepBy<T> extends BaseIter<T> {
     return toResult(this.data.nth(this.step - 1));
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'StepBy';
+  get [Symbol.toStringTag](): string {
+    return "StepBy";
   }
 }
 
@@ -535,7 +553,7 @@ class Take<T> extends BaseIter<T> {
 
   index = 0;
 
-  constructor (data: Iterator<T>, limit: number) {
+  constructor(data: Iterator<T>, limit: number) {
     super();
 
     this.data = data;
@@ -545,8 +563,8 @@ class Take<T> extends BaseIter<T> {
   next = (): Result<T> =>
     this.index++ < this.limit ? this.data.next() : doneResult();
 
-  get [Symbol.toStringTag] (): string {
-    return 'Take';
+  get [Symbol.toStringTag](): string {
+    return "Take";
   }
 }
 
@@ -556,7 +574,7 @@ class TakeWhile<T> extends BaseIter<T> {
 
   done = false;
 
-  constructor (data: Iterator<T>, f: Predicate<T>) {
+  constructor(data: Iterator<T>, f: Predicate<T>) {
     super();
 
     this.data = data;
@@ -578,8 +596,8 @@ class TakeWhile<T> extends BaseIter<T> {
     return doneResult();
   };
 
-  get [Symbol.toStringTag] (): string {
-    return 'TakeWhile';
+  get [Symbol.toStringTag](): string {
+    return "TakeWhile";
   }
 }
 
@@ -587,14 +605,14 @@ class Zip<T, U> extends BaseIter<Zipped<T, U>> {
   a: Iterator<T>;
   b: Iterator<U>;
 
-  constructor (data: Iterator<T>, zipped: Iterator<U>) {
+  constructor(data: Iterator<T>, zipped: Iterator<U>) {
     super();
 
     this.a = data;
     this.b = zipped;
   }
 
-  next (): CheckedResult<Zipped<T, U>> {
+  next(): CheckedResult<Zipped<T, U>> {
     const nextA = this.a.next();
     const nextB = this.b.next();
 
@@ -605,14 +623,14 @@ class Zip<T, U> extends BaseIter<Zipped<T, U>> {
     return { done: false, value: [nextA.value, nextB.value] as Zipped<T, U> };
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Zip';
+  get [Symbol.toStringTag](): string {
+    return "Zip";
   }
 }
 
-export function range (end: number): Range;
-export function range (start: number, end: number): Range;
-export function range (start: number, end: number, step: number): Range;
+export function range(end: number): Range;
+export function range(start: number, end: number): Range;
+export function range(start: number, end: number, step: number): Range;
 /**
  * returns generator, which yields numbers from min to max with defined step
  * if only min is specified, it yields numbers from 0 to min
@@ -621,7 +639,7 @@ export function range (start: number, end: number, step: number): Range;
  * @param {number} step
  * @returns {Range}
  */
-export function range (start: number, end?: number, step?: number): Range {
+export function range(start: number, end?: number, step?: number): Range {
   return new Range(start, end, step);
 }
 
@@ -634,7 +652,7 @@ class Range extends BaseIter<number> {
 
   i: number;
 
-  constructor (start: number, end?: number, step?: number) {
+  constructor(start: number, end?: number, step?: number) {
     super();
 
     if (end === undefined) {
@@ -648,14 +666,16 @@ class Range extends BaseIter<number> {
 
     this.step = step ?? 1;
 
-    if (this.step === 0) throw new Error("step can't be 0");
+    if (this.step === 0) {
+      throw new Error("step can't be 0");
+    }
 
     this.i = this.start;
 
     this.ascending = this.step > 0;
   }
 
-  next (): Result<number> {
+  next(): Result<number> {
     if (this.ascending ? this.i < this.end : this.i > this.end) {
       const { i, step } = this;
       this.i += step;
@@ -665,7 +685,7 @@ class Range extends BaseIter<number> {
     return doneResult();
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Range';
+  get [Symbol.toStringTag](): string {
+    return "Range";
   }
 }

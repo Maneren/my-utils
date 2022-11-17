@@ -4,7 +4,7 @@
  * @param milis miliseconds to wait
  */
 export const sleep = async (milis: number): Promise<void> =>
-  await new Promise(resolve => setTimeout(resolve, milis));
+  await new Promise((resolve) => setTimeout(resolve, milis));
 
 /**
  * returns random float from min to max.
@@ -12,10 +12,10 @@ export const sleep = async (milis: number): Promise<void> =>
  * @param min lower bound (inclusive)
  * @param max upper bound (exclusive)
  */
-export function randfloat (min: number): number;
-export function randfloat (min: number, max: number): number;
-export function randfloat (min: number, max?: number): number;
-export function randfloat (min: number, max?: number): number {
+export function randfloat(min: number): number;
+export function randfloat(min: number, max: number): number;
+export function randfloat(min: number, max?: number): number;
+export function randfloat(min: number, max?: number): number {
   // if max is not specified treat min as max
   if (max === undefined) {
     max = min;
@@ -23,7 +23,7 @@ export function randfloat (min: number, max?: number): number {
   }
 
   if (min > max) {
-    throw new Error('lower bound must be smaller than upper bound');
+    throw new Error("lower bound must be smaller than upper bound");
   }
 
   if (min === max) {
@@ -39,9 +39,9 @@ export function randfloat (min: number, max?: number): number {
  * @param min lower bound (inclusive)
  * @param max upper bound (exclusive)
  */
-export function randint (min: number): number;
-export function randint (min: number, max: number): number;
-export function randint (min: number, max?: number): number;
-export function randint (min: number, max?: number): number {
+export function randint(min: number): number;
+export function randint(min: number, max: number): number;
+export function randint(min: number, max?: number): number;
+export function randint(min: number, max?: number): number {
   return Math.floor(randfloat(min, max));
 }

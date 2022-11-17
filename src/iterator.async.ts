@@ -8,8 +8,8 @@ import {
   Result,
   CheckedResult,
   mapResult,
-  toResult
-} from './iterator';
+  toResult,
+} from "./iterator";
 
 export const asyncIter = <T>(data: AsyncIterable<T>): AsyncIter<T> =>
   new AsyncIter(data[Symbol.asyncIterator]());
@@ -29,7 +29,7 @@ export const from = <T>(f: () => T): From<T> => new From(f);
 
 export const mapAwaitResult = async <T, U>(
   { done, value }: Result<T>,
-  f: (value: T) => U
+  f: (value: T) => U,
 ): Promise<CheckedResult<Awaited<U>>> =>
   done ?? false
     ? { done: true, value: undefined }
@@ -37,18 +37,19 @@ export const mapAwaitResult = async <T, U>(
 
 export const doneResult = <T>(): CheckedResult<T> => ({
   done: true,
-  value: undefined
+  value: undefined,
 });
 
 export abstract class AsyncBaseIter<T>
-implements AsyncIterable<T>, AsyncIterator<T> {
-  abstract next (): Promise<Result<T>>;
+  implements AsyncIterable<T>, AsyncIterator<T>
+{
+  abstract next(): Promise<Result<T>>;
 
-  [Symbol.asyncIterator] (): AsyncIterableIterator<T> {
+  [Symbol.asyncIterator](): AsyncIterableIterator<T> {
     return this;
   }
 
-  abstract get [Symbol.toStringTag] (): string;
+  abstract get [Symbol.toStringTag](): string;
 
   await = (): Await<T> => new Await(this);
 
@@ -87,11 +88,13 @@ implements AsyncIterable<T>, AsyncIterator<T> {
     new Zip(this, other[Symbol.asyncIterator]());
 
   advanceBy = async (n: number): Promise<boolean> =>
-    await asyncRange(n).all(async _ => !((await this.next()).done ?? false));
+    await asyncRange(n).all(async (_) => !((await this.next()).done ?? false));
 
-  async all (f: AsyncPredicate<T>): Promise<boolean> {
+  async all(f: AsyncPredicate<T>): Promise<boolean> {
     for await (const value of this) {
-      if (!(await f(value))) return false;
+      if (!(await f(value))) {
+        return false;
+      }
     }
 
     return true;
@@ -103,13 +106,15 @@ implements AsyncIterable<T>, AsyncIterator<T> {
   collect = async (): Promise<T[]> =>
     await this.fold((acc, value) => [...acc, value], [] as T[]);
 
-  consume = async (): Promise<void> => await this.forEach(_ => {});
+  consume = async (): Promise<void> => await this.forEach((_) => {});
 
-  count = async (): Promise<number> => await this.fold(count => count + 1, 0);
+  count = async (): Promise<number> => await this.fold((count) => count + 1, 0);
 
-  async find (f: AsyncPredicate<T>): Promise<Option<T>> {
+  async find(f: AsyncPredicate<T>): Promise<Option<T>> {
     for await (const value of this) {
-      if (await f(value)) return value;
+      if (await f(value)) {
+        return value;
+      }
     }
 
     return undefined;
@@ -117,7 +122,7 @@ implements AsyncIterable<T>, AsyncIterator<T> {
 
   async fold<U>(
     f: (acc: U, current: T) => U | Promise<U>,
-    start: U
+    start: U,
   ): Promise<U> {
     let acc = start;
 
@@ -128,17 +133,19 @@ implements AsyncIterable<T>, AsyncIterator<T> {
     return acc;
   }
 
-  async forEach (f: (value: T) => void | Promise<void>): Promise<void> {
-    for await (const value of this) await f(value);
+  async forEach(f: (value: T) => void | Promise<void>): Promise<void> {
+    for await (const value of this) {
+      await f(value);
+    }
   }
 
-  async join (separator = ''): Promise<string> {
-    const iter = this.map(value => String(value));
+  async join(separator = ""): Promise<string> {
+    const iter = this.map((value) => String(value));
 
     const { done, value } = await iter.next();
 
     return done
-      ? ''
+      ? ""
       : await iter.fold((result, value) => result + separator + value, value);
   }
 
@@ -159,12 +166,14 @@ implements AsyncIterable<T>, AsyncIterator<T> {
 
         return [left, right];
       },
-      [[], []]
+      [[], []],
     );
 
-  async some (f: AsyncPredicate<T>): Promise<boolean> {
+  async some(f: AsyncPredicate<T>): Promise<boolean> {
     for await (const value of this) {
-      if (await f(value)) return true;
+      if (await f(value)) {
+        return true;
+      }
     }
 
     return false;
@@ -177,7 +186,7 @@ export class AsyncIter<T> extends AsyncBaseIter<T> {
   data: AsyncIterator<T>;
 
   static fromSync<T>(data: Iterable<Promise<T>> | Iterable<T>): AsyncIter<T> {
-    async function * generator (): AsyncIterable<T> {
+    async function* generator(): AsyncIterable<T> {
       for (const value of data) {
         yield await value;
       }
@@ -186,23 +195,23 @@ export class AsyncIter<T> extends AsyncBaseIter<T> {
     return new AsyncIter(generator()[Symbol.asyncIterator]());
   }
 
-  constructor (data: AsyncIterator<T>) {
+  constructor(data: AsyncIterator<T>) {
     super();
     this.data = data;
   }
 
   next = async (): Promise<Result<T>> => await this.data.next();
 
-  get [Symbol.toStringTag] (): string {
-    return 'AsyncIter';
+  get [Symbol.toStringTag](): string {
+    return "AsyncIter";
   }
 }
 
 class Empty<T> extends AsyncBaseIter<T> {
   next = async (): Promise<CheckedResult<T>> => doneResult();
 
-  get [Symbol.toStringTag] (): string {
-    return 'Empty';
+  get [Symbol.toStringTag](): string {
+    return "Empty";
   }
 }
 
@@ -211,74 +220,76 @@ class Once<T> extends AsyncBaseIter<T> {
 
   done = false;
 
-  constructor (item: T) {
+  constructor(item: T) {
     super();
     this.item = item;
   }
 
-  async next (): Promise<CheckedResult<T>> {
-    if (this.done) return doneResult();
+  async next(): Promise<CheckedResult<T>> {
+    if (this.done) {
+      return doneResult();
+    }
 
     this.done = true;
 
     return { done: false, value: this.item };
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Once';
+  get [Symbol.toStringTag](): string {
+    return "Once";
   }
 }
 
 class Repeat<T> extends AsyncBaseIter<T> {
   item: T;
 
-  constructor (item: T) {
+  constructor(item: T) {
     super();
     this.item = item;
   }
 
   next = async (): Promise<CheckedResult<T>> => ({
     done: false,
-    value: this.item
+    value: this.item,
   });
 
-  get [Symbol.toStringTag] (): string {
-    return 'Repeat';
+  get [Symbol.toStringTag](): string {
+    return "Repeat";
   }
 }
 
 class From<T> extends AsyncBaseIter<T> {
   f: () => T;
 
-  constructor (f: () => T) {
+  constructor(f: () => T) {
     super();
     this.f = f;
   }
 
   next = async (): Promise<CheckedResult<T>> => ({
     done: false,
-    value: this.f()
+    value: this.f(),
   });
 
-  get [Symbol.toStringTag] (): string {
-    return 'From';
+  get [Symbol.toStringTag](): string {
+    return "From";
   }
 }
 
 class Await<T> extends AsyncBaseIter<Awaited<T>> {
   data: AsyncIterator<T>;
 
-  constructor (data: AsyncIterator<T>) {
+  constructor(data: AsyncIterator<T>) {
     super();
 
     this.data = data;
   }
 
   next = async (): Promise<CheckedResult<Awaited<T>>> =>
-    await mapAwaitResult(await this.data.next(), value => value);
+    await mapAwaitResult(await this.data.next(), (value) => value);
 
-  get [Symbol.toStringTag] (): string {
-    return 'Await';
+  get [Symbol.toStringTag](): string {
+    return "Await";
   }
 }
 
@@ -287,7 +298,7 @@ class Enumerate<T> extends AsyncBaseIter<Enumerated<T>> {
 
   i = 0;
 
-  constructor (data: AsyncIterator<T>) {
+  constructor(data: AsyncIterator<T>) {
     super();
 
     this.data = data;
@@ -296,11 +307,11 @@ class Enumerate<T> extends AsyncBaseIter<Enumerated<T>> {
   next = async (): Promise<CheckedResult<Enumerated<T>>> =>
     mapResult(
       await this.data.next(),
-      value => [this.i++, value] as Enumerated<T>
+      (value) => [this.i++, value] as Enumerated<T>,
     );
 
-  get [Symbol.toStringTag] (): string {
-    return 'Enumerate';
+  get [Symbol.toStringTag](): string {
+    return "Enumerate";
   }
 }
 
@@ -308,14 +319,14 @@ class Chain<T> extends AsyncBaseIter<T> {
   a: AsyncIterator<T>;
   b: AsyncIterator<T>;
 
-  constructor (data: AsyncIterator<T>, extension: AsyncIterator<T>) {
+  constructor(data: AsyncIterator<T>, extension: AsyncIterator<T>) {
     super();
 
     this.a = data;
     this.b = extension;
   }
 
-  async next (): Promise<Result<T>> {
+  async next(): Promise<Result<T>> {
     const { done, value } = await this.a.next();
 
     if (done ?? false) {
@@ -325,8 +336,8 @@ class Chain<T> extends AsyncBaseIter<T> {
     return { done, value };
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Chain';
+  get [Symbol.toStringTag](): string {
+    return "Chain";
   }
 }
 
@@ -334,7 +345,7 @@ class Filter<T> extends AsyncBaseIter<T> {
   data: AsyncBaseIter<T>;
   predicate: AsyncPredicate<T>;
 
-  constructor (data: AsyncBaseIter<T>, f: AsyncPredicate<T>) {
+  constructor(data: AsyncBaseIter<T>, f: AsyncPredicate<T>) {
     super();
 
     this.data = data;
@@ -344,8 +355,8 @@ class Filter<T> extends AsyncBaseIter<T> {
   next = async (): Promise<CheckedResult<T>> =>
     toResult(await this.data.find(this.predicate));
 
-  get [Symbol.toStringTag] (): string {
-    return 'Filter';
+  get [Symbol.toStringTag](): string {
+    return "Filter";
   }
 }
 
@@ -354,10 +365,10 @@ class FilterMap<T, U> extends AsyncBaseIter<U> {
   predicate: AsyncPredicate<T>;
   f: (value: T) => U;
 
-  constructor (
+  constructor(
     data: AsyncBaseIter<T>,
     p: AsyncPredicate<T>,
-    f: (value: T) => U
+    f: (value: T) => U,
   ) {
     super();
 
@@ -369,16 +380,16 @@ class FilterMap<T, U> extends AsyncBaseIter<U> {
   next = async (): Promise<CheckedResult<U>> =>
     mapResult(toResult(await this.data.find(this.predicate)), this.f);
 
-  get [Symbol.toStringTag] (): string {
-    return 'FilterMap';
+  get [Symbol.toStringTag](): string {
+    return "FilterMap";
   }
 }
 
 type Flattened<T> = T extends Iterable<infer F>
   ? F
   : T extends AsyncIterable<infer F>
-    ? F
-    : never;
+  ? F
+  : never;
 
 class Flatten<T> extends AsyncBaseIter<Flattened<T>> {
   data: AsyncIterator<T>;
@@ -387,7 +398,7 @@ class Flatten<T> extends AsyncBaseIter<Flattened<T>> {
   done = false;
 
   private static readonly toIterator = <U>(
-    value: U | Iterable<U> | AsyncIterable<U>
+    value: U | Iterable<U> | AsyncIterable<U>,
   ): AsyncIterator<Flattened<U>> => {
     if (Flatten.isIterable(value)) {
       return AsyncIter.fromSync(value) as AsyncIterator<Flattened<U>>;
@@ -399,21 +410,21 @@ class Flatten<T> extends AsyncBaseIter<Flattened<T>> {
   };
 
   private static readonly isAsyncIterable = <U>(
-    value: U | AsyncIterable<U>
+    value: U | AsyncIterable<U>,
   ): value is AsyncIterable<U> =>
     Symbol.asyncIterator in (Object(value) as AsyncIterable<U>);
 
   private static readonly isIterable = <U>(
-    value: U | Iterable<U>
+    value: U | Iterable<U>,
   ): value is Iterable<U> => Symbol.iterator in (Object(value) as Iterable<U>);
 
-  constructor (data: AsyncIterator<T>) {
+  constructor(data: AsyncIterator<T>) {
     super();
 
     this.data = data;
   }
 
-  private async nextIter (): Promise<void> {
+  private async nextIter(): Promise<void> {
     const { done, value } = await this.data.next();
 
     if (done ?? false) {
@@ -423,7 +434,7 @@ class Flatten<T> extends AsyncBaseIter<Flattened<T>> {
     }
   }
 
-  async next (): Promise<CheckedResult<Flattened<T>>> {
+  async next(): Promise<CheckedResult<Flattened<T>>> {
     if (this.done) {
       return doneResult();
     }
@@ -439,8 +450,8 @@ class Flatten<T> extends AsyncBaseIter<Flattened<T>> {
     return { done: false, value };
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Flatten';
+  get [Symbol.toStringTag](): string {
+    return "Flatten";
   }
 }
 
@@ -448,14 +459,14 @@ class Inspect<T> extends AsyncBaseIter<T> {
   data: AsyncIterator<T>;
   f: (value: T) => void;
 
-  constructor (data: AsyncIterator<T>, f: (value: T) => void) {
+  constructor(data: AsyncIterator<T>, f: (value: T) => void) {
     super();
 
     this.data = data;
     this.f = f;
   }
 
-  async next (): Promise<CheckedResult<T>> {
+  async next(): Promise<CheckedResult<T>> {
     const { done, value } = await this.data.next();
 
     if (done ?? false) {
@@ -466,16 +477,17 @@ class Inspect<T> extends AsyncBaseIter<T> {
     }
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Inspect';
+  get [Symbol.toStringTag](): string {
+    return "Inspect";
   }
 }
 
+// rome-ignore lint: builtin Map is quite uncommon
 class Map<T, U> extends AsyncBaseIter<U> {
   data: AsyncIterator<T>;
   f: (value: T) => U;
 
-  constructor (data: AsyncIterator<T>, f: (value: T) => U) {
+  constructor(data: AsyncIterator<T>, f: (value: T) => U) {
     super();
 
     this.data = data;
@@ -485,8 +497,8 @@ class Map<T, U> extends AsyncBaseIter<U> {
   next = async (): Promise<CheckedResult<U>> =>
     mapResult(await this.data.next(), this.f);
 
-  get [Symbol.toStringTag] (): string {
-    return 'Map';
+  get [Symbol.toStringTag](): string {
+    return "Map";
   }
 }
 
@@ -494,7 +506,7 @@ class MapAwait<T, U> extends AsyncBaseIter<U> {
   data: AsyncIterator<T>;
   f: (value: T) => Promise<U>;
 
-  constructor (data: AsyncIterator<T>, f: (value: T) => Promise<U>) {
+  constructor(data: AsyncIterator<T>, f: (value: T) => Promise<U>) {
     super();
 
     this.data = data;
@@ -509,8 +521,8 @@ class MapAwait<T, U> extends AsyncBaseIter<U> {
       : { done: false, value: await this.f(value) };
   };
 
-  get [Symbol.toStringTag] (): string {
-    return 'MapAwait';
+  get [Symbol.toStringTag](): string {
+    return "MapAwait";
   }
 }
 
@@ -518,14 +530,14 @@ class Peekable<T> extends AsyncBaseIter<T> {
   data: AsyncIterator<T>;
   peeked: Result<T> | undefined;
 
-  constructor (data: AsyncIterator<T>) {
+  constructor(data: AsyncIterator<T>) {
     super();
 
     this.data = data;
     this.peeked = undefined;
   }
 
-  async next (): Promise<Result<T>> {
+  async next(): Promise<Result<T>> {
     const current = this.peeked ?? (await this.data.next());
 
     this.peeked = undefined;
@@ -533,16 +545,18 @@ class Peekable<T> extends AsyncBaseIter<T> {
     return current;
   }
 
-  async peek (): Promise<Result<T>> {
-    if (this.peeked !== undefined) return this.peeked;
+  async peek(): Promise<Result<T>> {
+    if (this.peeked !== undefined) {
+      return this.peeked;
+    }
 
     const peek = await this.data.next();
     this.peeked = peek;
     return peek;
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Peekable';
+  get [Symbol.toStringTag](): string {
+    return "Peekable";
   }
 }
 
@@ -552,14 +566,14 @@ class Skip<T> extends AsyncBaseIter<T> {
 
   skipped = false;
 
-  constructor (data: AsyncBaseIter<T>, n: number) {
+  constructor(data: AsyncBaseIter<T>, n: number) {
     super();
 
     this.data = data;
     this.target = n;
   }
 
-  async next (): Promise<Result<T>> {
+  async next(): Promise<Result<T>> {
     if (!this.skipped) {
       this.skipped = true;
       return toResult(await this.data.nth(this.target));
@@ -568,8 +582,8 @@ class Skip<T> extends AsyncBaseIter<T> {
     return await this.data.next();
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Skip';
+  get [Symbol.toStringTag](): string {
+    return "Skip";
   }
 }
 
@@ -579,25 +593,25 @@ class SkipWhile<T> extends AsyncBaseIter<T> {
 
   skipped = false;
 
-  constructor (data: AsyncBaseIter<T>, f: AsyncPredicate<T>) {
+  constructor(data: AsyncBaseIter<T>, f: AsyncPredicate<T>) {
     super();
     this.data = data;
     this.predicate = f;
   }
 
-  async next (): Promise<Result<T>> {
+  async next(): Promise<Result<T>> {
     if (!this.skipped) {
       this.skipped = true;
       return toResult(
-        await this.data.find(async x => !(await this.predicate(x)))
+        await this.data.find(async (x) => !(await this.predicate(x))),
       );
     }
 
     return await this.data.next();
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'SkipWhile';
+  get [Symbol.toStringTag](): string {
+    return "SkipWhile";
   }
 }
 
@@ -607,14 +621,14 @@ class StepBy<T> extends AsyncBaseIter<T> {
 
   first = true;
 
-  constructor (data: AsyncBaseIter<T>, step: number) {
+  constructor(data: AsyncBaseIter<T>, step: number) {
     super();
 
     this.data = data;
     this.step = step;
   }
 
-  async next (): Promise<Result<T>> {
+  async next(): Promise<Result<T>> {
     if (this.first) {
       this.first = false;
       return await this.data.next();
@@ -623,8 +637,8 @@ class StepBy<T> extends AsyncBaseIter<T> {
     return toResult(await this.data.nth(this.step - 1));
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'StepBy';
+  get [Symbol.toStringTag](): string {
+    return "StepBy";
   }
 }
 
@@ -634,7 +648,7 @@ class Take<T> extends AsyncBaseIter<T> {
 
   index = 0;
 
-  constructor (data: AsyncIterator<T>, limit: number) {
+  constructor(data: AsyncIterator<T>, limit: number) {
     super();
 
     this.data = data;
@@ -644,8 +658,8 @@ class Take<T> extends AsyncBaseIter<T> {
   next = async (): Promise<Result<T>> =>
     this.index++ < this.limit ? await this.data.next() : doneResult();
 
-  get [Symbol.toStringTag] (): string {
-    return 'Take';
+  get [Symbol.toStringTag](): string {
+    return "Take";
   }
 }
 
@@ -655,7 +669,7 @@ class TakeWhile<T> extends AsyncBaseIter<T> {
 
   done = false;
 
-  constructor (data: AsyncIterator<T>, f: AsyncPredicate<T>) {
+  constructor(data: AsyncIterator<T>, f: AsyncPredicate<T>) {
     super();
 
     this.data = data;
@@ -677,8 +691,8 @@ class TakeWhile<T> extends AsyncBaseIter<T> {
     return doneResult();
   };
 
-  get [Symbol.toStringTag] (): string {
-    return 'TakeWhile';
+  get [Symbol.toStringTag](): string {
+    return "TakeWhile";
   }
 }
 
@@ -686,14 +700,14 @@ class Zip<T, U> extends AsyncBaseIter<Zipped<T, U>> {
   a: AsyncIterator<T>;
   b: AsyncIterator<U>;
 
-  constructor (data: AsyncIterator<T>, zipped: AsyncIterator<U>) {
+  constructor(data: AsyncIterator<T>, zipped: AsyncIterator<U>) {
     super();
 
     this.a = data;
     this.b = zipped;
   }
 
-  async next (): Promise<CheckedResult<Zipped<T, U>>> {
+  async next(): Promise<CheckedResult<Zipped<T, U>>> {
     const nextA = await this.a.next();
     const nextB = await this.b.next();
 
@@ -704,8 +718,8 @@ class Zip<T, U> extends AsyncBaseIter<Zipped<T, U>> {
     return { done: false, value: [nextA.value, nextB.value] as Zipped<T, U> };
   }
 
-  get [Symbol.toStringTag] (): string {
-    return 'Zip';
+  get [Symbol.toStringTag](): string {
+    return "Zip";
   }
 }
 

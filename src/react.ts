@@ -1,32 +1,32 @@
 interface RequireContext {
-  keys: () => string[]
-  (file: string): string
+  keys: () => string[];
+  (file: string): string;
 }
 
 interface Modules {
-  [index: string]: string
+  [index: string]: string;
 }
 
 /**
  * Return last segment of path
  */
-const basename = (path: string): string => path.split('/').pop() as string;
+const basename = (path: string): string => path.split("/").pop() as string;
 
 /**
  * Return file name without extension
  */
-function withoutExtension (path: string): string {
+function withoutExtension(path: string): string {
   const filename = basename(path);
 
-  const splitted = filename.split('.');
+  const splitted = filename.split(".");
 
-  const expectedLength = filename.startsWith('.') ? 2 : 1;
+  const expectedLength = filename.startsWith(".") ? 2 : 1;
 
   if (splitted.length > expectedLength) {
     splitted.pop();
   }
 
-  return splitted.join('.');
+  return splitted.join(".");
 }
 
 /**
@@ -38,10 +38,10 @@ function withoutExtension (path: string): string {
  * @param preservePath if the original file paths should be preserved, othereise only the filename is used
  * @returns object mapping project files to bundled files, eg. `{ "../assets/file": "./static/file.abcvzjh.jpg" }`
  */
-export function importAll (
+export function importAll(
   requireContext: RequireContext,
   preserveExtensions = false,
-  preservePath = false
+  preservePath = false,
 ): Modules {
   const modules: Modules = {};
 
@@ -63,7 +63,7 @@ export function importAll (
 }
 
 interface Styles {
-  [index: string]: string
+  [index: string]: string;
 }
 
 /**
@@ -78,7 +78,7 @@ export const classListBuilder =
    * @param classNames CSS classes either as `string[]` or `string`, which will be splitted on spaces
    * @returns string with CSS class names from the bundle
    */
-    (classNames: string | string[]): string =>
-      (Array.isArray(classNames) ? classNames : classNames.split(' '))
-        .map(x => styles[x] ?? x)
-        .join(' ');
+  (classNames: string | string[]): string =>
+    (Array.isArray(classNames) ? classNames : classNames.split(" "))
+      .map((x) => styles[x] ?? x)
+      .join(" ");
