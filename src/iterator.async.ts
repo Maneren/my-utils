@@ -128,7 +128,7 @@ implements AsyncIterable<T>, AsyncIterator<T> {
     return acc;
   }
 
-  async forEach (f: (value: T) => void): Promise<void> {
+  async forEach (f: (value: T) => void | Promise<void>): Promise<void> {
     for await (const value of this) await f(value);
   }
 
