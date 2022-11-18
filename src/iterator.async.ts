@@ -103,8 +103,13 @@ export abstract class AsyncBaseIter<T>
   /**
    * creates new array from the values of the AsyncIterator
    */
-  collect = async (): Promise<T[]> =>
-    await this.fold((acc, value) => [...acc, value], [] as T[]);
+  collect = async (): Promise<T[]> => {
+    let output = [];
+    for await (let x of this) {
+      output.push(x);
+    }
+    return output;
+  };
 
   consume = async (): Promise<void> => await this.forEach((_) => {});
 
