@@ -528,6 +528,20 @@ test("incomplete iterator protocol", async () => {
     };
   }
 
+  function generatorOfIcompleteGenerators(
+    n: number,
+  ): AsyncIterable<AsyncIterable<number>> {
+    let i = 0;
+    return {
+      [Symbol.asyncIterator]: () => ({
+        next: async () =>
+          i >= n
+            ? { done: true, value: undefined }
+            : { value: incompleteGenerator(++i) },
+      }),
+    };
+  }
+
   let iterator;
 
   iterator = asyncIter(incompleteGenerator(4));
@@ -536,6 +550,25 @@ test("incomplete iterator protocol", async () => {
   iterator = asyncIter(incompleteGenerator(4));
   await iterator.advanceBy(2);
   await expectCollected(iterator, [2, 3]);
+
+  iterator = asyncIter(incompleteGenerator(2)).chain(incompleteGenerator(2));
+  await expectCollected(iterator, [0, 1, 0, 1]);
+
+  iterator = once(incompleteGenerator(5)).flatten();
+  expectCollected(iterator, [0, 1, 2, 3, 4]);
+
+  iterator = asyncIter(generatorOfIcompleteGenerators(3)).flatten();
+  expectCollected(iterator, [0, 0, 1, 0, 1, 2]);
+
+  const fn = jest.fn();
+  iterator = asyncIter(incompleteGenerator(4)).inspect(fn);
+  await expectCollected(iterator, [0, 1, 2, 3]);
+  expect(fn.mock.calls).toMatchObject([[0], [1], [2], [3]]);
+
+  iterator = asyncIter(incompleteGenerator(4)).mapAwait(
+    (x) => new Promise((res) => res(x * 2)),
+  );
+  await expectCollected(iterator, [0, 2, 4, 6]);
 
   iterator = asyncIter(incompleteGenerator(4)).peekable();
   await expectCollected(iterator, [0, 1, 2, 3]);
@@ -548,6 +581,9 @@ test("incomplete iterator protocol", async () => {
 
   iterator = asyncIter(incompleteGenerator(5)).stepBy(2);
   await expectCollected(iterator, [0, 2, 4]);
+
+  iterator = asyncIter(incompleteGenerator(4)).takeWhile((x) => x < 6);
+  await expectCollected(iterator, [0, 1, 2, 3]);
 
   iterator = asyncIter(incompleteGenerator(3));
   const iterator2 = incompleteGenerator(3);
