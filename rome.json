@@ -2,11 +2,21 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "correctness": {
+        "noUnusedVariables": "warn"
+      }
     }
   },
   "formatter": {
     "indentStyle": "space",
     "formatWithErrors": true
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "trailingComma": "all",
+      "quoteProperties": "asNeeded"
+    }
   }
 }
