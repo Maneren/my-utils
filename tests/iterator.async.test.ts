@@ -297,9 +297,9 @@ test("skip", async () => {
 
   const skipped = fromSync(data).skip(5);
 
-  await expectCollected(await fromSync(data).skip(2), [2, 3]);
-  await expectCollected(await fromSync(data).skip(0), [0, 1, 2, 3]);
-  await expectIsEmpty(await skipped);
+  await expectCollected(fromSync(data).skip(2), [2, 3]);
+  await expectCollected(fromSync(data).skip(0), [0, 1, 2, 3]);
+  await expectIsEmpty(skipped);
 
   expect(String(skipped)).toBe("[object Skip]");
 });
@@ -365,14 +365,14 @@ test("zip", async () => {
 
   const zipped = fromSync(data).zip(data2);
 
-  await expectCollected(await zipped, [
+  await expectCollected(zipped, [
     [0, 2],
     [1, 3],
   ]);
 
   const data3 = fromSync([2]);
 
-  await expectCollected(await fromSync(data).zip(data3), [[0, 2]]);
+  await expectCollected(fromSync(data).zip(data3), [[0, 2]]);
 
   expect(String(zipped)).toBe("[object Zip]");
 });
