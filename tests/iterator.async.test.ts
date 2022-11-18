@@ -234,6 +234,12 @@ test("flatten", async () => {
   await expectCollected(flattened, [0, 1, 2, [3, 4], 5]);
 
   expect(String(flattened)).toBe("[object Flatten]");
+
+  const data2 = fromSync([0, fromSync([1, 2, [3, 4]]), 5]);
+
+  const flattened2 = data2.flatten();
+
+  await expectCollected(flattened2, [0, 1, 2, [3, 4], 5]);
 });
 
 test("inspect", async () => {
