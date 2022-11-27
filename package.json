@@ -48,7 +48,6 @@
     "rome": "10.0.1"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ]
 }
