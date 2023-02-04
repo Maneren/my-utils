@@ -62,7 +62,7 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
 
   flatten = (): Flatten<T> => new Flatten(this);
 
-  inspect = (f: (value: any) => void): Inspect<T> => new Inspect(this, f);
+  inspect = (f: (value: T) => void): Inspect<T> => new Inspect(this, f);
 
   map = <U>(f: (value: T) => U): Map<T, U> => new Map(this, f);
 

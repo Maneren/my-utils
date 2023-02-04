@@ -30,7 +30,7 @@ export function shuffle<T>(array: T[]): T[] {
 /**
  * returns last index of an array
  */
-export function lastIndex(array: any[]): number {
+export function lastIndex<T>(array: T[]): number {
   return array.length - 1;
 }
 
@@ -44,7 +44,7 @@ export function last<T>(array: T[]): T {
 /**
  * return random index from an array
  */
-export function randomIndex(array: any[]): number {
+export function randomIndex<T>(array: T[]): number {
   return Math.floor(Math.random() * array.length);
 }
 

@@ -1,7 +1,16 @@
 import { importAll, classListBuilder } from "../src/react";
 
 describe("importAll", () => {
-  const context = (data: { [id: string]: string }): any => {
+  interface RequireContext {
+    keys: () => string[];
+    (file: string): string;
+  }
+
+  interface Modules {
+    [index: string]: string;
+  }
+
+  const context = (data: Modules): RequireContext => {
     const context = (id: string): string => data[id];
     context.keys = () => Object.keys(data);
     return context;
