@@ -317,6 +317,12 @@ test("skip", async () => {
   await expectCollected(fromSync(data).skip(0), [0, 1, 2, 3]);
   await expectIsEmpty(skipped);
 
+  // check short-circuiting
+  const iterator = fromSync(data);
+  const spy = jest.spyOn(iterator, "next");
+  await iterator.skip(10).consume();
+  expect(spy).toHaveBeenCalledTimes(5);
+
   expect(String(skipped)).toBe("[object Skip]");
 });
 
