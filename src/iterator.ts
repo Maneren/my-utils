@@ -5,11 +5,8 @@ export const wrapIter = <T>(iterator: Iterator<T>): Iter<T> =>
   new Iter(iterator);
 
 export const empty = <T>(): Empty<T> => new Empty();
-
 export const once = <T>(value: T): Once<T> => new Once(value);
-
 export const repeat = <T>(value: T): Repeat<T> => new Repeat(value);
-
 export const from = <T>(f: () => T): From<T> => new From(f);
 
 export type Predicate<T> = (value: T) => boolean;
@@ -154,7 +151,7 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
     return partitions;
   };
 
-  some(f: Predicate<T>): boolean {
+  some = (f: Predicate<T>): boolean => {
     for (const value of this) {
       if (f(value)) {
         return true;
@@ -162,7 +159,7 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
     }
 
     return false;
-  }
+  };
 }
 
 export class Iter<T> extends BaseIter<T> {

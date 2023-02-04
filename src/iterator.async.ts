@@ -20,11 +20,8 @@ export const wrapAsyncIter = <T>(iterator: AsyncIterator<T>): AsyncIter<T> =>
 type AsyncPredicate<T> = (value: T) => boolean | Promise<boolean>;
 
 export const empty = <T>(): Empty<T> => new Empty();
-
 export const once = <T>(value: T): Once<T> => new Once(value);
-
 export const repeat = <T>(value: T): Repeat<T> => new Repeat(value);
-
 export const from = <T>(f: () => T): From<T> => new From(f);
 
 export const mapAwaitResult = async <T, U>(
@@ -170,7 +167,7 @@ export abstract class AsyncBaseIter<T>
     return partitions;
   };
 
-  async some(f: AsyncPredicate<T>): Promise<boolean> {
+  some = async (f: AsyncPredicate<T>): Promise<boolean> => {
     for await (const value of this) {
       if (await f(value)) {
         return true;
@@ -178,7 +175,7 @@ export abstract class AsyncBaseIter<T>
     }
 
     return false;
-  }
+  };
 
   toSync = async (): Promise<Iter<T>> => iter(await this.collect());
 }
