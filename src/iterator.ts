@@ -144,19 +144,15 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
   nth = (n: number): Option<T> =>
     this.advanceBy(n) ? this.next().value : undefined;
 
-  partition = (f: Predicate<T>): [T[], T[]] =>
-    this.fold<[T[], T[]]>(
-      ([left, right], value) => {
-        if (f(value)) {
-          left.push(value);
-        } else {
-          right.push(value);
-        }
+  partition = (f: Predicate<T>): [T[], T[]] => {
+    const partitions = [[], []] as [T[], T[]];
 
-        return [left, right];
-      },
-      [[], []],
-    );
+    this.forEach((value) => {
+      partitions[+!f(value)].push(value);
+    });
+
+    return partitions;
+  };
 
   some(f: Predicate<T>): boolean {
     for (const value of this) {

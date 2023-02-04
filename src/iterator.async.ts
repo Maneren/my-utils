@@ -160,19 +160,15 @@ export abstract class AsyncBaseIter<T>
   nth = async (n: number): Promise<Option<T>> =>
     (await this.advanceBy(n)) ? (await this.next()).value : undefined;
 
-  partition = async (f: AsyncPredicate<T>): Promise<[T[], T[]]> =>
-    await this.fold<[T[], T[]]>(
-      async ([left, right], value) => {
-        if (await f(value)) {
-          left.push(value);
-        } else {
-          right.push(value);
-        }
+  partition = async (f: AsyncPredicate<T>): Promise<[T[], T[]]> => {
+    const partitions = [[], []] as [T[], T[]];
 
-        return [left, right];
-      },
-      [[], []],
-    );
+    await this.forEach(async (value) => {
+      partitions[+!(await f(value))].push(value);
+    });
+
+    return partitions;
+  };
 
   async some(f: AsyncPredicate<T>): Promise<boolean> {
     for await (const value of this) {
