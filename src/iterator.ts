@@ -59,6 +59,9 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
 
   flatten = (): Flatten<T> => new Flatten(this);
 
+  flatMap = <U>(f: (value: Flattened<T>) => U): FlatMap<T, U> =>
+    new FlatMap(this, f);
+
   inspect = (f: (value: T) => void): Inspect<T> => new Inspect(this, f);
 
   map = <U>(f: (value: T) => U): Map<T, U> => new Map(this, f);
@@ -332,7 +335,7 @@ class Flatten<T> extends BaseIter<Flattened<T>> {
 
   done = false;
 
-  private static readonly toIterator = <U>(
+  static readonly toIterator = <U>(
     value: U | Iterable<U>,
   ): Iterator<Flattened<U>> =>
     Flatten.isIterable(value)
@@ -377,6 +380,52 @@ class Flatten<T> extends BaseIter<Flattened<T>> {
 
   get [Symbol.toStringTag](): string {
     return "Flatten";
+  }
+}
+
+class FlatMap<T, U> extends BaseIter<U> {
+  data: Iterator<T>;
+  current: Iterator<Flattened<T>> = new Empty();
+
+  f: (value: Flattened<T>) => U;
+
+  done = false;
+
+  constructor(data: Iterator<T>, f: (value: Flattened<T>) => U) {
+    super();
+
+    this.data = data;
+    this.f = f;
+  }
+
+  private nextIter(): void {
+    const { done, value } = this.data.next();
+
+    if (done ?? false) {
+      this.done = true;
+    } else {
+      this.current = Flatten.toIterator(value);
+    }
+  }
+
+  next(): Result<U> {
+    if (this.done) {
+      return doneResult();
+    }
+
+    const { done, value } = this.current.next();
+
+    if (done ?? false) {
+      this.nextIter();
+
+      return this.next();
+    }
+
+    return { value: this.f(value) };
+  }
+
+  get [Symbol.toStringTag](): string {
+    return "FlatMap";
   }
 }
 

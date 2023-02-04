@@ -62,6 +62,9 @@ export abstract class AsyncBaseIter<T>
 
   flatten = (): Flatten<T> => new Flatten(this);
 
+  flatMap = <U>(f: (value: Flattened<T>) => U): FlatMap<T, U> =>
+    new FlatMap(this, f);
+
   inspect = (f: (value: T) => void): Inspect<T> => new Inspect(this, f);
 
   map = <U>(f: (value: T) => U): Map<T, U> => new Map(this, f);
@@ -395,7 +398,7 @@ class Flatten<T> extends AsyncBaseIter<Flattened<T>> {
 
   done = false;
 
-  private static readonly toIterator = <U>(
+  static readonly toIterator = <U>(
     value: U | Iterable<U> | AsyncIterable<U>,
   ): AsyncIterator<Flattened<U>> => {
     if (Flatten.isIterable(value)) {
@@ -450,6 +453,52 @@ class Flatten<T> extends AsyncBaseIter<Flattened<T>> {
 
   get [Symbol.toStringTag](): string {
     return "Flatten";
+  }
+}
+
+class FlatMap<T, U> extends AsyncBaseIter<U> {
+  data: AsyncIterator<T>;
+  current: AsyncIterator<Flattened<T>> = new Empty();
+
+  f: (value: Flattened<T>) => U;
+
+  done = false;
+
+  constructor(data: AsyncIterator<T>, f: (value: Flattened<T>) => U) {
+    super();
+
+    this.data = data;
+    this.f = f;
+  }
+
+  private async nextIter(): Promise<void> {
+    const { done, value } = await this.data.next();
+
+    if (done ?? false) {
+      this.done = true;
+    } else {
+      this.current = Flatten.toIterator(value);
+    }
+  }
+
+  async next(): Promise<Result<U>> {
+    if (this.done) {
+      return doneResult();
+    }
+
+    const { done, value } = await this.current.next();
+
+    if (done ?? false) {
+      await this.nextIter();
+
+      return this.next();
+    }
+
+    return { value: this.f(value) };
+  }
+
+  get [Symbol.toStringTag](): string {
+    return "FlatMap";
   }
 }
 
