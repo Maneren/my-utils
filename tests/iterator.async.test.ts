@@ -571,10 +571,11 @@ test("incomplete iterator protocol", async () => {
   await expectCollected(iterator, [0, 1, 0, 1]);
 
   iterator = once(incompleteGenerator(5)).flatten();
-  expectCollected(iterator, [0, 1, 2, 3, 4]);
+  await expectCollected(iterator, [0, 1, 2, 3, 4]);
 
   iterator = asyncIter(generatorOfIcompleteGenerators(3)).flatten();
-  expectCollected(iterator, [0, 0, 1, 0, 1, 2]);
+  await expectCollected(iterator, [0, 0, 1, 0, 1, 2]);
+
   iterator = asyncIter(generatorOfIcompleteGenerators(3)).flatMap((x) => x + 1);
   await expectCollected(iterator, [1, 1, 2, 1, 2, 3]);
 
