@@ -481,7 +481,7 @@ class FlatMap<T, U> extends AsyncBaseIter<U> {
     }
   }
 
-  async next(): Promise<Result<U>> {
+  async next(): Promise<CheckedResult<U>> {
     if (this.done) {
       return doneResult();
     }
@@ -494,7 +494,7 @@ class FlatMap<T, U> extends AsyncBaseIter<U> {
       return this.next();
     }
 
-    return { value: this.f(value) };
+    return { done: false, value: this.f(value) };
   }
 
   get [Symbol.toStringTag](): string {
@@ -723,7 +723,7 @@ class TakeWhile<T> extends AsyncBaseIter<T> {
     this.predicate = f;
   }
 
-  next = async (): Promise<Result<T>> => {
+  next = async (): Promise<CheckedResult<T>> => {
     if (this.done) {
       return doneResult();
     }
@@ -731,7 +731,7 @@ class TakeWhile<T> extends AsyncBaseIter<T> {
     const { done, value } = await this.data.next();
 
     if (!(done ?? false) && (await this.predicate(value))) {
-      return { value };
+      return { done: false, value };
     }
 
     this.done = true;

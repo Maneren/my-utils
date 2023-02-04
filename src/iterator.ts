@@ -362,7 +362,7 @@ class Flatten<T> extends BaseIter<Flattened<T>> {
     }
   }
 
-  next(): Result<Flattened<T>> {
+  next(): CheckedResult<Flattened<T>> {
     if (this.done) {
       return doneResult();
     }
@@ -375,7 +375,7 @@ class Flatten<T> extends BaseIter<Flattened<T>> {
       return this.next();
     }
 
-    return { value };
+    return { done: false, value };
   }
 
   get [Symbol.toStringTag](): string {
@@ -408,7 +408,7 @@ class FlatMap<T, U> extends BaseIter<U> {
     }
   }
 
-  next(): Result<U> {
+  next(): CheckedResult<U> {
     if (this.done) {
       return doneResult();
     }
@@ -421,7 +421,7 @@ class FlatMap<T, U> extends BaseIter<U> {
       return this.next();
     }
 
-    return { value: this.f(value) };
+    return { done: false, value: this.f(value) };
   }
 
   get [Symbol.toStringTag](): string {
@@ -717,7 +717,7 @@ class Range extends BaseIter<number> {
     this.ascending = this.step > 0;
   }
 
-  next(): Result<number> {
+  next(): CheckedResult<number> {
     if (this.ascending ? this.i < this.end : this.i > this.end) {
       const { i, step } = this;
       this.i += step;
