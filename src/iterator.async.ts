@@ -62,7 +62,7 @@ export abstract class AsyncBaseIter<T>
 
   flatten = (): Flatten<T> => new Flatten(this);
 
-  flatMap = <U>(f: (value: Flattened<T>) => U): FlatMap<T, U> =>
+  flatMap = <U>(f: (value: T) => Iterable<U> | AsyncIterable<U>): FlatMap<T, U> =>
     new FlatMap(this, f);
 
   inspect = (f: (value: T) => void): Inspect<T> => new Inspect(this, f);
@@ -458,18 +458,23 @@ class Flatten<T> extends AsyncBaseIter<Flattened<T>> {
 
 class FlatMap<T, U> extends AsyncBaseIter<U> {
   data: AsyncIterator<T>;
-  current: AsyncIterator<Flattened<T>> = new Empty();
+  current: AsyncIterator<U> = new Empty();
 
-  f: (value: Flattened<T>) => U;
+  f: (value: T) => AsyncIterable<U> | Iterable<U>;
 
   done = false;
 
-  constructor(data: AsyncIterator<T>, f: (value: Flattened<T>) => U) {
+  constructor(data: AsyncIterator<T>, f: (value: T) => Iterable<U> | AsyncIterable<U>) {
     super();
 
     this.data = data;
     this.f = f;
   }
+
+  private static readonly isAsyncIterable = <U>(
+    value: Iterable<U> | AsyncIterable<U>,
+  ): value is AsyncIterable<U> =>
+    Symbol.asyncIterator in (Object(value) as AsyncIterable<U>);
 
   private async nextIter(): Promise<void> {
     const { done, value } = await this.data.next();
@@ -477,7 +482,10 @@ class FlatMap<T, U> extends AsyncBaseIter<U> {
     if (done ?? false) {
       this.done = true;
     } else {
-      this.current = Flatten.toIterator(value);
+      const next = this.f(value);
+      this.current = FlatMap.isAsyncIterable(next)
+        ? next[Symbol.asyncIterator]()
+        : AsyncIter.fromSync(next);
     }
   }
 
@@ -494,7 +502,7 @@ class FlatMap<T, U> extends AsyncBaseIter<U> {
       return this.next();
     }
 
-    return { done: false, value: this.f(value) };
+    return { done: false, value };
   }
 
   get [Symbol.toStringTag](): string {

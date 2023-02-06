@@ -199,13 +199,15 @@ test("flatten", () => {
 });
 
 test("flatMap", () => {
-  const data = iter([0, [1, 2], [3, 4, 5]]);
+  const data = ["alpha", "beta"];
 
-  const flattened = data.flatMap((x) => x + 1);
+  const f = (s: string) => s.split("");
+  const flatMapped = iter(data).flatMap(f);
+  const expected = iter(data).map(f).flatten();
 
-  expectCollected(flattened, [1, 2, 3, 4, 5, 6]);
+  expectCollected(flatMapped, expected.collect());
 
-  expect(String(flattened)).toBe("[object FlatMap]");
+  expect(String(flatMapped)).toBe("[object FlatMap]");
 });
 
 test("inspect", () => {
@@ -523,8 +525,10 @@ test("incomplete iterator protocol", () => {
   iterator = iter(generatorOfIcompleteGenerators(3)).flatten();
   expectCollected(iterator, [0, 0, 1, 0, 1, 2]);
 
-  iterator = iter(generatorOfIcompleteGenerators(3)).flatMap((x) => x + 1);
-  expectCollected(iterator, [1, 1, 2, 1, 2, 3]);
+  iterator = iter(incompleteGenerator(3)).flatMap((g) =>
+    incompleteGenerator(g + 1),
+  );
+  expectCollected(iterator, [0, 0, 1, 0, 1, 2]);
 
   const fn = jest.fn();
   iterator = iter(incompleteGenerator(4)).inspect(fn);

@@ -243,19 +243,15 @@ test("flatten", async () => {
 });
 
 test("flatMap", async () => {
-  const data = fromSync([0, [1, 2, 3, 4], 5]);
+  const data = ["alpha", "beta"];
 
-  const flattened = data.flatMap((x) => x + 1);
+  const f = (s: string) => s.split("");
+  const flatMapped = fromSync(data).flatMap(f);
+  const expected = fromSync(data).map(f).flatten();
 
-  await expectCollected(flattened, [1, 2, 3, 4, 5, 6]);
+  await expectCollected(flatMapped, await expected.collect());
 
-  expect(String(flattened)).toBe("[object FlatMap]");
-
-  const data2 = fromSync([0, fromSync([1, 2, 3, 4]), 5]);
-
-  const flattened2 = data2.flatMap((x) => x + 1);
-
-  await expectCollected(flattened2, [1, 2, 3, 4, 5, 6]);
+  expect(String(flatMapped)).toBe("[object FlatMap]");
 });
 
 test("inspect", async () => {
@@ -582,8 +578,10 @@ test("incomplete iterator protocol", async () => {
   iterator = asyncIter(generatorOfIcompleteGenerators(3)).flatten();
   await expectCollected(iterator, [0, 0, 1, 0, 1, 2]);
 
-  iterator = asyncIter(generatorOfIcompleteGenerators(3)).flatMap((x) => x + 1);
-  await expectCollected(iterator, [1, 1, 2, 1, 2, 3]);
+  iterator = asyncIter(incompleteGenerator(3)).flatMap((g) =>
+    incompleteGenerator(g + 1),
+  );
+  await expectCollected(iterator, [0, 0, 1, 0, 1, 2]);
 
   const fn = jest.fn();
   iterator = asyncIter(incompleteGenerator(4)).inspect(fn);
