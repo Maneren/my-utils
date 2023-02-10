@@ -605,7 +605,9 @@ test("incomplete iterator protocol", async () => {
   iterator = asyncIter(incompleteGenerator(5)).stepBy(2);
   await expectCollected(iterator, [0, 2, 4]);
 
-  iterator = asyncIter(incompleteGenerator(4)).takeWhile((x) => x < 6);
+  iterator = asyncIter(incompleteGenerator(4)).takeWhile(
+    (x) => x < 6 || x === undefined,
+  );
   await expectCollected(iterator, [0, 1, 2, 3]);
 
   iterator = asyncIter(incompleteGenerator(3));

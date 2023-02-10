@@ -547,7 +547,10 @@ test("incomplete iterator protocol", () => {
   iterator = iter(incompleteGenerator(5)).stepBy(2);
   expectCollected(iterator, [0, 2, 4]);
 
-  iterator = iter(incompleteGenerator(4)).takeWhile((x) => x < 6);
+  // must evaluate true for undefined to correcly test the edge case
+  iterator = iter(incompleteGenerator(4)).takeWhile(
+    (x) => x < 6 || x === undefined,
+  );
   expectCollected(iterator, [0, 1, 2, 3]);
 
   iterator = iter(incompleteGenerator(2)).zip(incompleteGenerator(2));
