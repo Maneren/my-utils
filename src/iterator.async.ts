@@ -62,8 +62,9 @@ export abstract class AsyncBaseIter<T>
 
   flatten = (): Flatten<T> => new Flatten(this);
 
-  flatMap = <U>(f: (value: T) => Iterable<U> | AsyncIterable<U>): FlatMap<T, U> =>
-    new FlatMap(this, f);
+  flatMap = <U>(
+    f: (value: T) => Iterable<U> | AsyncIterable<U>,
+  ): FlatMap<T, U> => new FlatMap(this, f);
 
   inspect = (f: (value: T) => void): Inspect<T> => new Inspect(this, f);
 
@@ -464,7 +465,10 @@ class FlatMap<T, U> extends AsyncBaseIter<U> {
 
   done = false;
 
-  constructor(data: AsyncIterator<T>, f: (value: T) => Iterable<U> | AsyncIterable<U>) {
+  constructor(
+    data: AsyncIterator<T>,
+    f: (value: T) => Iterable<U> | AsyncIterable<U>,
+  ) {
     super();
 
     this.data = data;
