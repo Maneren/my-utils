@@ -22,7 +22,8 @@ type AsyncPredicate<T> = (value: T) => boolean | Promise<boolean>;
 export const empty = <T>(): Empty<T> => new Empty();
 export const once = <T>(value: T): Once<T> => new Once(value);
 export const repeat = <T>(value: T): Repeat<T> => new Repeat(value);
-export const from = <T>(f: () => T): From<T> => new From(f);
+
+export const from = <T>(f: () => Promise<T>): From<T> => new From(f);
 
 export const mapAwaitResult = async <T, U>(
   { done, value }: Result<T>,
@@ -261,22 +262,24 @@ class Repeat<T> extends AsyncBaseIter<T> {
 }
 
 class From<T> extends AsyncBaseIter<T> {
-  f: () => T;
+  f: () => Promise<T>;
 
-  constructor(f: () => T) {
+  constructor(f: () => Promise<T>) {
     super();
     this.f = f;
   }
 
   next = async (): Promise<CheckedResult<T>> => ({
     done: false,
-    value: this.f(),
+    value: await this.f(),
   });
 
   get [Symbol.toStringTag](): string {
     return "From";
   }
 }
+
+type Awaited<T> = T extends Promise<infer F> ? F : never;
 
 class Await<T> extends AsyncBaseIter<Awaited<T>> {
   data: AsyncIterator<T>;

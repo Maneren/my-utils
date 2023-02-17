@@ -157,7 +157,7 @@ test("once", async () => {
 
 test("from", async () => {
   let x = 0;
-  const data = from(() => x++);
+  const data = from(async () => x++);
 
   expect(String(data)).toBe("[object From]");
 
