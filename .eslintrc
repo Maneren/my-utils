@@ -1,0 +1,26 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "ignorePatterns": [
+    "dist/*"
+  ],
+  "extends": [
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
+    "@typescript-eslint/no-empty-function": "off",
+    "prettier/prettier": [
+      "warn",
+      {
+        "trailingComma": "all",
+      }
+    ],
+  }
+}

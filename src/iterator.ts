@@ -99,7 +99,7 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
    */
   collect = (): T[] => [...this];
 
-  consume = (): void => this.forEach((_) => {});
+  consume = (): void => this.forEach((_) => undefined);
 
   count = (): number => this.fold((count) => count + 1, 0);
 

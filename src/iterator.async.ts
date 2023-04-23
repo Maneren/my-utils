@@ -31,7 +31,7 @@ export const mapAwaitResult = async <T, U>(
 ): Promise<CheckedResult<Awaited<U>>> =>
   done ?? false
     ? { done: true, value: undefined }
-    : { done: false, value: await f(value) };
+    : { done: false, value: (await f(value)) as Awaited<U> };
 
 export const doneResult = <T>(): CheckedResult<T> => ({
   done: true,
@@ -106,14 +106,14 @@ export abstract class AsyncBaseIter<T>
    * creates new array from the values of the AsyncIterator
    */
   collect = async (): Promise<T[]> => {
-    let output = [];
-    for await (let x of this) {
+    const output = [];
+    for await (const x of this) {
       output.push(x);
     }
     return output;
   };
 
-  consume = async (): Promise<void> => await this.forEach((_) => {});
+  consume = async (): Promise<void> => await this.forEach((_) => undefined);
 
   count = async (): Promise<number> => await this.fold((count) => count + 1, 0);
 
@@ -544,7 +544,6 @@ class Inspect<T> extends AsyncBaseIter<T> {
   }
 }
 
-// rome-ignore lint: builtin Map is quite uncommon
 class Map<T, U> extends AsyncBaseIter<U> {
   data: AsyncIterator<T>;
   f: (value: T) => U;

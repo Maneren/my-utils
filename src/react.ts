@@ -71,14 +71,14 @@ interface Styles {
  * @param styles imported styles object
  * @returns function that substitues plain CSS classes with their bundled names
  */
-export const classListBuilder =
-  (styles: Styles) =>
+export const classListBuilder = (styles: Styles) => {
   /**
    * function that substitues plain CSS classes with their bundled names
    * @param classNames CSS classes either as `string[]` or `string`, which will be splitted on spaces
    * @returns string with CSS class names from the bundle
    */
-  (classNames: string | string[]): string =>
+  return (classNames: string | string[]): string =>
     (Array.isArray(classNames) ? classNames : classNames.split(" "))
       .map((x) => styles[x] ?? x)
       .join(" ");
+};
