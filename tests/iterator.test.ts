@@ -151,6 +151,47 @@ test("chain", () => {
   expect(String(chained)).toBe("[object Chain]");
 });
 
+test("chunks", () => {
+  const data = iter([0, 1, 2, 3, 4]);
+
+  const chunks = data.chunks(2);
+
+  expectCollected(chunks, [[0, 1], [2, 3], [4]]);
+
+  expect(String(chunks)).toBe("[object Chunks]");
+});
+
+test("chunksExact", () => {
+  const data = iter([0, 1, 2, 3, 4]);
+
+  const chunks = data.chunksExact(2);
+
+  expect(chunks.remainder).toStrictEqual([]);
+
+  expectCollected(chunks, [
+    [0, 1],
+    [2, 3],
+  ]);
+
+  expect(chunks.remainder).toStrictEqual([4]);
+
+  const data2 = iter([0, 1, 2, 3, 4, 5]);
+
+  const chunks2 = data2.chunksExact(2);
+
+  expect(chunks2.remainder).toStrictEqual([]);
+
+  expectCollected(chunks2, [
+    [0, 1],
+    [2, 3],
+    [4, 5],
+  ]);
+
+  expect(chunks2.remainder).toStrictEqual([]);
+
+  expect(String(chunks)).toBe("[object ChunksExact]");
+});
+
 test("enumerate", () => {
   const data = iter([2, 1, 0]);
 
@@ -518,6 +559,16 @@ test("incomplete iterator protocol", () => {
 
   iterator = iter(incompleteGenerator(2)).chain(incompleteGenerator(2));
   expectCollected(iterator, [0, 1, 0, 1]);
+
+  iterator = iter(incompleteGenerator(5)).chunks(2);
+  expectCollected(iterator, [[0, 1], [2, 3], [4]]);
+
+  iterator = iter(incompleteGenerator(5)).chunksExact(2);
+  expectCollected(iterator, [
+    [0, 1],
+    [2, 3],
+  ]);
+  expect(iterator.remainder).toStrictEqual([4]);
 
   iterator = iter([incompleteGenerator(5)]).flatten();
   expectCollected(iterator, [0, 1, 2, 3, 4]);
