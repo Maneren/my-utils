@@ -189,6 +189,47 @@ test("chain", async () => {
   expect(String(chained)).toBe("[object Chain]");
 });
 
+test("chunks", async () => {
+  const data = fromSync([0, 1, 2, 3, 4]);
+
+  const chunks = data.chunks(2);
+
+  await expectCollected(chunks, [[0, 1], [2, 3], [4]]);
+
+  expect(String(chunks)).toBe("[object Chunks]");
+});
+
+test("chunksExact", async () => {
+  const data = fromSync([0, 1, 2, 3, 4]);
+
+  const chunks = data.chunksExact(2);
+
+  expect(chunks.remainder).toStrictEqual([]);
+
+  await expectCollected(chunks, [
+    [0, 1],
+    [2, 3],
+  ]);
+
+  expect(chunks.remainder).toStrictEqual([4]);
+
+  const data2 = fromSync([0, 1, 2, 3, 4, 5]);
+
+  const chunks2 = data2.chunksExact(2);
+
+  expect(chunks2.remainder).toStrictEqual([]);
+
+  await expectCollected(chunks2, [
+    [0, 1],
+    [2, 3],
+    [4, 5],
+  ]);
+
+  expect(chunks2.remainder).toStrictEqual([]);
+
+  expect(String(chunks)).toBe("[object ChunksExact]");
+});
+
 test("enumerate", async () => {
   const data = fromSync([2, 1, 0]);
 
@@ -571,6 +612,16 @@ test("incomplete iterator protocol", async () => {
 
   iterator = asyncIter(incompleteGenerator(2)).chain(incompleteGenerator(2));
   await expectCollected(iterator, [0, 1, 0, 1]);
+
+  iterator = asyncIter(incompleteGenerator(5)).chunks(2);
+  await expectCollected(iterator, [[0, 1], [2, 3], [4]]);
+
+  iterator = asyncIter(incompleteGenerator(5)).chunksExact(2);
+  await expectCollected(iterator, [
+    [0, 1],
+    [2, 3],
+  ]);
+  expect(iterator.remainder).toStrictEqual([4]);
 
   iterator = once(incompleteGenerator(5)).flatten();
   await expectCollected(iterator, [0, 1, 2, 3, 4]);

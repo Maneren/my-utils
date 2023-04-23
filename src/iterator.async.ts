@@ -54,6 +54,10 @@ export abstract class AsyncBaseIter<T>
   chain = (extension: AsyncIterable<T>): Chain<T> =>
     new Chain(this, extension[Symbol.asyncIterator]());
 
+  chunks = (size: number): Chunks<T> => new Chunks(this, size);
+
+  chunksExact = (size: number): ChunksExact<T> => new ChunksExact(this, size);
+
   enumerate = (): Enumerate<T> => new Enumerate(this);
 
   filter = (f: AsyncPredicate<T>): Filter<T> => new Filter(this, f);
@@ -181,6 +185,9 @@ export abstract class AsyncBaseIter<T>
 
     return false;
   };
+
+  sum = async (): Promise<number> =>
+    await this.fold((sum, value) => sum + Number(value), 0);
 
   toSync = async (): Promise<Iter<T>> => iter(await this.collect());
 }
@@ -343,6 +350,77 @@ class Chain<T> extends AsyncBaseIter<T> {
 
   get [Symbol.toStringTag](): string {
     return "Chain";
+  }
+}
+
+class Chunks<T> extends AsyncBaseIter<T[]> {
+  data: AsyncBaseIter<T>;
+  size: number;
+
+  constructor(data: AsyncBaseIter<T>, size: number) {
+    super();
+
+    this.data = data;
+    this.size = size;
+  }
+
+  next = async (): Promise<CheckedResult<T[]>> => {
+    const chunk = [];
+
+    for (let i = 0; i < this.size; i++) {
+      const { done, value } = await this.data.next();
+
+      if (done ?? false) {
+        break;
+      }
+
+      chunk.push(value);
+    }
+
+    return chunk.length === 0 ? doneResult() : { done: false, value: chunk };
+  };
+
+  get [Symbol.toStringTag](): string {
+    return "Chunks";
+  }
+}
+
+class ChunksExact<T> extends AsyncBaseIter<T[]> {
+  data: AsyncBaseIter<T>;
+  size: number;
+
+  remainder: T[] = [];
+
+  constructor(data: AsyncBaseIter<T>, size: number) {
+    super();
+
+    this.data = data;
+    this.size = size;
+  }
+
+  next = async (): Promise<CheckedResult<T[]>> => {
+    const chunk = [];
+
+    for (let i = 0; i < this.size; i++) {
+      const { done, value } = await this.data.next();
+
+      if (done ?? false) {
+        break;
+      }
+
+      chunk.push(value);
+    }
+
+    if (chunk.length < this.size) {
+      this.remainder = chunk;
+      return doneResult();
+    }
+
+    return { done: false, value: chunk };
+  };
+
+  get [Symbol.toStringTag](): string {
+    return "ChunksExact";
   }
 }
 

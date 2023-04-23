@@ -50,6 +50,10 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
   chain = (extension: Iterable<T>): Chain<T> =>
     new Chain(this, extension[Symbol.iterator]());
 
+  chunks = (size: number): Chunks<T> => new Chunks(this, size);
+
+  chunksExact = (size: number): ChunksExact<T> => new ChunksExact(this, size);
+
   enumerate = (): Enumerate<T> => new Enumerate(this);
 
   filter = (f: Predicate<T>): Filter<T> => new Filter(this, f);
@@ -163,6 +167,8 @@ export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
 
     return false;
   };
+
+  sum = (): number => this.fold((sum, value) => sum + Number(value), 0);
 }
 
 export class Iter<T> extends BaseIter<T> {
@@ -285,6 +291,77 @@ class Chain<T> extends BaseIter<T> {
 
   get [Symbol.toStringTag](): string {
     return "Chain";
+  }
+}
+
+class Chunks<T> extends BaseIter<T[]> {
+  data: Iterator<T>;
+  size: number;
+
+  constructor(data: Iterator<T>, size: number) {
+    super();
+
+    this.data = data;
+    this.size = size;
+  }
+
+  next = (): CheckedResult<T[]> => {
+    const chunk = [];
+
+    for (let i = 0; i < this.size; i++) {
+      const { done, value } = this.data.next();
+
+      if (done ?? false) {
+        break;
+      }
+
+      chunk.push(value);
+    }
+
+    return chunk.length === 0 ? doneResult() : { done: false, value: chunk };
+  };
+
+  get [Symbol.toStringTag](): string {
+    return "Chunks";
+  }
+}
+
+class ChunksExact<T> extends BaseIter<T[]> {
+  data: Iterator<T>;
+  size: number;
+
+  remainder: T[] = [];
+
+  constructor(data: Iterator<T>, size: number) {
+    super();
+
+    this.data = data;
+    this.size = size;
+  }
+
+  next = (): CheckedResult<T[]> => {
+    const chunk = [];
+
+    for (let i = 0; i < this.size; i++) {
+      const { done, value } = this.data.next();
+
+      if (done ?? false) {
+        break;
+      }
+
+      chunk.push(value);
+    }
+
+    if (chunk.length < this.size) {
+      this.remainder = chunk;
+      return doneResult();
+    }
+
+    return { done: false, value: chunk };
+  };
+
+  get [Symbol.toStringTag](): string {
+    return "ChunksExact";
   }
 }
 
