@@ -1,9 +1,15 @@
 {
   "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
   "packageManager": "npm",
-  "reporters": ["html", "clear-text", "progress"],
+  "reporters": [
+    "html",
+    "clear-text",
+    "progress"
+  ],
   "testRunner": "jest",
   "coverageAnalysis": "perTest",
   "tsconfigFile": "tsconfig.json",
-  "plugins": ["@stryker-mutator/jest-runner"]
+  "plugins": [
+    "@stryker-mutator/jest-runner"
+  ]
 }
