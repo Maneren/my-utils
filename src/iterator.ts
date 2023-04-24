@@ -293,10 +293,10 @@ class Chain<T> extends BaseIter<T> {
 }
 
 class Chunks<T> extends BaseIter<T[]> {
-  data: Iterator<T>;
+  data: BaseIter<T>;
   size: number;
 
-  constructor(data: Iterator<T>, size: number) {
+  constructor(data: BaseIter<T>, size: number) {
     super();
 
     this.data = data;
@@ -304,17 +304,7 @@ class Chunks<T> extends BaseIter<T[]> {
   }
 
   next = (): CheckedResult<T[]> => {
-    const chunk = [];
-
-    for (let i = 0; i < this.size; i++) {
-      const { done, value } = this.data.next();
-
-      if (done ?? false) {
-        break;
-      }
-
-      chunk.push(value);
-    }
+    const chunk = this.data.take(this.size).collect();
 
     return chunk.length === 0 ? doneResult() : { done: false, value: chunk };
   };
@@ -325,12 +315,12 @@ class Chunks<T> extends BaseIter<T[]> {
 }
 
 class ChunksExact<T> extends BaseIter<T[]> {
-  data: Iterator<T>;
+  data: BaseIter<T>;
   size: number;
 
   remainder: T[] = [];
 
-  constructor(data: Iterator<T>, size: number) {
+  constructor(data: BaseIter<T>, size: number) {
     super();
 
     this.data = data;
@@ -338,17 +328,7 @@ class ChunksExact<T> extends BaseIter<T[]> {
   }
 
   next = (): CheckedResult<T[]> => {
-    const chunk = [];
-
-    for (let i = 0; i < this.size; i++) {
-      const { done, value } = this.data.next();
-
-      if (done ?? false) {
-        break;
-      }
-
-      chunk.push(value);
-    }
+    const chunk = this.data.take(this.size).collect();
 
     if (chunk.length < this.size) {
       this.remainder = chunk;
@@ -531,7 +511,6 @@ class Inspect<T> extends BaseIter<T> {
   }
 }
 
-// rome-ignore lint: builtin Map is quite uncommon
 class Map<T, U> extends BaseIter<U> {
   data: Iterator<T>;
   f: (value: T) => U;

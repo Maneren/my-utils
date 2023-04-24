@@ -362,17 +362,7 @@ class Chunks<T> extends AsyncBaseIter<T[]> {
   }
 
   next = async (): Promise<CheckedResult<T[]>> => {
-    const chunk = [];
-
-    for (let i = 0; i < this.size; i++) {
-      const { done, value } = await this.data.next();
-
-      if (done ?? false) {
-        break;
-      }
-
-      chunk.push(value);
-    }
+    const chunk = await this.data.take(this.size).collect();
 
     return chunk.length === 0 ? doneResult() : { done: false, value: chunk };
   };
@@ -396,17 +386,7 @@ class ChunksExact<T> extends AsyncBaseIter<T[]> {
   }
 
   next = async (): Promise<CheckedResult<T[]>> => {
-    const chunk = [];
-
-    for (let i = 0; i < this.size; i++) {
-      const { done, value } = await this.data.next();
-
-      if (done ?? false) {
-        break;
-      }
-
-      chunk.push(value);
-    }
+    const chunk = await this.data.take(this.size).collect();
 
     if (chunk.length < this.size) {
       this.remainder = chunk;
