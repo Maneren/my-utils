@@ -43,9 +43,7 @@ export abstract class AsyncBaseIter<T>
 {
   abstract next(): Promise<Result<T>>;
 
-  [Symbol.asyncIterator](): AsyncIterableIterator<T> {
-    return this;
-  }
+  [Symbol.asyncIterator] = (): AsyncIterableIterator<T> => this;
 
   abstract get [Symbol.toStringTag](): string;
 

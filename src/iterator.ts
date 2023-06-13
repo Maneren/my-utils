@@ -41,9 +41,7 @@ export const doneResult = <T>(): CheckedResult<T> => ({
 export abstract class BaseIter<T> implements Iterable<T>, Iterator<T> {
   abstract next(): Result<T>;
 
-  [Symbol.iterator](): IterableIterator<T> {
-    return this;
-  }
+  [Symbol.iterator] = (): IterableIterator<T> => this;
 
   abstract get [Symbol.toStringTag](): string;
 
