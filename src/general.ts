@@ -4,7 +4,7 @@
  * @param milis miliseconds to wait
  */
 export const sleep = async (milis: number): Promise<void> =>
-  await new Promise((resolve) => setTimeout(resolve, milis));
+  new Promise((resolve) => setTimeout(resolve, milis));
 
 /**
  * returns random float from min to max.
